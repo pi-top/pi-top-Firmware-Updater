@@ -1,0 +1,17 @@
+#!/usr/bin/python3
+import PiManager
+from HubCommunicator import HubCommunicator
+
+# def verifyFwUpdateSuccess(self): #TODO last
+#     versionOnHardware = self.getFwVersion()
+#     versionFromFile = readfile
+#     "last_confirmed_fw_ver"
+#     if (versionOnHardware > versionFromFile):
+#         update
+#         file
+#         return verifySuccess
+#     return error
+
+hub = HubCommunicator("/home/pi/Desktop/MCU firmware/V04_pi-top45_30leds.bin")
+
+hub.updateFirmware()
