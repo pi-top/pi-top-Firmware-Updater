@@ -1,4 +1,4 @@
 class PiManager(object):
 
-    def getLatestVerifiedFirmwareVersion(self): #TODO
+    def getLatestVerifiedFirmwareVersion(self):  # TODO
         pass

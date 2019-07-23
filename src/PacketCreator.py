@@ -45,7 +45,8 @@ class PacketCreator(object):
     def _readFwDownloadVerifiedPacket(self, packet):  # TODO
         hexOfPacket = binascii.hexlify(bytes(packet)).decode("utf-8")
         packetCRCValue = self._validateAndReturnCRCOfRecivedPacket(hexOfPacket)
-        self._checkReceivedPacketSize(packet, PacketType.FwDownloadVerifiedPacket)
+        self._checkReceivedPacketSize(
+            packet, PacketType.FwDownloadVerifiedPacket)
         self._checkFirstByteOfReceivedPacket(hexOfPacket)
         hexOfPacket = hexOfPacket[10:]
         dataSection = int(hexOfPacket.replace(packetCRCValue, ""))
@@ -60,7 +61,8 @@ class PacketCreator(object):
         self._checkFirstByteOfReceivedPacket(hexOfPacket)
         hexOfPacket = hexOfPacket[10:]
         dataSection = hexOfPacket.replace(packetCRCValue, "")
-        firmwareName = bytes.fromhex(dataSection[2:]).decode('utf-8').strip('\x00')
+        firmwareName = bytes.fromhex(
+            dataSection[2:]).decode('utf-8').strip('\x00')
         firmwareVersion = dataSection[:2]
         return firmwareName, firmwareVersion
 
@@ -71,10 +73,12 @@ class PacketCreator(object):
     def _checkReceivedPacketSize(self, packet, packetType):
         if packetType == PacketType.FwDownloadVerifiedPacket:
             if len(packet) != 8:
-                raise ValueError("FwDownloadVerifiedPacket size is incorrect" + str(len(packet)))
+                raise ValueError(
+                    "FwDownloadVerifiedPacket size is incorrect" + str(len(packet)))
         if packetType == PacketType.FwVersionPacket:
             if len(packet) != 23:
-                raise ValueError("FwVersionPacket size is incorrect" + str(len(packet)))
+                raise ValueError(
+                    "FwVersionPacket size is incorrect" + str(len(packet)))
 
     def _validateAndReturnCRCOfRecivedPacket(self, hexOfPacket):
         receivedCRCValue = hexOfPacket[-4:]
@@ -95,7 +99,8 @@ class PacketCreator(object):
         with open(binFile, 'rb') as f:
             fileData = f.read()
         fileSize = len(fileData)
-        framesList = [fileData[i:i + self.frameLength] for i in range(0, fileSize, self.frameLength)]
+        framesList = [fileData[i:i + self.frameLength]
+                      for i in range(0, fileSize, self.frameLength)]
         return framesList
 
     def intToHexString(self, value, byteLength):

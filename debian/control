@@ -1,0 +1,15 @@
+Source: pt-firmware-updater
+Section: utils
+Priority: optional
+Maintainer: pi-top <deb-maintainers@pi-top.com>
+Build-Depends: debhelper (>= 9), dh-systemd (>= 1.5)
+Standards-Version: 3.8.4
+Homepage: https://pi-top.com/
+
+Package: pt-firmware-updater
+Architecture: armhf
+Depends: ${misc:Depends},
+ ${python3:Depends},
+ python3-pycrc
+Description: pi-top Firmware Updater
+ Ensures pi-top firmware is up to date.

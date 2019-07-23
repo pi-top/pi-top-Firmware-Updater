@@ -5,6 +5,7 @@ from time import sleep
 from library.ptcommon.i2c_device import I2CDevice
 import binascii
 
+
 class HardwareReg(Enum):
     fwStart = 0x01
     fwFlash = 0x02
@@ -20,11 +21,11 @@ class HubCommunicator(object):
         self.i2c_device.connect()
         self.packet = PacketCreator(binFile)
 
-    def sendPacket(self, hardwareReg, packet): #TODO
+    def sendPacket(self, hardwareReg, packet):  # TODO
         self.i2c_device.write_n_bytes(hardwareReg.value, packet)
         sleep(self.sendPacketInterval)
 
-    def receivePacket(self, hardwareReg, packetType): #TODO
+    def receivePacket(self, hardwareReg, packetType):  # TODO
         if(packetType == PacketType.FwVersionPacket):
             return self.i2c_device.read_n_unsigned_bytes(hardwareReg.value, 23)
         elif (packetType == PacketType.FwDownloadVerifiedPacket):
@@ -41,11 +42,13 @@ class HubCommunicator(object):
             self.sendPacket(HardwareReg.fwFlash, packet)
 
     def checkFwDownloadedOnSlave(self):
-        checkFwPacket = self.receivePacket(HardwareReg.checkFwDownloaded, PacketType.FwDownloadVerifiedPacket)
+        checkFwPacket = self.receivePacket(
+            HardwareReg.checkFwDownloaded, PacketType.FwDownloadVerifiedPacket)
         return self.packet.readPacket(PacketType.FwDownloadVerifiedPacket, checkFwPacket)
 
     def getFwVersion(self):
-        fwVersionPacket = self.receivePacket(HardwareReg.fwVer, PacketType.FwVersionPacket)
+        fwVersionPacket = self.receivePacket(
+            HardwareReg.fwVer, PacketType.FwVersionPacket)
         return self.packet.readPacket(PacketType.FwVersionPacket, fwVersionPacket)
 
     def updateFirmware(self):
