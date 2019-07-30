@@ -15,7 +15,7 @@ class HardwareReg(Enum):
 
 
 class HubCommunicator(object):
-    i2c_device = I2CDevice("/dev/i2c-1", 0x09)
+    i2c_device = I2CDevice("/dev/i2c-1", 0x10)
     sendPacketInterval = 0.200
 
     def __init__(self, binFile):
