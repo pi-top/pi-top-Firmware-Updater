@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-if ! sudo i2cdetect -y 1 | grep 11; then
+
+if sudo i2cdetect -y 1 | grep 11; then
   echo "Firmware already upgraded"
   exit 0
 fi
@@ -14,7 +15,7 @@ if [[ $REPLY =~ ^[Nn]$ ]]; then
   exit 1
 fi
 
-/usr/lib/pt-firmware-updater/FwUpdater
+/usr/lib/pt-firmware-updater/src/FwUpdater
 
 sudo systemctl enable pt-sys-oled.service
 
