@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-
-sudo i2cdetect -y 1 | grep 11
-
-if [[ "$?" == 0 ]]; then
+if ! sudo i2cdetect -y 1 | grep 11; then
   echo "Firmware already upgraded"
   exit 0
 fi
@@ -11,11 +8,10 @@ echo "To update the hub you will need to shutdown after installing the firmware.
 
 echo "Do you wish to continue? [Yy|Nn] "
 
-read REPLY <&1
+read -r REPLY <&1
 
-if [[ $REPLY =~ ^[Nn]$ ]]
-then
-    exit 1
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  exit 1
 fi
 
 /usr/lib/pt-firmware-updater/FwUpdater
