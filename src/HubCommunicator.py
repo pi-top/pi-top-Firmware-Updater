@@ -2,7 +2,7 @@ from enum import Enum
 from PacketType import PacketType
 from PacketCreator import PacketCreator
 from time import sleep
-from tcommon.i2c_device import I2CDevice
+from ptcommon.i2c_device import I2CDevice
 import binascii
 
 
@@ -64,9 +64,9 @@ class HubCommunicator(object):
         minorVer = self.packet.readPacket(
             PacketType.FwVersionPacket, fwVersionMinorPacket
         )
-        return majorVer + "." + minorVer
+        return str(majorVer) + "." + str(minorVer)
 
     def updateFirmware(self):
         print(self.getFwVersion())
         self.sendUpdate()
-        print("Firmware bin downloaded ", self.checkFwDownloadedOnSlave())
+        # print("Firmware bin downloaded ", self.checkFwDownloadedOnSlave())
