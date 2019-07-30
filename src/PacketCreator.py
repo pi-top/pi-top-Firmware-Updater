@@ -31,8 +31,9 @@ class PacketCreator(object):
         lastFrame = self.intToHexString(len(self.framesList[-1]), 2)
         fwChecksum = self._getFirmwareChecksum()
         reserved = self.intToHexString(0, 2)
-        return self.Frame.createInitialisingFrame(fwSize, frameSize, totalFrames, lastFrame, fwChecksum,
-                                                  reserved)
+        return self.Frame.createInitialisingFrame(
+            fwSize, frameSize, totalFrames, lastFrame, fwChecksum, reserved
+        )
 
     def _createFwPackets(self):
         framesPacketList = []
@@ -45,8 +46,7 @@ class PacketCreator(object):
     def _readFwDownloadVerifiedPacket(self, packet):  # TODO
         hexOfPacket = binascii.hexlify(bytes(packet)).decode("utf-8")
         packetCRCValue = self._validateAndReturnCRCOfRecivedPacket(hexOfPacket)
-        self._checkReceivedPacketSize(
-            packet, PacketType.FwDownloadVerifiedPacket)
+        self._checkReceivedPacketSize(packet, PacketType.FwDownloadVerifiedPacket)
         self._checkFirstByteOfReceivedPacket(hexOfPacket)
         hexOfPacket = hexOfPacket[10:]
         dataSection = int(hexOfPacket.replace(packetCRCValue, ""))
@@ -61,8 +61,7 @@ class PacketCreator(object):
         self._checkFirstByteOfReceivedPacket(hexOfPacket)
         hexOfPacket = hexOfPacket[10:]
         dataSection = hexOfPacket.replace(packetCRCValue, "")
-        firmwareName = bytes.fromhex(
-            dataSection[2:]).decode('utf-8').strip('\x00')
+        firmwareName = bytes.fromhex(dataSection[2:]).decode("utf-8").strip("\x00")
         firmwareVersion = dataSection[:2]
         return firmwareName, firmwareVersion
 
@@ -74,33 +73,39 @@ class PacketCreator(object):
         if packetType == PacketType.FwDownloadVerifiedPacket:
             if len(packet) != 8:
                 raise ValueError(
-                    "FwDownloadVerifiedPacket size is incorrect" + str(len(packet)))
+                    "FwDownloadVerifiedPacket size is incorrect" + str(len(packet))
+                )
         if packetType == PacketType.FwVersionPacket:
             if len(packet) != 23:
-                raise ValueError(
-                    "FwVersionPacket size is incorrect" + str(len(packet)))
+                raise ValueError("FwVersionPacket size is incorrect" + str(len(packet)))
 
     def _validateAndReturnCRCOfRecivedPacket(self, hexOfPacket):
         receivedCRCValue = hexOfPacket[-4:]
         calculatedCRCValue = self.Frame.getCRC16(hexOfPacket[:-4])
         if receivedCRCValue != calculatedCRCValue:
             raise ValueError(
-                "received CRC value = " + receivedCRCValue + " and calculated CRC value = " + calculatedCRCValue +
-                " are not the same")
+                "received CRC value = "
+                + receivedCRCValue
+                + " and calculated CRC value = "
+                + calculatedCRCValue
+                + " are not the same"
+            )
         return receivedCRCValue
 
     def _getFirmwareChecksum(self):
-        with open(self.binFile, 'rb') as f:
+        with open(self.binFile, "rb") as f:
             fileData = f.read()
-        checksumValue = b'%02X' % (sum(fileData) & 0xFFFFFFFF)
+        checksumValue = b"%02X" % (sum(fileData) & 0xFFFFFFFF)
         return checksumValue.decode("UTF-8").zfill(8)
 
     def _getFramesList(self, binFile):
-        with open(binFile, 'rb') as f:
+        with open(binFile, "rb") as f:
             fileData = f.read()
         fileSize = len(fileData)
-        framesList = [fileData[i:i + self.frameLength]
-                      for i in range(0, fileSize, self.frameLength)]
+        framesList = [
+            fileData[i : i + self.frameLength]
+            for i in range(0, fileSize, self.frameLength)
+        ]
         return framesList
 
     def intToHexString(self, value, byteLength):
