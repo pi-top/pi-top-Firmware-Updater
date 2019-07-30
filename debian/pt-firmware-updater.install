@@ -1,2 +1,3 @@
 bin                                     /usr/lib/pt-firmware-updater/
 src                                     /usr/lib/pt-firmware-updater/
+scripts/pt-firmware-upgrade             /usr/bin/
