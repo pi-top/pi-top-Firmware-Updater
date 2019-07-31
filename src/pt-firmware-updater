@@ -15,7 +15,7 @@ if len(argv) > 2:
         send_packet_interval = float(send_packet_interval_str)
     except Exception as e:
         print("Invalid value for packet interval")
-    exit(1)
+        exit(1)
 else:
     send_packet_interval = 0.2
 

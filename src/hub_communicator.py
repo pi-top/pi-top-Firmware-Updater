@@ -16,14 +16,13 @@ class HardwareReg(Enum):
 
 class HubCommunicator(object):
     def __init__(self, i2c_address, bin_file, send_packet_interval=0.2):
-        self.send_packet_interval = send_packet_interval
         self.i2c_device = I2CDevice("/dev/i2c-1", i2c_address)
+        self._i2c_device.set_delays(send_packet_interval, send_packet_interval)
         self.i2c_device.connect()
         self.packet = PacketCreator(bin_file)
 
     def send_packet(self, hardware_reg, packet):
         self.i2c_device.write_n_bytes(hardware_reg.value, packet)
-        sleep(self.send_packet_interval)
 
     def receive_packet(self, hardware_reg, packet_type):  # TODO
         if packet_type == PacketType.FwVersionPacket:
@@ -34,14 +33,16 @@ class HubCommunicator(object):
             raise ValueError("Incorrect packet type")
 
     def send_update(self):
-        print("Sending update ", end="", flush=True)
         starting_packet = self.packet.create_packets(PacketType.StartingPacket)
         self.send_packet(HardwareReg.fwStart, starting_packet)
         fw_packets = self.packet.create_packets(PacketType.FwPackets)
-        for packet in fw_packets:
-            print(".", end="", flush=True)
+        for i in range(len(fw_packets)):
+            packet = fw_packets[i]
             self.send_packet(HardwareReg.fwFlash, packet)
-        print(" Done!")
+            if i == len(fw_packets) - 1:
+                print("COMPLETE")
+            else:
+                print(f"{i/len(fw_packets)*100:.1f}%", end="\r")
 
     def check_fw_downloaded_on_slave(self):
         check_fw_packet = self.receive_packet(
