@@ -10,9 +10,12 @@ fi
 
 echo "* Stopping device manager so that firmware is upgraded properly"
 sudo systemctl stop pt-device-manager
+echo "COMPLETE"
+echo ""
 
 echo "* Upgrading firmware"
 if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater "0x${hub_addr}" "${send_interval}"; then
+	echo ""
 	echo "Reboot required - press ENTER..."
 	read -r REPLY <&1
 

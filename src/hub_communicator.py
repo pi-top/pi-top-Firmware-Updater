@@ -25,7 +25,7 @@ class HubCommunicator(object):
     def send_packet(self, hardware_reg, packet):
         self.i2c_device.write_n_bytes(hardware_reg.value, packet)
 
-    def receive_packet(self, hardware_reg, packet_type):  # TODO
+    def receive_packet(self, hardware_reg, packet_type):
         if packet_type == PacketType.FwVersionPacket:
             return self.i2c_device.read_n_unsigned_bytes(hardware_reg.value, 23)
         elif packet_type == PacketType.FwDownloadVerifiedPacket:
