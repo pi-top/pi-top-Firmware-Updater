@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+
+if ! i2cdetect -y 1 | grep -q "10 "; then
+  echo "This is not an old pi-top [4] device - exiting..."
+  exit 0
+fi
+
+# Stop device manager so that firmware is upgraded properly
+sudo systemctl stop pt-device-manager
+# Upgrade firmware
+sudo /usr/lib/pt-firmware-updater/pt-firmware-updater
+
+
+echo "Reboot required - press any key to continue..."
+read -r REPLY <&1
+
+sudo shutdown -h now
