@@ -11,7 +11,7 @@ sudo systemctl stop pt-device-manager
 
 echo "Upgrading firmware..."
 if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater; then
-	echo "Reboot required - press any key to continue..."
+	echo "Reboot required - press ENTER..."
 	read -r REPLY <&1
 
 	sudo shutdown -h now
