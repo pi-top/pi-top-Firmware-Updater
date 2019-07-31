@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-import PiManager
-from HubCommunicator import HubCommunicator
+from hub_communicator import HubCommunicator
 
 # def verifyFwUpdateSuccess(self): #TODO last
 #     versionOnHardware = self.getFwVersion()
@@ -15,4 +14,4 @@ from HubCommunicator import HubCommunicator
 
 hub = HubCommunicator("/usr/lib/pt-firmware-updater/bin/hub_I2C_0x11.bin")
 
-hub.updateFirmware()
+hub.update_firmware()
