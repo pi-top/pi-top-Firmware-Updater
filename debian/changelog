@@ -1,3 +1,10 @@
+pt-firmware-updater (1.1.0-1) buster; urgency=medium
+
+  * Improved, generalised interface for upgrading firmware
+  * Currently only supports out-of-date pi-top [4]s with old I2C address
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 31 Jul 2019 13:14:36 +0100
+
 pt-firmware-updater (1.0.0-1) buster; urgency=medium
 
   * Initial release.
