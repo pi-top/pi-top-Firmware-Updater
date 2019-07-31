@@ -16,6 +16,7 @@ class HardwareReg(Enum):
 
 class HubCommunicator(object):
     def __init__(self, i2c_address, bin_file, send_packet_interval=0.2):
+        self.send_packet_interval = send_packet_interval
         self.i2c_device = I2CDevice("/dev/i2c-1", i2c_address)
         self.i2c_device.connect()
         self.packet = PacketCreator(bin_file)
