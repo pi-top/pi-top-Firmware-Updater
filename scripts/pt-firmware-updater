@@ -20,4 +20,7 @@ if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater "0x${hub_addr}" "${send
 	read -r REPLY <&1
 
 	sudo shutdown -h now
+else:
+	echo ""
+	print("ERROR - please try again.")
 fi
