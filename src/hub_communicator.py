@@ -22,7 +22,7 @@ class HubCommunicator(object):
         self.i2c_device.connect()
         self.packet = PacketCreator(bin_file)
 
-    def send_packet(self, hardware_reg, packet):  # TODO
+    def send_packet(self, hardware_reg, packet):
         self.i2c_device.write_n_bytes(hardware_reg.value, packet)
         sleep(self.sendPacketInterval)
 
@@ -35,12 +35,14 @@ class HubCommunicator(object):
             raise ValueError("Incorrect packet type")
 
     def send_update(self):
-        starting_packet = self.packet.create_packet(PacketType.StartingPacket)
+        print("Sending update ", end="", flush=True)
+        starting_packet = self.packet.create_packets(PacketType.StartingPacket)
         self.send_packet(HardwareReg.fwStart, starting_packet)
-        fw_packets = self.packet.create_packet(PacketType.FwPackets)
+        fw_packets = self.packet.create_packets(PacketType.FwPackets)
         for packet in fw_packets:
-            print(binascii.hexlify(bytearray(packet)))
+            print(".", end="", flush=True)
             self.send_packet(HardwareReg.fwFlash, packet)
+        print(" Done!")
 
     def check_fw_downloaded_on_slave(self):
         check_fw_packet = self.receive_packet(
@@ -67,6 +69,6 @@ class HubCommunicator(object):
         return str(major_ver) + "." + str(minor_ver)
 
     def update_firmware(self):
-        print(self.get_fw_version())
+        #print(self.get_fw_version())
         self.send_update()
-        print("Firmware bin downloaded ", self.check_fw_downloaded_on_slave())
+        # print("Firmware bin downloaded ", self.check_fw_downloaded_on_slave())

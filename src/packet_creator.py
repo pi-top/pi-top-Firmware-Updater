@@ -11,7 +11,7 @@ class PacketCreator(object):
         self.binFile = bin_file
         self.framesList = self._get_frames_list(bin_file)
 
-    def create_packet(self, packet_type):
+    def create_packets(self, packet_type):
         if packet_type == PacketType.StartingPacket:
             return self._create_starting_packet()
         if packet_type == PacketType.FwPackets:

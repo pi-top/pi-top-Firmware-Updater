@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from hub_communicator import HubCommunicator
+
+hub = HubCommunicator("/usr/lib/pt-firmware-updater/bin/hub_I2C_0x11.bin")
+
+hub.update_firmware()
