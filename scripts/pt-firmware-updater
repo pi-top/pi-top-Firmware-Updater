@@ -6,13 +6,13 @@ if ! i2cdetect -y 1 | grep -q "10 "; then
   exit 0
 fi
 
-# Stop device manager so that firmware is upgraded properly
+echo "Stopping device manager so that firmware is upgraded properly"
 sudo systemctl stop pt-device-manager
-# Upgrade firmware
-sudo /usr/lib/pt-firmware-updater/pt-firmware-updater
 
+echo "Upgrading firmware..."
+if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater; then
+	echo "Reboot required - press any key to continue..."
+	read -r REPLY <&1
 
-echo "Reboot required - press any key to continue..."
-read -r REPLY <&1
-
-sudo shutdown -h now
+	sudo shutdown -h now
+fi
