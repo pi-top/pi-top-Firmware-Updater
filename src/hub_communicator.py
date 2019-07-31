@@ -69,6 +69,6 @@ class HubCommunicator(object):
         return str(major_ver) + "." + str(minor_ver)
 
     def update_firmware(self):
-        #print(self.get_fw_version())
+        # print(self.get_fw_version())
         self.send_update()
         # print("Firmware bin downloaded ", self.check_fw_downloaded_on_slave())
