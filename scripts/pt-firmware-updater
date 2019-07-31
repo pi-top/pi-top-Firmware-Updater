@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 hub_addr=10
-send_interval=0.01
+send_interval=0.02
 
 if ! i2cdetect -y 1 | grep -q "${hub_addr} "; then
   echo "This is not an old pi-top [4] device - exiting..."
