@@ -1,7 +1,16 @@
 #!/usr/bin/python3
 
 from hub_communicator import HubCommunicator
+from sys import argv, exit
 
-hub = HubCommunicator("/usr/lib/pt-firmware-updater/bin/hub_I2C_0x11.bin")
+if len(argv) > 1:
+    i2c_addr = argv[1]
+else:
+    # TODO: automatically get from host information
+    print("I2C address required")
+    exit 1
+
+hub = HubCommunicator(int(
+    i2c_addr, 16), "/usr/lib/pt-firmware-updater/bin/hub_I2C_0x11.bin", send_packet_interval=0.1)
 
 hub.update_firmware()

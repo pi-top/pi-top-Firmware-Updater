@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+hub_addr=10
 
-if ! i2cdetect -y 1 | grep -q "10 "; then
+if ! i2cdetect -y 1 | grep -q "${hub_addr} "; then
   echo "This is not an old pi-top [4] device - exiting..."
   exit 0
 fi
@@ -10,7 +11,7 @@ echo "Stopping device manager so that firmware is upgraded properly"
 sudo systemctl stop pt-device-manager
 
 echo "Upgrading firmware..."
-if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater; then
+if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater "0x${hub_addr}"; then
 	echo "Reboot required - press ENTER..."
 	read -r REPLY <&1
 
