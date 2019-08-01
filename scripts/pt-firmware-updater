@@ -22,5 +22,5 @@ if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater "0x${hub_addr}" "${send
 	sudo shutdown -h now
 else:
 	echo ""
-	print("ERROR - please try again.")
+	echo "ERROR - please try again."
 fi
