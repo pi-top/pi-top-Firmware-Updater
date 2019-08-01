@@ -2,7 +2,7 @@ pt-firmware-updater (1.1.1-1) buster; urgency=medium
 
   * Fix python style print in bash script
 
- -- Choudhry Amjad <choudhry@pi-top.com>  Wed, 31 Jul 2019 13:14:36 +0100
+ -- Choudhry Amjad <choudhry@pi-top.com>  Thu, 01 Aug 2019 15:40:21 +0100
 
 pt-firmware-updater (1.1.0-1) buster; urgency=medium
 
