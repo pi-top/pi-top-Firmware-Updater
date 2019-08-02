@@ -1,6 +1,6 @@
 pt-firmware-updater (1.1.2-1) buster; urgency=medium
 
-  * Run shfmt on bash script explicitly
+  * Apply shfmt formatting
 
  -- Choudhry Amjad <choudhry@pi-top.com>  Fri, 02 Aug 2019 10:07:02 +0100
 
