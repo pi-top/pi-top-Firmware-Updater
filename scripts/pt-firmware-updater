@@ -4,8 +4,8 @@ hub_addr=10
 send_interval=0.02
 
 if ! i2cdetect -y 1 | grep -q "${hub_addr} "; then
-  echo "This is not an old pi-top [4] device - exiting..."
-  exit 0
+	echo "This is not an old pi-top [4] device - exiting..."
+	exit 0
 fi
 
 echo "* Stopping device manager so that firmware is upgraded properly"
@@ -20,7 +20,7 @@ if sudo /usr/lib/pt-firmware-updater/pt-firmware-updater "0x${hub_addr}" "${send
 	read -r REPLY <&1
 
 	sudo shutdown -h now
-else:
+else
 	echo ""
 	echo "ERROR - please try again."
 fi
