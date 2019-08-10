@@ -15,7 +15,7 @@ node ('master') {
         buildGenericPkg()
     }
     stage ('Test') {
-        // runPythonUnitTesting(env.WORKSPACE + "/pt-update/tests/", env.WORKSPACE + "/pt-update/src/")
+        // runPythonUnitTesting(env.WORKSPACE + "/pt-firmware-updater/tests/", env.WORKSPACE + "/pt-firmware-updater/src/")
         checkSymLinks()
         shellcheck()
         try {
