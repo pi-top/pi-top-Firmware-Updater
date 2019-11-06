@@ -1,8 +1,10 @@
-from enum import Enum
-from packet_type import PacketType
-from packet_creator import PacketCreator
-from time import sleep
+from .packet_type import PacketType
+from .packet_creator import PacketCreator
+
 from ptcommon.i2c_device import I2CDevice
+
+from enum import Enum
+from time import sleep
 import binascii
 
 

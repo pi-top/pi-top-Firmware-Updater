@@ -1,5 +1,6 @@
-from packet_type import PacketType
-from frame_creator import FrameCreator, get_crc16
+from .packet_type import PacketType
+from .frame_creator import FrameCreator, get_crc16
+
 import binascii
 import os
 
