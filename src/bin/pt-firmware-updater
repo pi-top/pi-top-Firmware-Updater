@@ -1,0 +1,34 @@
+#!/usr/bin/python3
+
+from argparse import ArgumentParser
+from hub_communicator import HubCommunicator
+from sys import argv, exit
+
+if len(argv) < 2:
+    # TODO: automatically get from host information
+    print("I2C address required")
+    exit(1)
+
+parser = ArgumentParser(description="pi-top update checker")
+parser.add_argument(
+    "--addr",
+    type=lambda x: int(x, 0),  # hex or int
+    help="set the I2C address to target for upgrade",
+)
+parser.add_argument(
+    "--file",
+    type=str,
+    help="path to firmware bin file",
+)
+parser.add_argument(
+    "--interval",
+    type=float,
+    help="set the packet interval speed",
+    default=0.2
+)
+
+args = parser.parse_args()
+
+hub = HubCommunicator(args.addr, args.file, args.interval)
+
+hub.update_firmware()
