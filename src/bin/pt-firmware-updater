@@ -22,10 +22,14 @@ parser.add_argument(
     "--interval",
     type=float,
     help="set the packet interval speed",
-    default=0.2
+    default=0.1
 )
 
 args = parser.parse_args()
+
+# TODO: check that hardware version is compatible
+
+# TODO: check that I2C lock is not taken
 
 # TODO: Low priority - If address not defined, ask user to specify or auto-detect if only hub is available
 
