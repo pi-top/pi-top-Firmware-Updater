@@ -97,10 +97,8 @@ if not args.test:
     fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
     print("Firmware File Path:", str(fw_file_path))
 
-    device.set_fw_file_to_install(fw_file_path)
-
     print("\nInstalling...")
-    device.update_firmware()
+    device.update_firmware(fw_file_path)
     sleep(0.1)  # Wait for MCU before verifying
     print()
 

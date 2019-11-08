@@ -32,8 +32,11 @@ class FirmwareDevice(object):
 
         self._packet = PacketManager()
 
-    def set_fw_file_to_install(self, bin_file):
-        self._packet.set_fw_file_to_install(bin_file)
+    def get_part_number(self):
+        return self._i2c_device.read_unsigned_word(DeviceInfo.ID__PART_NUMBER)
+
+    def get_sch_hardware_version_major(self):
+        return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__SCH_REV_MAJOR)
 
     def get_fw_version(self):
         major_ver = self._get_mcu_software_version_major()
@@ -41,13 +44,17 @@ class FirmwareDevice(object):
 
         return str(major_ver) + "." + str(minor_ver)
 
-    def update_firmware(self):
+    def update_firmware(self, bin_file):
+        self._packet.set_fw_file_to_install(bin_file)
+
         starting_packet = self._packet.create_packets(PacketType.StartingPacket)
         self._send_packet(DeviceInfo.FW__UPGRADE_START, starting_packet)
+
         fw_packets = self._packet.create_packets(PacketType.FwPackets)
         for i in range(len(fw_packets)):
             packet = fw_packets[i]
             self._send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
+
             if i == len(fw_packets) - 1:
                 print("COMPLETE")
             else:
@@ -63,12 +70,6 @@ class FirmwareDevice(object):
 
     def _get_mcu_software_version_minor(self):
         return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__MCU_SOFT_VERS_MINOR)
-
-    def get_part_number(self):
-        return self._i2c_device.read_unsigned_word(DeviceInfo.ID__PART_NUMBER)
-
-    def get_sch_hardware_version_major(self):
-        return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__SCH_REV_MAJOR)
 
     def _send_packet(self, hardware_reg, packet):
         self._i2c_device.write_n_bytes(hardware_reg, packet)
