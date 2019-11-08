@@ -8,6 +8,15 @@ from sys import argv, exit, path
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_device import FirmwareDevice
 
+
+def is_root():
+    return os.geteuid() == 0
+
+
+if not is_root():
+    print("This program requires root privileges. Run as root using 'sudo'.")
+    exit()
+
 parser = ArgumentParser(description="pi-top update checker")
 parser.add_argument(
     "-a",
