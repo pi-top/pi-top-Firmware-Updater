@@ -13,7 +13,7 @@ parser.add_argument(
     "--addr",
     type=lambda x: int(x, 0),  # hex or int
     help="set the I2C address to target for upgrade",
-    required=True,
+    default=None,
 )
 parser.add_argument(
     "-f",
@@ -52,9 +52,14 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+if args.addr is None:
+    print("No I2C address set - assuming hub at 0x11...")
+    args.addr = 0x11
+    print()
+
 device = FirmwareDevice(args.addr, args.interval)
 
-
+print("Reading from device...")
 part_no = device.get_part_number()
 print("Part Number:", str(part_no))
 
@@ -106,7 +111,7 @@ if not args.test:
     # TODO: debug_print("Searching in Firmware Path:", str(fw_path))
     fw_to_install = get_latest_firmware_version_to_install(fw_path)
 
-    print("Firmware Version To Install:", str(fw_to_install))
+    print("Candidate Firmware Version:", str(fw_to_install), "\n")
 
     if StrictVersion(current_fw_version) >= StrictVersion(fw_to_install):
         print("Firmware version candidate is not newer than current firmware. Exiting...")
@@ -117,8 +122,9 @@ if not args.test:
 
     device.set_fw_file_to_install(fw_file_path)
 
-    print("\n\nInstalling...")
+    print("\nInstalling...")
     device.update_firmware()
+    print()
 
 
 print("\n\nVerifying firmware installed correctly...")
