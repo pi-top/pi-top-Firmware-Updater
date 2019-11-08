@@ -8,7 +8,7 @@ import binascii
 
 
 # Taken from hubv3 class
-# TODO: move to common library
+# TODO: move to common library, as this is common to all firmware-upgradable devices
 class DeviceInfo:
     FW__UPGRADE_START = 0x01
     FW__UPGRADE_PACKET = 0x02

@@ -3,6 +3,7 @@
 import os
 from distutils.version import StrictVersion
 from argparse import ArgumentParser
+from time import sleep
 from sys import argv, exit, path
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_device import FirmwareDevice
@@ -16,12 +17,6 @@ parser.add_argument(
     default=None,
 )
 parser.add_argument(
-    "-f",
-    "--file",
-    type=str,
-    help="path to firmware bin file",
-)
-parser.add_argument(
     "-i",
     "--interval",
     type=float,
@@ -29,25 +24,11 @@ parser.add_argument(
     default=0.1
 )
 parser.add_argument(
-    "-y",
-    "--yes",
-    action="store_true",
-    help="automatically install firmware without confirmation",
-    default=False
-)
-parser.add_argument(
     "-t",
     "--test",
     action="store_true",
     help="only check if firmware ran successfully",
     default=False
-)
-parser.add_argument(
-    "-v",
-    "--verbose",
-    action="store_true",
-    help="print out debug information",
-    default=False,
 )
 
 args = parser.parse_args()
@@ -85,13 +66,14 @@ def get_latest_firmware_version_to_install(fw_path):
         print(fw_path, "Firmware path not found for device - exiting...")
         exit(1)
 
-    latest_fw_version = None
+    candidate_latest_fw_version = 0
     with os.scandir(fw_path) as i:
         for entry in i:
             if entry.is_file():
                 if entry.name.endswith(".bin"):
-                    # TODO: Extract version - check if it's the largest version
-                    latest_fw_version = entry.name.replace(".bin", "")
+                    firmware_version_under_inspection = entry.name.replace(".bin", "")
+                    if StrictVersion(firmware_version_under_inspection) >= StrictVersion(candidate_latest_fw_version):
+                        candidate_latest_fw_version = firmware_version_under_inspection
 
     if latest_fw_version is None:
         print("No firmware found in firmware path", fw_path, "- exiting...")
@@ -101,14 +83,9 @@ def get_latest_firmware_version_to_install(fw_path):
 
 
 if not args.test:
-    # if args.yes is None:
-    #    TODO: ask user to confirm operation
-    #    pass
-
-    # TODO: If file specifically provided, check that file exists and attempt to force install
     fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
 
-    # TODO: debug_print("Searching in Firmware Path:", str(fw_path))
+    print("Searching in Firmware Path:", str(fw_path))
     fw_to_install = get_latest_firmware_version_to_install(fw_path)
 
     print("Candidate Firmware Version:", str(fw_to_install), "\n")
@@ -118,12 +95,13 @@ if not args.test:
         exit(1)
 
     fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
-    # TODO: debug_print("Firmware File Path:", str(fw_file_path))
+    print("Firmware File Path:", str(fw_file_path))
 
     device.set_fw_file_to_install(fw_file_path)
 
     print("\nInstalling...")
     device.update_firmware()
+    sleep(0.1)  # Wait for MCU before verifying
     print()
 
 
