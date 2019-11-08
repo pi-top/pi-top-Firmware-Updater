@@ -1,0 +1,134 @@
+#!/usr/bin/python3
+
+import os
+from distutils.version import StrictVersion
+from argparse import ArgumentParser
+from time import sleep
+from sys import argv, exit, path
+path.append("/usr/lib/pt-firmware-updater/")
+from firmware_device import FirmwareDevice
+
+
+def is_root():
+    return os.geteuid() == 0
+
+
+if not is_root():
+    print("This program requires root privileges. Run as root using 'sudo'.")
+    exit()
+
+parser = ArgumentParser(description="pi-top update checker")
+parser.add_argument(
+    "-a",
+    "--addr",
+    type=lambda x: int(x, 0),  # hex or int
+    help="set the I2C address to target for upgrade",
+    default=None,
+)
+parser.add_argument(
+    "-i",
+    "--interval",
+    type=float,
+    help="set the packet interval speed",
+    default=0.1
+)
+parser.add_argument(
+    "-t",
+    "--test",
+    action="store_true",
+    help="only check if firmware ran successfully",
+    default=False
+)
+
+args = parser.parse_args()
+
+if args.addr is None:
+    print("No I2C address set - assuming hub at 0x11...")
+    args.addr = 0x11
+    print()
+
+device = FirmwareDevice(args.addr, args.interval)
+
+print("Reading from device...")
+part_no = device.get_part_number()
+print("Part Number:", str(part_no))
+
+
+sch_hardware_version_major = device.get_sch_hardware_version_major()
+print("Target Board Number:", str(sch_hardware_version_major))
+
+
+current_fw_version = device.get_fw_version()
+print("Current Firmware Version:", str(current_fw_version))
+
+
+def get_firmware_dir(part, board):
+    return os.path.join(
+        "/usr/lib/pt-firmware-updater/bin/",
+        "p" + str(part),
+        "b" + str(board),
+    )
+
+
+def get_latest_fw_version_to_install(fw_path):
+    if not os.path.exists(fw_path):
+        print(fw_path, "Firmware path not found for device - exiting...")
+        exit(1)
+
+    candidate_latest_fw_version = "0.0"
+    with os.scandir(fw_path) as i:
+        for entry in i:
+            if entry.is_file():
+                if entry.name.endswith(".bin"):
+                    fw_version_under_inspection = entry.name.replace(".bin", "")
+
+                    success = False
+                    try:
+                        StrictVersion(fw_version_under_inspection)
+                        success = True
+
+                    except ValueError:
+                        print("Skipping invalid firmware file:", entry.name)
+
+                    if success:
+                        if StrictVersion(fw_version_under_inspection) >= StrictVersion(candidate_latest_fw_version):
+                            candidate_latest_fw_version = fw_version_under_inspection
+
+    if candidate_latest_fw_version == 0:
+        print("No firmware found in firmware path", fw_path, "- exiting...")
+        exit(1)
+
+    return candidate_latest_fw_version
+
+
+if not args.test:
+    fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
+
+    print("Searching in Firmware Path:", str(fw_path))
+    fw_to_install = get_latest_fw_version_to_install(fw_path)
+
+    print("Candidate Firmware Version:", str(fw_to_install), "\n")
+
+    if StrictVersion(current_fw_version) >= StrictVersion(fw_to_install):
+        print("Firmware version candidate is not newer than current firmware. Exiting...")
+        exit(1)
+
+    fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
+    print("Firmware File Path:", str(fw_file_path))
+
+    print("\nInstalling...")
+    device.update_firmware(fw_file_path)
+    sleep(0.1)  # Wait for MCU before verifying
+    print()
+
+
+print("\n\nVerifying firmware installed correctly...")
+if device.fw_downloaded_successfully():
+
+    print("SUCCESS")
+    exit(0)
+
+else:
+
+    print("FAIL")
+    exit(1)

@@ -25,3 +25,5 @@ repos:
     rev: v1.4.4
     hooks:
     -   id: autopep8
+        name: autopep8-default
+        args: ["-i", "--ignore=E226,E24,W50,W690,E402", "--max-line-length=150"]
