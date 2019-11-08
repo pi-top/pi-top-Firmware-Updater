@@ -61,32 +61,42 @@ def get_firmware_dir(part, board):
     )
 
 
-def get_latest_firmware_version_to_install(fw_path):
+def get_latest_fw_version_to_install(fw_path):
     if not os.path.exists(fw_path):
         print(fw_path, "Firmware path not found for device - exiting...")
         exit(1)
 
-    candidate_latest_fw_version = 0
+    candidate_latest_fw_version = "0.0"
     with os.scandir(fw_path) as i:
         for entry in i:
             if entry.is_file():
                 if entry.name.endswith(".bin"):
-                    firmware_version_under_inspection = entry.name.replace(".bin", "")
-                    if StrictVersion(firmware_version_under_inspection) >= StrictVersion(candidate_latest_fw_version):
-                        candidate_latest_fw_version = firmware_version_under_inspection
+                    fw_version_under_inspection = entry.name.replace(".bin", "")
 
-    if latest_fw_version is None:
+                    success = False
+                    try:
+                        StrictVersion(fw_version_under_inspection)
+                        success = True
+
+                    except ValueError:
+                        print("Skipping invalid firmware file:", entry.name)
+
+                    if success:
+                        if StrictVersion(fw_version_under_inspection) >= StrictVersion(candidate_latest_fw_version):
+                            candidate_latest_fw_version = fw_version_under_inspection
+
+    if candidate_latest_fw_version == 0:
         print("No firmware found in firmware path", fw_path, "- exiting...")
         exit(1)
 
-    return (latest_fw_version)
+    return candidate_latest_fw_version
 
 
 if not args.test:
     fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
 
     print("Searching in Firmware Path:", str(fw_path))
-    fw_to_install = get_latest_firmware_version_to_install(fw_path)
+    fw_to_install = get_latest_fw_version_to_install(fw_path)
 
     print("Candidate Firmware Version:", str(fw_to_install), "\n")
 
