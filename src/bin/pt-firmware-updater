@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+from distutils.version import StrictVersion
 from argparse import ArgumentParser
 from sys import argv, exit, path
 path.append("/usr/lib/pt-firmware-updater/")
@@ -62,8 +63,8 @@ sch_hardware_version_major = device.get_sch_hardware_version_major()
 print("Target Board Number:", str(sch_hardware_version_major))
 
 
-fw_version = device.get_fw_version()
-print("Current Firmware Version:", str(fw_version))
+current_fw_version = device.get_fw_version()
+print("Current Firmware Version:", str(current_fw_version))
 
 
 def get_firmware_dir(part, board):
@@ -106,6 +107,10 @@ if not args.test:
     fw_to_install = get_latest_firmware_version_to_install(fw_path)
 
     print("Firmware Version To Install:", str(fw_to_install))
+
+    if StrictVersion(current_fw_version) >= StrictVersion(fw_to_install):
+        print("Firmware version candidate is not newer than current firmware. Exiting...")
+        exit(1)
 
     fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
     # TODO: debug_print("Firmware File Path:", str(fw_file_path))
