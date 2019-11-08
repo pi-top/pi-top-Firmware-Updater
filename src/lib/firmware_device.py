@@ -1,5 +1,4 @@
-from packet_type import PacketType
-from packet_creator import PacketCreator
+from packet_manager import PacketManager, PacketType
 
 from ptcommon.i2c_device import I2CDevice
 
@@ -27,13 +26,11 @@ class DeviceInfo:
 
 class FirmwareDevice(object):
     def __init__(self, i2c_address, send_packet_interval):
-        print("Creating a firmware device with I2C address", str(i2c_address))
-
         self._i2c_device = I2CDevice("/dev/i2c-1", i2c_address)
         self._i2c_device.set_delays(send_packet_interval, send_packet_interval)
         self._i2c_device.connect()
 
-        self._packet = PacketCreator()
+        self._packet = PacketManager()
 
     def set_fw_file_to_install(self, bin_file):
         self._packet.set_fw_file_to_install(bin_file)
@@ -43,6 +40,23 @@ class FirmwareDevice(object):
         minor_ver = self._get_mcu_software_version_minor()
 
         return str(major_ver) + "." + str(minor_ver)
+
+    def update_firmware(self):
+        starting_packet = self._packet.create_packets(PacketType.StartingPacket)
+        self._send_packet(DeviceInfo.FW__UPGRADE_START, starting_packet)
+        fw_packets = self._packet.create_packets(PacketType.FwPackets)
+        for i in range(len(fw_packets)):
+            packet = fw_packets[i]
+            self._send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
+            if i == len(fw_packets) - 1:
+                print("COMPLETE")
+            else:
+                print(f"{i/len(fw_packets)*100:.1f}%", end="\r")
+
+    def fw_downloaded_successfully(self):
+        check_fw_packet = self._i2c_device.read_n_unsigned_bytes(DeviceInfo.FW__CHECK_FW_OKAY, 8)
+
+        return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
     def _get_mcu_software_version_major(self):
         return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__MCU_SOFT_VERS_MAJOR)
@@ -56,38 +70,5 @@ class FirmwareDevice(object):
     def get_sch_hardware_version_major(self):
         return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__SCH_REV_MAJOR)
 
-    def update_firmware(self):
-        # print(self.get_fw_version())
-        self._perform_update()
-        # print("Firmware bin downloaded ", self._check_fw_downloaded_on_slave())
-
     def _send_packet(self, hardware_reg, packet):
         self._i2c_device.write_n_bytes(hardware_reg, packet)
-
-    def _receive_packet(self, hardware_reg, packet_type):
-        if packet_type == PacketType.FwVersionPacket:
-            return self._i2c_device.read_n_unsigned_bytes(hardware_reg, 23)
-        elif packet_type == PacketType.FwDownloadVerifiedPacket:
-            return self._i2c_device.read_n_unsigned_bytes(hardware_reg, 8)
-        else:
-            raise ValueError("Incorrect packet type")
-
-    def _perform_update(self):
-        starting_packet = self._packet.create_packets(PacketType.StartingPacket)
-        self._send_packet(DeviceInfo.FW__UPGRADE_START, starting_packet)
-        fw_packets = self._packet.create_packets(PacketType.FwPackets)
-        for i in range(len(fw_packets)):
-            packet = fw_packets[i]
-            self._send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
-            if i == len(fw_packets) - 1:
-                print("COMPLETE")
-            else:
-                print(f"{i/len(fw_packets)*100:.1f}%", end="\r")
-
-    def _check_fw_downloaded_on_slave(self):
-        check_fw_packet = self._receive_packet(
-            DeviceInfo.FW__CHECK_FW_OKAY, PacketType.FwDownloadVerifiedPacket
-        )
-        return self._packet.read_packet(
-            PacketType.FwDownloadVerifiedPacket, check_fw_packet
-        )

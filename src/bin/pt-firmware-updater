@@ -30,32 +30,38 @@ parser.add_argument(
 parser.add_argument(
     "-y",
     "--yes",
-    type=float,
+    action="store_true",
     help="automatically install firmware without confirmation",
+    default=False
+)
+parser.add_argument(
+    "-t",
+    "--test",
+    action="store_true",
+    help="only check if firmware ran successfully",
     default=False
 )
 parser.add_argument(
     "-v",
     "--verbose",
-    type=float,
+    action="store_true",
     help="print out debug information",
-    default=False
+    default=False,
 )
 
 args = parser.parse_args()
 
-# Check lock file - attempt to get I2C Device
 device = FirmwareDevice(args.addr, args.interval)
 
-# Determine part number - throw error if it's not valid
+
 part_no = device.get_part_number()
 print("Part Number:", str(part_no))
 
-# Get firmware's target board major version number
+
 sch_hardware_version_major = device.get_sch_hardware_version_major()
 print("Target Board Number:", str(sch_hardware_version_major))
 
-# Get current firmware version from device
+
 fw_version = device.get_fw_version()
 print("Current Firmware Version:", str(fw_version))
 
@@ -88,26 +94,35 @@ def get_latest_firmware_version_to_install(fw_path):
     return (latest_fw_version)
 
 
-# if args.file is not None:
-#     # TODO: If file provided, check that file exists and attempt to force install
-#     pass
-# else:
-#     get_latest_firmware_version_to_install()
-fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
+if not args.test:
+    # if args.yes is None:
+    #    TODO: ask user to confirm operation
+    #    pass
 
-# Print operation to be performed
-print("Searching in Firmware Path:", str(fw_path))
-fw_to_install = get_latest_firmware_version_to_install(fw_path)
-print("Firmware Version To Install:", str(fw_to_install))
+    # TODO: If file specifically provided, check that file exists and attempt to force install
+    fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
+
+    # TODO: debug_print("Searching in Firmware Path:", str(fw_path))
+    fw_to_install = get_latest_firmware_version_to_install(fw_path)
+
+    print("Firmware Version To Install:", str(fw_to_install))
+
+    fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
+    # TODO: debug_print("Firmware File Path:", str(fw_file_path))
+
+    device.set_fw_file_to_install(fw_file_path)
+
+    print("\n\nInstalling...")
+    device.update_firmware()
 
 
-device.set_fw_file_to_install(os.path.join(fw_path, fw_to_install + ".bin"))
+print("\n\nVerifying firmware installed correctly...")
+if device.fw_downloaded_successfully():
 
+    print("SUCCESS")
+    exit(0)
 
-# if args.yes is None:
-#    TODO: ask user to confirm operation
-#    pass
+else:
 
-
-# Install
-device.update_firmware()
+    print("FAIL")
+    exit(1)
