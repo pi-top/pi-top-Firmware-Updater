@@ -1,5 +1,5 @@
-from .packet_type import PacketType
-from .frame_creator import FrameCreator, get_crc16
+from packet_type import PacketType
+from frame_creator import FrameCreator, get_crc16
 
 import binascii
 import os
@@ -8,9 +8,11 @@ import os
 class PacketCreator(object):
     frame_length = 256
 
-    def __init__(self, bin_file):
+    def __init__(self):
+        self.bin_file = None
+
+    def set_fw_file_to_install(bin_file):
         self.bin_file = bin_file
-        self.frames_list = self._get_frames_list(bin_file)
 
     def create_packets(self, packet_type):
         if packet_type == PacketType.StartingPacket:
@@ -25,12 +27,15 @@ class PacketCreator(object):
             return self._read_fw_version_packet(packet)
 
     def _create_starting_packet(self):
+        if self.bin_file is None:
+            raise Exception("No binary file specified")
+
         fw_size = PacketCreator.int_to_hex_string(
             os.path.getsize(self.bin_file), 4)
         frame_size = PacketCreator.int_to_hex_string(self.frame_length, 2)
-        total_frames = PacketCreator.int_to_hex_string(len(self.frames_list), 2)
+        total_frames = PacketCreator.int_to_hex_string(len(self._get_frames_list()), 2)
         last_frame = PacketCreator.int_to_hex_string(
-            len(self.frames_list[-1]), 2)
+            len(self._get_frames_list()[-1]), 2)
         fw_checksum = self._get_firmware_checksum()
         reserved = PacketCreator.int_to_hex_string(0, 2)
         return FrameCreator.create_initialising_frame(
@@ -39,7 +44,7 @@ class PacketCreator(object):
 
     def _create_fw_packets(self):
         frames_packet_list = []
-        for frameNumber, frameData in enumerate(self.frames_list):
+        for frameNumber, frameData in enumerate(self._get_frames_list()):
             frameNumber += 1
             new_frame = FrameCreator.create_fw_frame(frameNumber, frameData)
             frames_packet_list.insert(len(frames_packet_list), new_frame)
@@ -103,13 +108,19 @@ class PacketCreator(object):
         return received_crc_val
 
     def _get_firmware_checksum(self):
+        if self.bin_file is None:
+            raise Exception("No binary file specified")
+
         with open(self.bin_file, "rb") as f:
             file_data = f.read()
         checksum_val = b"%02X" % (sum(file_data) & 0xFFFFFFFF)
         return checksum_val.decode("UTF-8").zfill(8)
 
-    def _get_frames_list(self, bin_file):
-        with open(bin_file, "rb") as f:
+    def _get_frames_list(self):
+        if self.bin_file is None:
+            raise Exception("No binary file specified")
+
+        with open(self.bin_file, "rb") as f:
             file_data = f.read()
         file_size = len(file_data)
         frames_list = [

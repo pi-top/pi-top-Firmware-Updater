@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 from argparse import ArgumentParser
 from sys import argv, exit, path
 path.append("/usr/lib/pt-firmware-updater/")
@@ -44,16 +45,19 @@ parser.add_argument(
 args = parser.parse_args()
 
 # Check lock file - attempt to get I2C Device
-device = FirmwareDevice(args.addr, args.file, args.interval)
+device = FirmwareDevice(args.addr, args.interval)
 
 # Determine part number - throw error if it's not valid
 part_no = device.get_part_number()
+print("Part Number:", str(part_no))
 
 # Get firmware's target board major version number
 sch_hardware_version_major = device.get_sch_hardware_version_major()
+print("Target Board Number:", str(sch_hardware_version_major))
 
 # Get current firmware version from device
 fw_version = device.get_fw_version()
+print("Current Firmware Version:", str(fw_version))
 
 
 def get_firmware_dir(part, board):
@@ -64,25 +68,24 @@ def get_firmware_dir(part, board):
     )
 
 
-def get_latest_firmware_version_to_install(part, board):
-    fw_path = get_firmware_dir(part, board)
-
+def get_latest_firmware_version_to_install(fw_path):
     if not os.path.exists(fw_path):
         print(fw_path, "Firmware path not found for device - exiting...")
-        sys.exit(1)
+        exit(1)
 
     latest_fw_version = None
-    with os.scandir() as i:
+    with os.scandir(fw_path) as i:
         for entry in i:
             if entry.is_file():
-                # TODO: Extract version - check if it's the largest version
-                latest_fw_version = entry.name
+                if entry.name.endswith(".bin"):
+                    # TODO: Extract version - check if it's the largest version
+                    latest_fw_version = entry.name.replace(".bin", "")
 
     if latest_fw_version is None:
         print("No firmware found in firmware path", fw_path, "- exiting...")
-        sys.exit(1)
+        exit(1)
 
-    return (fw_path + latest_fw_version)
+    return (latest_fw_version)
 
 
 # if args.file is not None:
@@ -90,10 +93,15 @@ def get_latest_firmware_version_to_install(part, board):
 #     pass
 # else:
 #     get_latest_firmware_version_to_install()
-fw_to_install = get_latest_firmware_version_to_install(part_no, sch_hardware_version_major)
-
+fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
 
 # Print operation to be performed
+print("Searching in Firmware Path:", str(fw_path))
+fw_to_install = get_latest_firmware_version_to_install(fw_path)
+print("Firmware Version To Install:", str(fw_to_install))
+
+
+device.set_fw_file_to_install(os.path.join(fw_path, fw_to_install + ".bin"))
 
 
 # if args.yes is None:

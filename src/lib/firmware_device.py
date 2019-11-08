@@ -1,5 +1,5 @@
-from .packet_type import PacketType
-from .packet_creator import PacketCreator
+from packet_type import PacketType
+from packet_creator import PacketCreator
 
 from ptcommon.i2c_device import I2CDevice
 
@@ -26,31 +26,32 @@ class DeviceInfo:
 
 
 class FirmwareDevice(object):
-    def __init__(self, i2c_address, bin_file, send_packet_interval):
-        self.i2c_device = I2CDevice("/dev/i2c-1", i2c_address)
-        self.i2c_device.set_delays(send_packet_interval, send_packet_interval)
-        self.i2c_device.connect()
+    def __init__(self, i2c_address, send_packet_interval):
+        print("Creating a firmware device with I2C address", str(i2c_address))
 
-        self.packet = PacketCreator(bin_file)
+        self._i2c_device = I2CDevice("/dev/i2c-1", i2c_address)
+        self._i2c_device.set_delays(send_packet_interval, send_packet_interval)
+        self._i2c_device.connect()
+
+        self._packet = PacketCreator()
+
+    def set_fw_file_to_install(self, bin_file):
+        self._packet.set_fw_file_to_install(bin_file)
 
     def get_fw_version(self):
-        fw_version_major_packet = self._receive_packet(
-            DeviceInfo.ID__MCU_SOFT_VERS_MAJOR, PacketType.FwVersionPacket
-        )
-        major_ver = self.packet.read_packet(
-            PacketType.FwVersionPacket, fw_version_major_packet
-        )
+        major_ver = self._get_mcu_software_version_major()
+        minor_ver = self._get_mcu_software_version_minor()
 
-        fw_version_minor_packet = self._receive_packet(
-            DeviceInfo.ID__MCU_SOFT_VERS_MINOR, PacketType.FwVersionPacket
-        )
-        minor_ver = self.packet.read_packet(
-            PacketType.FwVersionPacket, fw_version_minor_packet
-        )
         return str(major_ver) + "." + str(minor_ver)
 
+    def _get_mcu_software_version_major(self):
+        return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__MCU_SOFT_VERS_MAJOR)
+
+    def _get_mcu_software_version_minor(self):
+        return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__MCU_SOFT_VERS_MINOR)
+
     def get_part_number(self):
-        return self._i2c_device.read_unsigned_word(DeviceInfo.ID__PART_NAME)
+        return self._i2c_device.read_unsigned_word(DeviceInfo.ID__PART_NUMBER)
 
     def get_sch_hardware_version_major(self):
         return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__SCH_REV_MAJOR)
@@ -61,20 +62,20 @@ class FirmwareDevice(object):
         # print("Firmware bin downloaded ", self._check_fw_downloaded_on_slave())
 
     def _send_packet(self, hardware_reg, packet):
-        self.i2c_device.write_n_bytes(hardware_reg, packet)
+        self._i2c_device.write_n_bytes(hardware_reg, packet)
 
     def _receive_packet(self, hardware_reg, packet_type):
         if packet_type == PacketType.FwVersionPacket:
-            return self.i2c_device.read_n_unsigned_bytes(hardware_reg, 23)
+            return self._i2c_device.read_n_unsigned_bytes(hardware_reg, 23)
         elif packet_type == PacketType.FwDownloadVerifiedPacket:
-            return self.i2c_device.read_n_unsigned_bytes(hardware_reg, 8)
+            return self._i2c_device.read_n_unsigned_bytes(hardware_reg, 8)
         else:
             raise ValueError("Incorrect packet type")
 
     def _perform_update(self):
-        starting_packet = self.packet.create_packets(PacketType.StartingPacket)
+        starting_packet = self._packet.create_packets(PacketType.StartingPacket)
         self._send_packet(DeviceInfo.FW__UPGRADE_START, starting_packet)
-        fw_packets = self.packet.create_packets(PacketType.FwPackets)
+        fw_packets = self._packet.create_packets(PacketType.FwPackets)
         for i in range(len(fw_packets)):
             packet = fw_packets[i]
             self._send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
@@ -87,6 +88,6 @@ class FirmwareDevice(object):
         check_fw_packet = self._receive_packet(
             DeviceInfo.FW__CHECK_FW_OKAY, PacketType.FwDownloadVerifiedPacket
         )
-        return self.packet.read_packet(
+        return self._packet.read_packet(
             PacketType.FwDownloadVerifiedPacket, check_fw_packet
         )
