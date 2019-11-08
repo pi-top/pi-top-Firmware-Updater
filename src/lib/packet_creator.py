@@ -6,11 +6,11 @@ import os
 
 
 class PacketCreator(object):
-    frameLength = 256
+    frame_length = 256
 
     def __init__(self, bin_file):
-        self.binFile = bin_file
-        self.framesList = self._get_frames_list(bin_file)
+        self.bin_file = bin_file
+        self.frames_list = self._get_frames_list(bin_file)
 
     def create_packets(self, packet_type):
         if packet_type == PacketType.StartingPacket:
@@ -26,11 +26,11 @@ class PacketCreator(object):
 
     def _create_starting_packet(self):
         fw_size = PacketCreator.int_to_hex_string(
-            os.path.getsize(self.binFile), 4)
-        frame_size = PacketCreator.int_to_hex_string(self.frameLength, 2)
-        total_frames = PacketCreator.int_to_hex_string(len(self.framesList), 2)
+            os.path.getsize(self.bin_file), 4)
+        frame_size = PacketCreator.int_to_hex_string(self.frame_length, 2)
+        total_frames = PacketCreator.int_to_hex_string(len(self.frames_list), 2)
         last_frame = PacketCreator.int_to_hex_string(
-            len(self.framesList[-1]), 2)
+            len(self.frames_list[-1]), 2)
         fw_checksum = self._get_firmware_checksum()
         reserved = PacketCreator.int_to_hex_string(0, 2)
         return FrameCreator.create_initialising_frame(
@@ -39,7 +39,7 @@ class PacketCreator(object):
 
     def _create_fw_packets(self):
         frames_packet_list = []
-        for frameNumber, frameData in enumerate(self.framesList):
+        for frameNumber, frameData in enumerate(self.frames_list):
             frameNumber += 1
             new_frame = FrameCreator.create_fw_frame(frameNumber, frameData)
             frames_packet_list.insert(len(frames_packet_list), new_frame)
@@ -103,7 +103,7 @@ class PacketCreator(object):
         return received_crc_val
 
     def _get_firmware_checksum(self):
-        with open(self.binFile, "rb") as f:
+        with open(self.bin_file, "rb") as f:
             file_data = f.read()
         checksum_val = b"%02X" % (sum(file_data) & 0xFFFFFFFF)
         return checksum_val.decode("UTF-8").zfill(8)
@@ -113,8 +113,8 @@ class PacketCreator(object):
             file_data = f.read()
         file_size = len(file_data)
         frames_list = [
-            file_data[i: i + self.frameLength]
-            for i in range(0, file_size, self.frameLength)
+            file_data[i: i + self.frame_length]
+            for i in range(0, file_size, self.frame_length)
         ]
         return frames_list
 

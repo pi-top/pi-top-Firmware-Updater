@@ -3,40 +3,103 @@
 from argparse import ArgumentParser
 from sys import argv, exit, path
 path.append("/usr/lib/pt-firmware-updater/")
-from hub_communicator import HubCommunicator
+from firmware_device import FirmwareDevice
 
 parser = ArgumentParser(description="pi-top update checker")
 parser.add_argument(
+    "-a",
     "--addr",
     type=lambda x: int(x, 0),  # hex or int
     help="set the I2C address to target for upgrade",
     required=True,
 )
 parser.add_argument(
+    "-f",
     "--file",
     type=str,
     help="path to firmware bin file",
-    required=True,
 )
 parser.add_argument(
+    "-i",
     "--interval",
     type=float,
     help="set the packet interval speed",
     default=0.1
 )
+parser.add_argument(
+    "-y",
+    "--yes",
+    type=float,
+    help="automatically install firmware without confirmation",
+    default=False
+)
+parser.add_argument(
+    "-v",
+    "--verbose",
+    type=float,
+    help="print out debug information",
+    default=False
+)
 
 args = parser.parse_args()
 
-# TODO: check that hardware version is compatible
+# Check lock file - attempt to get I2C Device
+device = FirmwareDevice(args.addr, args.file, args.interval)
 
-# TODO: check that I2C lock is not taken
+# Determine part number - throw error if it's not valid
+part_no = device.get_part_number()
 
-# TODO: Low priority - If address not defined, ask user to specify or auto-detect if only hub is available
+# Get firmware's target board major version number
+sch_hardware_version_major = device.get_sch_hardware_version_major()
 
-# TODO: High priority - check I2C address is found and is pi-top device (PART_NUMBER?)
+# Get current firmware version from device
+fw_version = device.get_fw_version()
 
-# TODO: If path not defined, ask user to specify or use latest?
 
-# TODO: High priority - check path exists
+def get_firmware_dir(part, board):
+    return os.path.join(
+        "/usr/lib/pt-firmware-updater/bin/",
+        "p" + str(part),
+        "b" + str(board),
+    )
 
-HubCommunicator(args.addr, args.file, args.interval).update_firmware()
+
+def get_latest_firmware_version_to_install(part, board):
+    fw_path = get_firmware_dir(part, board)
+
+    if not os.path.exists(fw_path):
+        print(fw_path, "Firmware path not found for device - exiting...")
+        sys.exit(1)
+
+    latest_fw_version = None
+    with os.scandir() as i:
+        for entry in i:
+            if entry.is_file():
+                # TODO: Extract version - check if it's the largest version
+                latest_fw_version = entry.name
+
+    if latest_fw_version is None:
+        print("No firmware found in firmware path", fw_path, "- exiting...")
+        sys.exit(1)
+
+    return (fw_path + latest_fw_version)
+
+
+# if args.file is not None:
+#     # TODO: If file provided, check that file exists and attempt to force install
+#     pass
+# else:
+#     get_latest_firmware_version_to_install()
+fw_to_install = get_latest_firmware_version_to_install(part_no, sch_hardware_version_major)
+
+
+# Print operation to be performed
+
+
+# if args.yes is None:
+#    TODO: ask user to confirm operation
+#    pass
+
+
+# Install
+device.update_firmware()
