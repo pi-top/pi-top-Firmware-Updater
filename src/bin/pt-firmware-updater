@@ -50,8 +50,8 @@ if args.addr is None:
 device = FirmwareDevice(args.addr, args.interval)
 
 print("Reading from device...")
-part_no = device.get_part_number()
-print("Part Number:", str(part_no))
+part_name = device.get_part_name()
+print("Part Number:", str(part_name))
 
 
 sch_hardware_version_major = device.get_sch_hardware_version_major()
@@ -63,9 +63,20 @@ print("Current Firmware Version:", str(current_fw_version))
 
 
 def get_firmware_dir(part, board):
+    human_readable_lookup = {
+        0x0607: "pt4_hub",
+        0x3838: "pt4_kickstand",
+        0x1818: "pt4_node_cable",
+        0x1111: "pt4_foundation_plate",
+        0x2222: "pt4_expansion_plate"
+    }
+
+    if part not in human_readable_lookup:
+        raise Exception("Unknown part name read from device - is pt-firmware-updater up to date?")
+
     return os.path.join(
         "/usr/lib/pt-firmware-updater/bin/",
-        "p" + str(part),
+        human_readable_lookup[part],
         "b" + str(board),
     )
 
@@ -102,7 +113,7 @@ def get_latest_fw_version_to_install(fw_path):
 
 
 if not args.test:
-    fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
+    fw_path = get_firmware_dir(part_name, sch_hardware_version_major)
 
     print("Searching in Firmware Path:", str(fw_path))
     fw_to_install = get_latest_fw_version_to_install(fw_path)

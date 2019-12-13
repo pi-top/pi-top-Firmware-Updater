@@ -32,8 +32,8 @@ class FirmwareDevice(object):
 
         self._packet = PacketManager()
 
-    def get_part_number(self):
-        return self._i2c_device.read_unsigned_word(DeviceInfo.ID__PART_NUMBER)
+    def get_part_name(self):
+        return self._i2c_device.read_unsigned_word(DeviceInfo.ID__PART_NAME)
 
     def get_sch_hardware_version_major(self):
         return self._i2c_device.read_unsigned_byte(DeviceInfo.ID__SCH_REV_MAJOR)
