@@ -49,21 +49,23 @@ def is_root():
     return os.geteuid() == 0
 
 
-def get_devices_to_update(args):
+def get_devices_to_update(all_devices, one_device):
     """
-    Retrieves the list of devices to update, given the arguments received
-    :param args: arguments received by the script
-    :return: list with devices to update
+    Retrieves the list of devices to update, for the particular set of arguments
+    received. The all_devices parameter takes precedence to one_device.
+    :param all_devices: if True, returns a list of all firmware devices.
+    :param one_device: a particular firmware device name.
+    :return: list with devices to update.
     """
     devices = [d.name for d in FirmwareDeviceID
                if d.value in FirmwareDevice.valid_device_ids()]
-    if args.all:
+    if all_devices:
         return devices
-    elif args.device:
-        if args.device not in devices:
+    elif one_device:
+        if one_device not in devices:
             PTLogger.error("Invalid device name")
             exit(1)
-        return [args.device]
+        return [one_device]
     return []
 
 
@@ -91,7 +93,7 @@ def main():
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    devices = get_devices_to_update(args)
+    devices = get_devices_to_update(args.all, args.device)
     for dev_name in devices:
         try:
             dev_id = get_fw_device_id_from_name(dev_name)
