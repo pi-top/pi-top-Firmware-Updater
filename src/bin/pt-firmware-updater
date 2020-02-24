@@ -20,14 +20,16 @@ parser.add_argument(
     "-a",
     "--all",
     action="store_true",
-    help="Looks and performs a firmware update on all"
-         "connected pi-top firmware devices",
+    help="Find all connected pi-top devices, and apply firmware upgrades "
+         "if necessary",
 )
 parser.add_argument(
     "-d",
     "--device",
     type=str,
-    help="Name of a pi-top firmware device to check updates for.",
+    help="Define specific pi-top firmware device to attempt to apply firmware"
+         " upgrade to. This option is ignored if -a flag is used. "
+         "Receives only one device name.",
     required=False
 )
 parser.add_argument(
