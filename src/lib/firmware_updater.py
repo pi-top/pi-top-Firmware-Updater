@@ -70,7 +70,7 @@ class FirmwareUpdater(object):
                 print(f"{i/len(fw_packets)*100:.1f}%", end="\r")
 
     def fw_downloaded_successfully(self):
-        check_fw_packet = self.device.fw_downloaded_successfully()
+        check_fw_packet = self.device.get_check_fw_okay()
         return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
     def __get_firmware_dir(self, board):
