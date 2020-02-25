@@ -7,6 +7,7 @@ from sys import path
 
 path.append("/usr/lib/pt-firmware-updater/")
 from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.firmware_device import FirmwareDeviceMock
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.logger import PTLogger
 from firmware_updater import FirmwareUpdater
@@ -55,30 +56,18 @@ def get_devices_to_update(all_devices, one_device):
     received. The all_devices parameter takes precedence to one_device.
     :param all_devices: if True, returns a list of all firmware devices.
     :param one_device: a particular firmware device name.
-    :return: list with devices to update.
+    :return: list with FirmwareDeviceID's to update.
     """
-    devices = [d.name for d in FirmwareDeviceID
-               if d.value in FirmwareDevice.valid_device_ids()]
+    devices = FirmwareDevice.valid_device_ids()
     if all_devices:
         return devices
     elif one_device:
-        if one_device not in devices:
+        dev_names = [d.name for d in devices]
+        if one_device not in dev_names:
             PTLogger.error("Invalid device name")
             exit(1)
-        return [one_device]
+        return [FirmwareDeviceID[one_device]]
     return []
-
-
-def get_fw_device_id_from_name(name):
-    """
-    Retrieves the device id from the given firmware device name
-    :param name: string, name of the device
-    :return: integer, id of the device
-    """
-    if name not in FirmwareDeviceID.__members__:
-        PTLogger.error("Invalid device name")
-        exit(1)
-    return FirmwareDeviceID[name].value
 
 
 def main():
@@ -94,12 +83,10 @@ def main():
         exit(1)
 
     devices = get_devices_to_update(args.all, args.device)
-    for dev_name in devices:
+    for dev in devices:
         try:
-            dev_id = get_fw_device_id_from_name(dev_name)
-            PTLogger.info('Checking {} - id: {}'.format(dev_name, dev_id))
-            fw_dev = FirmwareDevice(dev_id, DEFAULT_INTERVAL_SPEED)
-
+            fw_dev = FirmwareDevice(dev, args.interval)
+            PTLogger.info('Checking updates for {}'.format(dev.name))
             d = FirmwareUpdater(fw_dev)
             if d.update_available():
                 d.install_updates()
