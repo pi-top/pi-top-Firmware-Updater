@@ -5,6 +5,7 @@ from time import sleep
 from distutils.version import StrictVersion
 
 from ptcommon.firmware_device import DeviceInfo
+from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.logger import PTLogger
 from packet_manager import PacketManager
 from packet_manager import PacketType
@@ -16,11 +17,11 @@ class FirmwareUpdater(object):
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
     FW_INITIAL_LOCATION = "/usr/lib/pt-firmware-updater/bin/"
 
-    def __init__(self, fw_device):
+    def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
         self._packet = PacketManager()
 
-    def __read_hash_from_file(self, filename):
+    def __read_hash_from_file(self, filename: str) -> str:
         """
         Computes the MD5 has of the given file
         :param filename: path to a file
@@ -35,7 +36,7 @@ class FirmwareUpdater(object):
             hash.update(buff)
         return hash.hexdigest()
 
-    def __valid_binary(self):
+    def __valid_binary(self) -> bool:
         """
         Verifies that the binary file to update into the device is valid,
         by comparing the MD5 hash of the file when first found, and when
@@ -44,7 +45,7 @@ class FirmwareUpdater(object):
         """
         return self.fw_hash == self.__read_hash_from_file(self.fw_dst_path)
 
-    def __update_firmware(self):
+    def __update_firmware(self) -> None:
         if not os.path.isfile(self.fw_dst_path):
             PTLogger.error(str(self.fw_dst_path) + "doesn't exist.")
             return
@@ -69,18 +70,18 @@ class FirmwareUpdater(object):
             else:
                 print(f"{i/len(fw_packets)*100:.1f}%", end="\r")
 
-    def fw_downloaded_successfully(self):
+    def fw_downloaded_successfully(self) -> bool:
         check_fw_packet = self.device.get_check_fw_okay()
         return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
-    def __get_firmware_dir(self, board):
+    def __get_firmware_dir(self, board: str) -> str:
         return os.path.join(
             self.FW_INITIAL_LOCATION,
             "p" + str(self.device.get_part_number()),
             "b" + str(board),
         )
 
-    def __get_latest_fw_version_to_install(self, fw_path):
+    def __get_latest_fw_version_to_install(self, fw_path: str) -> str:
         """
         Looks for the latest firmware version in a specified folder
         :param fw_path: path to the folder where the latest update
@@ -118,11 +119,11 @@ class FirmwareUpdater(object):
 
         if candidate_latest_fw_version == 0:
             PTLogger.debug("No firmware found in folder. Exiting.")
-            return False
+            return ""
 
         return candidate_latest_fw_version
 
-    def update_available(self):
+    def update_available(self) -> bool:
         """
         Checks if there are updates available for the given device
         :return: tuple with device object and path to firmware update if
@@ -159,7 +160,7 @@ class FirmwareUpdater(object):
         PTLogger.info("Firmware update found: {}".format(self.fw_dst_path))
         return True
 
-    def install_updates(self):
+    def install_updates(self) -> bool:
         """
         Performs the actual update to the device
         :param device: device object

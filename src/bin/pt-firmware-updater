@@ -51,11 +51,11 @@ parser.add_argument(
 )
 
 
-def is_root():
+def is_root() -> bool:
     return os.geteuid() == 0
 
 
-def get_devices_to_update(all_devices, one_device):
+def get_devices_to_update(all_devices: bool, one_device: str) -> list:
     """
     Retrieves the list of devices to update, for the particular set of arguments
     received. The all_devices parameter takes precedence to one_device.
@@ -75,7 +75,7 @@ def get_devices_to_update(all_devices, one_device):
     return []
 
 
-def main():
+def main() -> None:
     args = parser.parse_args()
     PTLogger.setup_logging(
         "pt-firmware-updater",
