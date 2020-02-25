@@ -13,9 +13,6 @@ from ptcommon.logger import PTLogger
 from firmware_updater import FirmwareUpdater
 
 
-DEFAULT_INTERVAL_SPEED = 0.1
-
-
 parser = ArgumentParser(description="pi-top firmware update checker")
 parser.add_argument(
     "-a",
@@ -43,6 +40,14 @@ parser.add_argument(
     type=int,
     help="Set the logging level from 10 (more verbose) to 50 (less verbose).",
     default=20,
+)
+parser.add_argument(
+    "-i",
+    "--interval",
+    type=float,
+    help="Set the interval speed at which packages will be sent to the device "
+         "during an update.",
+    default=0.1
 )
 
 
