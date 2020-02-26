@@ -1,3 +1,9 @@
+pt-firmware-updater (2.0.1-1) buster; urgency=medium
+
+  * Add new plate firmware binaries
+
+ -- Jorge Capona <jorge@pi-top.com>  Wed, 26 Feb 2020 15:32:10 -0300
+
 pt-firmware-updater (2.0.0-1) buster; urgency=medium
 
   * Overhaul structure to be purely Python
