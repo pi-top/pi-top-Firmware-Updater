@@ -1,6 +1,6 @@
 pt-firmware-updater (2.0.1-1) buster; urgency=medium
 
-  * Add new plate firmware binaries
+  * Add foundation plate and expansion plate firmware binaries
 
  -- Jorge Capona <jorge@pi-top.com>  Wed, 26 Feb 2020 15:32:10 -0300
 
