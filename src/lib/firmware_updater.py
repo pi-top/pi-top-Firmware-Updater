@@ -77,7 +77,7 @@ class FirmwareUpdater(object):
     def __get_firmware_dir(self, board: str) -> str:
         return os.path.join(
             self.FW_INITIAL_LOCATION,
-            "p" + str(self.device.get_part_number()),
+            "p" + str(self.device.get_part_name()),
             "b" + str(board),
         )
 
@@ -142,9 +142,9 @@ class FirmwareUpdater(object):
         if not fw_to_install:
             return False
 
-        PTLogger.debug("Candidate Firmware Version: {}".format(fw_to_install))
+        PTLogger.info("Candidate Firmware Version: {}".format(fw_to_install))
         if StrictVersion(current_fw_version) >= StrictVersion(fw_to_install):
-            PTLogger.debug(
+            PTLogger.info(
                 "Firmware installed is newer than the candidate. Exiting.")
             return False
 

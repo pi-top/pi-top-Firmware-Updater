@@ -7,7 +7,6 @@ from sys import path
 
 path.append("/usr/lib/pt-firmware-updater/")
 from ptcommon.firmware_device import FirmwareDevice
-from ptcommon.firmware_device import FirmwareDeviceMock
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.logger import PTLogger
 from firmware_updater import FirmwareUpdater
