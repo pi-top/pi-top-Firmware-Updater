@@ -7,6 +7,7 @@ from sys import path
 
 path.append("/usr/lib/pt-firmware-updater/")
 from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.logger import PTLogger
 from firmware_updater import FirmwareUpdater
@@ -88,11 +89,10 @@ def main() -> None:
     for dev in devices:
         try:
             fw_dev = FirmwareDevice(dev, args.interval)
-            PTLogger.debug('Checking updates for {}'.format(dev.name))
             d = FirmwareUpdater(fw_dev)
             if d.update_available():
                 d.install_updates()
-        except (ConnectionError, AttributeError) as e:
+        except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.debug(str(e))
             continue
         except Exception as e:

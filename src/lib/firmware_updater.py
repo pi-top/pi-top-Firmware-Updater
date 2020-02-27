@@ -54,21 +54,19 @@ class FirmwareUpdater(object):
             PTLogger.error("Binary file didn't pass the sanity check. Exiting.")
             return
 
-        PTLogger.info("Installing update.")
         self._packet.set_fw_file_to_install(self.fw_dst_path)
 
         starting_packet = self._packet.create_packets(PacketType.StartingPacket)
         self.device.send_packet(DeviceInfo.FW__UPGRADE_START, starting_packet)
 
         fw_packets = self._packet.create_packets(PacketType.FwPackets)
+        PTLogger.info('Sending packages to device, please wait.')
         for i in range(len(fw_packets)):
             packet = fw_packets[i]
             self.device.send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
 
             if i == len(fw_packets) - 1:
                 PTLogger.info("Finished.")
-            else:
-                print(f"{i/len(fw_packets)*100:.1f}%", end="\r")
 
     def fw_downloaded_successfully(self) -> bool:
         check_fw_packet = self.device.get_check_fw_okay()
@@ -77,7 +75,7 @@ class FirmwareUpdater(object):
     def __get_firmware_dir(self, board: str) -> str:
         return os.path.join(
             self.FW_INITIAL_LOCATION,
-            "p" + str(self.device.get_part_name()),
+            self.device.str_name,
             "b" + str(board),
         )
 
@@ -135,17 +133,20 @@ class FirmwareUpdater(object):
         PTLogger.debug("Board Number: {}".format(sch_hardware_version_major))
 
         current_fw_version = self.device.get_fw_version()
-        PTLogger.debug("Current Firmware Version: {}".format(current_fw_version))
-
         fw_path = self.__get_firmware_dir(sch_hardware_version_major)
+        PTLogger.debug("Looking for binaries in: {}".format(fw_path))
         fw_to_install = self.__get_latest_fw_version_to_install(fw_path)
         if not fw_to_install:
             return False
 
-        PTLogger.info("Candidate Firmware Version: {}".format(fw_to_install))
+        PTLogger.debug("Current Firmware Version: {}".format(current_fw_version))
+        PTLogger.info(
+            "{} - Possible update found. Candidate Firmware Version: {}"
+                .format(self.device.str_name, fw_to_install))
         if StrictVersion(current_fw_version) >= StrictVersion(fw_to_install):
             PTLogger.info(
-                "Firmware installed is newer than the candidate. Exiting.")
+                "{} - Firmware installed is newer than the candidate. Exiting."
+                    .format(self.device.str_name))
             return False
 
         fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
@@ -157,7 +158,8 @@ class FirmwareUpdater(object):
         os.makedirs(os.path.dirname(self.fw_dst_path), exist_ok=True)
         shutil.copyfile(fw_file_path, self.fw_dst_path)
 
-        PTLogger.info("Firmware update found: {}".format(self.fw_dst_path))
+        PTLogger.info("{} - Firmware update found: {}"
+                      .format(self.device.str_name, self.fw_dst_path))
         return True
 
     def install_updates(self) -> bool:
@@ -170,7 +172,8 @@ class FirmwareUpdater(object):
         sleep(0.1)  # Wait for MCU before verifying
 
         if self.fw_downloaded_successfully():
-            PTLogger.info("Successfully applied update,")
+            PTLogger.info("{} - Successfully applied update."
+                          .format(self.device.str_name))
             return True
-        PTLogger.error("Failed to update.")
+        PTLogger.error("{} - Failed to update.".format(self.device.str_name))
         return False
