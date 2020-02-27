@@ -129,6 +129,12 @@ class FirmwareUpdater(object):
         """
         PTLogger.debug('Checking update availability.')
 
+        if self.fw_downloaded_successfully():
+            PTLogger.info(
+                "{} - There's a binary uploaded to the device waiting to be "
+                "installed. Skipping.".format(self.device.str_name))
+            return False
+
         sch_hardware_version_major = self.device.get_sch_hardware_version_major()
         PTLogger.debug("Board Number: {}".format(sch_hardware_version_major))
 
