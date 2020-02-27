@@ -93,7 +93,7 @@ def main() -> None:
             if d.update_available():
                 d.install_updates()
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-            PTLogger.debug(str(e))
+            PTLogger.warning('{} - {}'.format(dev.name, e))
             continue
         except Exception as e:
             PTLogger.error(str(e))
