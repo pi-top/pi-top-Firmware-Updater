@@ -54,24 +54,18 @@ def is_root() -> bool:
     return os.geteuid() == 0
 
 
-def get_devices_to_update(all_devices: bool, one_device: str) -> list:
+def str_name_to_device_id(str_name: str) -> FirmwareDeviceID:
     """
-    Retrieves the list of devices to update, for the particular set of arguments
-    received. The all_devices parameter takes precedence to one_device.
-    :param all_devices: if True, returns a list of all firmware devices.
-    :param one_device: a particular firmware device name.
-    :return: list with FirmwareDeviceID's to update.
+    Retrieves the device ID for a given firmware device's
+    str name.
+    :param str_name: a particular firmware device name.
+    :return: Corresponding FirmwareDeviceID.
     """
     devices = FirmwareDevice.valid_device_ids()
-    if all_devices:
-        return devices
-    elif one_device:
-        dev_names = [d.name for d in devices]
-        if one_device not in dev_names:
-            PTLogger.error("Invalid device name")
-            exit(1)
-        return [FirmwareDeviceID[one_device]]
-    return []
+    if str_name not in [d.name for d in devices]:
+        PTLogger.error("Invalid device name")
+        exit(1)
+    return FirmwareDeviceID[str_name]
 
 
 def main() -> None:
@@ -86,11 +80,15 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    devices = get_devices_to_update(args.all, args.device)
+    if args.all:
+        devices = FirmwareDevice.valid_device_ids()
+    else:
+        devices = [str_name_to_device_id(args.device)]
+
     for dev in devices:
         try:
             fw_dev = FirmwareDevice(dev, args.interval)
-            PTLogger.info('Checking updates for {}'.format(dev.name))
+            PTLogger.debug('Checking updates for {}'.format(dev.name))
             d = FirmwareUpdater(fw_dev)
             if d.update_available():
                 d.install_updates()
