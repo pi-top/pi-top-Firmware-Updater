@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for pt-firmware-updater.service (30 seconds)
+Requires=pt-firmware-updater.service
+
+[Timer]
+OnUnitInactiveSec=30s
+AccuracySec=5s
+
+[Install]
+WantedBy=graphical.target
