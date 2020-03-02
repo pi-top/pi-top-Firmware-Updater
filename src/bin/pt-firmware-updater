@@ -52,9 +52,9 @@ parser.add_argument(
 )
 parser.add_argument(
     "--loop-time",
-    type=int,
-    help="Sets the time interval that the script will wait before each update check.",
-    default=0
+    type=float,
+    help="Sets the time interval in seconds that the script will wait before each update check.",
+    default=-1
 )
 
 
@@ -88,9 +88,6 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    if args.loop_time and args.loop_time < 0:
-        raise ValueError("Value of loop-time argument must be greater than zero")
-
     if args.all:
         devices = FirmwareDevice.valid_device_ids()
     else:
@@ -110,7 +107,7 @@ def main() -> None:
                 PTLogger.error(str(e))
                 continue
 
-        if not args.loop_time:
+        if args.loop_time < 0:
             break
         PTLogger.info('Sleeping for {} secs before next check.'.format(args.loop_time))
         sleep(args.loop_time)
