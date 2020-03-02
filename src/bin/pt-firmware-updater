@@ -4,6 +4,7 @@ import os
 from argparse import ArgumentParser
 from sys import exit
 from sys import path
+from time import sleep
 
 path.append("/usr/lib/pt-firmware-updater/")
 from ptcommon.firmware_device import FirmwareDevice
@@ -49,6 +50,12 @@ parser.add_argument(
          "during an update.",
     default=0.1
 )
+parser.add_argument(
+    "--loop-time",
+    type=float,
+    help="Sets the time interval in seconds that the script will wait before each update check.",
+    default=-1
+)
 
 
 def is_root() -> bool:
@@ -86,18 +93,24 @@ def main() -> None:
     else:
         devices = [str_name_to_device_id(args.device)]
 
-    for dev in devices:
-        try:
-            fw_dev = FirmwareDevice(dev, args.interval)
-            d = FirmwareUpdater(fw_dev)
-            if d.update_available():
-                d.install_updates()
-        except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-            PTLogger.warning('{} - {}'.format(dev.name, e))
-            continue
-        except Exception as e:
-            PTLogger.error(str(e))
-            continue
+    while True:
+        for dev in devices:
+            try:
+                fw_dev = FirmwareDevice(dev, args.interval)
+                d = FirmwareUpdater(fw_dev)
+                if d.update_available():
+                    d.install_updates()
+            except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
+                PTLogger.warning('{} - {}'.format(dev.name, e))
+                continue
+            except Exception as e:
+                PTLogger.error(str(e))
+                continue
+
+        if args.loop_time < 0:
+            break
+        PTLogger.info('Sleeping for {} secs before next check.'.format(args.loop_time))
+        sleep(args.loop_time)
 
 
 if __name__ == '__main__':

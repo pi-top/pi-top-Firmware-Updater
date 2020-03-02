@@ -1,0 +1,10 @@
+[Unit]
+Description=pi-top device firmware updater daemon
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart=/usr/bin/python3 -B /usr/bin/pt-firmware-updater -a --loop-time 30
+
+[Install]
+WantedBy=local-fs.target
