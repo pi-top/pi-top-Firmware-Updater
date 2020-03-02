@@ -1,134 +1,104 @@
 #!/usr/bin/python3
 
 import os
-from distutils.version import StrictVersion
 from argparse import ArgumentParser
-from time import sleep
-from sys import argv, exit, path
+from sys import exit
+from sys import path
+
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_device import FirmwareDevice
+from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
+from ptcommon.common_ids import FirmwareDeviceID
+from ptcommon.logger import PTLogger
+from firmware_updater import FirmwareUpdater
 
 
-def is_root():
-    return os.geteuid() == 0
-
-
-if not is_root():
-    print("This program requires root privileges. Run as root using 'sudo'.")
-    exit()
-
-parser = ArgumentParser(description="pi-top update checker")
+parser = ArgumentParser(description="pi-top firmware update checker")
 parser.add_argument(
     "-a",
-    "--addr",
-    type=lambda x: int(x, 0),  # hex or int
-    help="set the I2C address to target for upgrade",
-    default=None,
+    "--all",
+    action="store_true",
+    help="Find all connected pi-top devices, and apply firmware upgrades "
+         "if necessary",
+)
+parser.add_argument(
+    "-d",
+    "--device",
+    type=str,
+    help="Define specific pi-top firmware device to attempt to apply firmware"
+         " upgrade to. This option is ignored if -a flag is used. "
+         "Receives only one device name.",
+    required=False
+)
+parser.add_argument(
+    "--no-journal",
+    help="Prints output to stdout instead of journal.",
+    action="store_true"
+)
+parser.add_argument(
+    "--log-level",
+    type=int,
+    help="Set the logging level from 10 (more verbose) to 50 (less verbose).",
+    default=20,
 )
 parser.add_argument(
     "-i",
     "--interval",
     type=float,
-    help="set the packet interval speed",
+    help="Set the interval speed at which packages will be sent to the device "
+         "during an update.",
     default=0.1
 )
-parser.add_argument(
-    "-t",
-    "--test",
-    action="store_true",
-    help="only check if firmware ran successfully",
-    default=False
-)
-
-args = parser.parse_args()
-
-if args.addr is None:
-    print("No I2C address set - assuming hub at 0x11...")
-    args.addr = 0x11
-    print()
-
-device = FirmwareDevice(args.addr, args.interval)
-
-print("Reading from device...")
-part_no = device.get_part_number()
-print("Part Number:", str(part_no))
 
 
-sch_hardware_version_major = device.get_sch_hardware_version_major()
-print("Target Board Number:", str(sch_hardware_version_major))
+def is_root() -> bool:
+    return os.geteuid() == 0
 
 
-current_fw_version = device.get_fw_version()
-print("Current Firmware Version:", str(current_fw_version))
+def str_name_to_device_id(str_name: str) -> FirmwareDeviceID:
+    """
+    Retrieves the device ID for a given firmware device's
+    str name.
+    :param str_name: a particular firmware device name.
+    :return: Corresponding FirmwareDeviceID.
+    """
+    devices = FirmwareDevice.valid_device_ids()
+    if str_name not in [d.name for d in devices]:
+        PTLogger.error("Invalid device name")
+        exit(1)
+    return FirmwareDeviceID[str_name]
 
 
-def get_firmware_dir(part, board):
-    return os.path.join(
-        "/usr/lib/pt-firmware-updater/bin/",
-        "p" + str(part),
-        "b" + str(board),
-    )
+def main() -> None:
+    args = parser.parse_args()
+    PTLogger.setup_logging(
+        "pt-firmware-updater",
+        args.log_level,
+        args.no_journal is False)
 
-
-def get_latest_fw_version_to_install(fw_path):
-    if not os.path.exists(fw_path):
-        print(fw_path, "Firmware path not found for device - exiting...")
+    if not is_root():
+        PTLogger.error(
+            "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    candidate_latest_fw_version = "0.0"
-    with os.scandir(fw_path) as i:
-        for entry in i:
-            if entry.is_file():
-                if entry.name.endswith(".bin"):
-                    fw_version_under_inspection = entry.name.replace(".bin", "")
+    if args.all:
+        devices = FirmwareDevice.valid_device_ids()
+    else:
+        devices = [str_name_to_device_id(args.device)]
 
-                    success = False
-                    try:
-                        StrictVersion(fw_version_under_inspection)
-                        success = True
-
-                    except ValueError:
-                        print("Skipping invalid firmware file:", entry.name)
-
-                    if success:
-                        if StrictVersion(fw_version_under_inspection) >= StrictVersion(candidate_latest_fw_version):
-                            candidate_latest_fw_version = fw_version_under_inspection
-
-    if candidate_latest_fw_version == 0:
-        print("No firmware found in firmware path", fw_path, "- exiting...")
-        exit(1)
-
-    return candidate_latest_fw_version
+    for dev in devices:
+        try:
+            fw_dev = FirmwareDevice(dev, args.interval)
+            d = FirmwareUpdater(fw_dev)
+            if d.update_available():
+                d.install_updates()
+        except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
+            PTLogger.warning('{} - {}'.format(dev.name, e))
+            continue
+        except Exception as e:
+            PTLogger.error(str(e))
+            continue
 
 
-if not args.test:
-    fw_path = get_firmware_dir(part_no, sch_hardware_version_major)
-
-    print("Searching in Firmware Path:", str(fw_path))
-    fw_to_install = get_latest_fw_version_to_install(fw_path)
-
-    print("Candidate Firmware Version:", str(fw_to_install), "\n")
-
-    if StrictVersion(current_fw_version) >= StrictVersion(fw_to_install):
-        print("Firmware version candidate is not newer than current firmware. Exiting...")
-        exit(1)
-
-    fw_file_path = os.path.join(fw_path, fw_to_install + ".bin")
-    print("Firmware File Path:", str(fw_file_path))
-
-    print("\nInstalling...")
-    device.update_firmware(fw_file_path)
-    sleep(0.1)  # Wait for MCU before verifying
-    print()
-
-
-print("\n\nVerifying firmware installed correctly...")
-if device.fw_downloaded_successfully():
-
-    print("SUCCESS")
-    exit(0)
-
-else:
-
-    print("FAIL")
-    exit(1)
+if __name__ == '__main__':
+    main()
