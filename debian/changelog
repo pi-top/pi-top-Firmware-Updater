@@ -1,3 +1,12 @@
+pt-firmware-updater (2.1.0-1) buster; urgency=medium
+
+  * Support automatic update feature
+  * Update one or all devices based on script arguments
+  * Add binary file verification before uploading to device
+  * Add timer based systemd service, to run script every 30s
+
+ -- Jorge Capona <jorge@pi-top.com>  Mon, 2 Mar 2020 12:05:22 +0300
+
 pt-firmware-updater (2.0.1-1) buster; urgency=medium
 
   * Add foundation plate and expansion plate firmware binaries
