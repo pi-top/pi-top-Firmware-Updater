@@ -102,12 +102,12 @@ def main() -> None:
                 fw_dev = FirmwareDevice(dev, args.interval)
                 d = FirmwareUpdater(fw_dev)
                 if d.update_available():
-                    nm.notify_user(UpdateStatusEnum.WARNING, fw_dev.name)
+                    nm.notify_user(UpdateStatusEnum.WARNING, fw_dev.str_name)
 
                     status = UpdateStatusEnum.FAILURE
                     if d.install_updates():
                         status = UpdateStatusEnum.SUCCESS
-                    nm.notify_user(status, dev)
+                    nm.notify_user(status, fw_dev.str_name)
 
             except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
                 PTLogger.warning('{} - {}'.format(dev.name, e))

@@ -62,7 +62,7 @@ class NotificationManager(object):
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device: str) -> str:
         if update_enum is UpdateStatusEnum.SUCCESS:
-            if dev == "pt4_hub":
+            if device == "pt4_hub":
                 return "Reboot your pi-top to apply changes"
             elif device in ("pt4_expansion_plate", "pt4_foundation_plate"):
                 return "Disconnect and reconnect your plate to apply changes"
