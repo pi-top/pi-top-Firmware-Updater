@@ -1,3 +1,9 @@
+pt-firmware-updater (2.2.0-1) buster; urgency=medium
+
+  * Display user notifications
+
+ -- Jorge Capona <jorge@pi-top.com>  Thu, 26 Mar 2020 12:12:03 -0300
+
 pt-firmware-updater (2.1.0-1) buster; urgency=medium
 
   * Support automatic update feature
