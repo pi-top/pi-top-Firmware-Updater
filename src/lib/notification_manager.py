@@ -2,6 +2,7 @@ from enum import Enum
 from subprocess import getoutput
 
 from ptcommon.logger import PTLogger
+from ptcommon.notifications import send_notification
 
 
 class UpdateStatusEnum(Enum):
@@ -41,23 +42,6 @@ class NotificationManager(object):
             icon_name=self.MESSAGE_DATA[update_enum]["icon"],
             timeout=self.MESSAGE_DATA[update_enum]["timeout"]
         )
-
-    def __send_notification(self, title: str, text: str, icon_name: str, timeout: int = 0) -> None:
-        cmd = "/usr/bin/pt-notify-send "
-        cmd += "--expire-time=" + str(timeout) + " "
-
-        if icon_name:
-            cmd += "--icon=" + icon_name + " "
-
-        cmd += " \"" + title + "\" "
-        cmd += "\"" + text + "\""
-
-        PTLogger.info("pt-notify-send command: {}".format(cmd))
-        try:
-            getoutput(cmd)
-        except Exception as e:
-            PTLogger.warning("Failed to show message: {}".format(e))
-            pass
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device: str) -> str:
         if update_enum is UpdateStatusEnum.SUCCESS:
