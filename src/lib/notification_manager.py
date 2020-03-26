@@ -44,7 +44,6 @@ class NotificationManager(object):
 
     def __send_notification(self, title: str, text: str, icon_name: str, timeout: int = 0) -> None:
         cmd = "/usr/bin/pt-notify-send "
-        cmd += "--print-id "
         cmd += "--expire-time=" + str(timeout) + " "
 
         if icon_name:
