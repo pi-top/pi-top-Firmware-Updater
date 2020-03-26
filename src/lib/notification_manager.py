@@ -36,7 +36,7 @@ class NotificationManager(object):
 
         PTLogger.info("notify_send - device: {}, enum: {}".format(device, update_enum))
 
-        self.__send_notification(
+        send_notification(
             title=self.NOTIFICATION_TITLE,
             text=self.__get_notification_message(update_enum, device),
             icon_name=self.MESSAGE_DATA[update_enum]["icon"],
