@@ -6,9 +6,9 @@ from ptcommon.notifications import send_notification
 
 
 class UpdateStatusEnum(Enum):
-    WARNING = 0
-    SUCCESS = 1
-    FAILURE = 2
+    WARNING = auto()
+    SUCCESS = auto()
+    FAILURE = auto()
 
 
 class NotificationManager(object):
@@ -34,7 +34,7 @@ class NotificationManager(object):
             PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
             return
 
-        PTLogger.info("notify_send - device: {}, enum: {}".format(device, update_enum))
+        PTLogger.info("notify_user() w/device: {}, enum: {}".format(device, update_enum))
 
         send_notification(
             title=self.NOTIFICATION_TITLE,

@@ -95,19 +95,19 @@ def main() -> None:
     else:
         devices = [str_name_to_device_id(args.device)]
 
-    nm = NotificationManager()
+    notification_manager = NotificationManager()
     while True:
         for dev in devices:
             try:
                 fw_dev = FirmwareDevice(dev, args.interval)
-                d = FirmwareUpdater(fw_dev)
-                if d.update_available():
-                    nm.notify_user(UpdateStatusEnum.WARNING, fw_dev.str_name)
+                fw_updater = FirmwareUpdater(fw_dev)
+                if fw_updater.update_available():
+                    notification_manager.notify_user(UpdateStatusEnum.WARNING, fw_dev.str_name)
 
                     status = UpdateStatusEnum.FAILURE
-                    if d.install_updates():
+                    if fw_updater.install_updates():
                         status = UpdateStatusEnum.SUCCESS
-                    nm.notify_user(status, fw_dev.str_name)
+                    notification_manager.notify_user(status, fw_dev.str_name)
 
             except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
                 PTLogger.warning('{} - {}'.format(dev.name, e))
