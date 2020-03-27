@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from subprocess import getoutput
 
 from ptcommon.logger import PTLogger
