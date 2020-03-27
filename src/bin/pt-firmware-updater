@@ -12,6 +12,8 @@ from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.logger import PTLogger
 from firmware_updater import FirmwareUpdater
+from notification_manager import NotificationManager
+from notification_manager import UpdateStatusEnum
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
@@ -93,13 +95,20 @@ def main() -> None:
     else:
         devices = [str_name_to_device_id(args.device)]
 
+    notification_manager = NotificationManager()
     while True:
         for dev in devices:
             try:
                 fw_dev = FirmwareDevice(dev, args.interval)
-                d = FirmwareUpdater(fw_dev)
-                if d.update_available():
-                    d.install_updates()
+                fw_updater = FirmwareUpdater(fw_dev)
+                if fw_updater.update_available():
+                    notification_manager.notify_user(UpdateStatusEnum.WARNING, fw_dev.str_name)
+
+                    status = UpdateStatusEnum.FAILURE
+                    if fw_updater.install_updates():
+                        status = UpdateStatusEnum.SUCCESS
+                    notification_manager.notify_user(status, fw_dev.str_name)
+
             except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
                 PTLogger.warning('{} - {}'.format(dev.name, e))
                 continue
