@@ -1,4 +1,5 @@
 import multiprocessing
+from sys import path
 from enum import Enum, auto
 
 from ptcommon.logger import PTLogger
@@ -54,7 +55,7 @@ class FirmwareDeviceManager:
         return [device_id for device_id in self.__device_info if self.is_connected(device_id)]
 
     def is_connected(self, device: FirmwareDeviceID) -> bool:
-        return self.__device_info[device]['connected'] if device in self.__device_info else False
+        return self.__device_info[device][DeviceInfoKeys.CONNECTED] if device in self.__device_info else False
 
     def force_update_if_available(self):
         for device_id in self.devices:

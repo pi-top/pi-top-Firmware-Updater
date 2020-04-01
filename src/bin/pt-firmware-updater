@@ -70,7 +70,7 @@ def main() -> None:
         args.log_level,
         args.no_journal is False)
 
-    if get_host_device_version() != DeviceID.pi_top_4:
+    if get_host_device_version() != DeviceID.pi_top_4.name:
         PTLogger.error("This program only runs on a pi-top[4]")
         exit(1)
 
