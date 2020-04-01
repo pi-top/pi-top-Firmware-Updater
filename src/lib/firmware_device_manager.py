@@ -72,17 +72,18 @@ class FirmwareDeviceManager:
             fw_dev = self.__device_info[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = FirmwareUpdater(fw_dev)
             has_updates = fw_updater.update_available()
-            PTLogger.info('{} - There are updates available.'.format(device_id))
-            del fw_updater
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))
             has_updates = False
+            fw_updater = None
         except Exception as e:
             PTLogger.error('{} - {}'.format(device_id.name, e))
             has_updates = False
+            fw_updater = None
         finally:
             self.set_notification_status(device_id, has_updates)
             self.__device_info[device_id][DeviceInfoKeys.UPDATE_AVAILABLE] = has_updates
+            self.__device_info[device_id][DeviceInfoKeys.FW_UPDATER] = fw_updater
         return has_updates
 
     def update(self, device_id: FirmwareDeviceID) -> bool:
@@ -95,14 +96,13 @@ class FirmwareDeviceManager:
             return success
 
         try:
-            fw_device = self.__device_info[device_id][DeviceInfoKeys.FW_DEVICE]
-            fw_updater = FirmwareUpdater(fw_device)
+            fw_updater = self.__device_info[device_id][DeviceInfoKeys.FW_UPDATER]
             PTLogger.info("{} - Updating firmware".format(device_id))
+
             if fw_updater.install_updates():
                 success = True
                 PTLogger.info("{} - Updated firmware successfully to device".format(device_id))
             self.set_notification_status(device_id, True)
-            del fw_updater
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))
         except Exception as e:
@@ -118,7 +118,7 @@ class FirmwareDeviceManager:
 
     def start_file_supervisor(self):
         self.queue = multiprocessing.Queue()
-        event_manager = FirmwareFileEventManager(shared_queue)
+        event_manager = FirmwareFileEventManager(self.queue)
         binary_directories = [self.FIRMWARE_FILE_PATH + dev.name for dev in self.devices]
 
         self.file_monitor = FileSupervisor(binary_directories, event_manager)

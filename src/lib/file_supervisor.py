@@ -35,11 +35,9 @@ class FirmwareFileEventManager(pyinotify.ProcessEvent):
         super().__init__()
 
     def process_IN_CREATE(self, event):
-        PTLogger.info("---- {} was created".format(event.pathname))
         self.__process_event(event)
 
     def process_IN_MOVED_TO(self, event):
-        PTLogger.info("---- {} was moved".format(event.pathname))
         self.__process_event(event)
 
     def __process_event(self, event):
