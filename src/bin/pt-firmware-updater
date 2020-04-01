@@ -6,14 +6,13 @@ from sys import exit
 from sys import path
 from time import sleep
 
-path.append("/usr/lib/pt-firmware-updater/")
+from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice
-from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
-from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.logger import PTLogger
-from firmware_updater import FirmwareUpdater
-from notification_manager import NotificationManager
-from notification_manager import UpdateStatusEnum
+from ptcommon.sys_info import get_host_device_version
+path.append("/usr/lib/pt-firmware-updater/")
+from notification_manager import NotificationManager, UpdateStatusEnum
+from firmware_device_manager import FirmwareDeviceManager
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
@@ -64,26 +63,16 @@ def is_root() -> bool:
     return os.geteuid() == 0
 
 
-def str_name_to_device_id(str_name: str) -> FirmwareDeviceID:
-    """
-    Retrieves the device ID for a given firmware device's
-    str name.
-    :param str_name: a particular firmware device name.
-    :return: Corresponding FirmwareDeviceID.
-    """
-    devices = FirmwareDevice.valid_device_ids()
-    if str_name not in [d.name for d in devices]:
-        PTLogger.error("Invalid device name")
-        exit(1)
-    return FirmwareDeviceID[str_name]
-
-
 def main() -> None:
     args = parser.parse_args()
     PTLogger.setup_logging(
         "pt-firmware-updater",
         args.log_level,
         args.no_journal is False)
+
+    if get_host_device_version() != DeviceID.pi_top_4:
+        PTLogger.error("This program only runs on a pi-top[4]")
+        exit(1)
 
     if not is_root():
         PTLogger.error(
@@ -93,28 +82,32 @@ def main() -> None:
     if args.all:
         devices = FirmwareDevice.valid_device_ids()
     else:
-        devices = [str_name_to_device_id(args.device)]
+        devices = [FirmwareDevice.str_name_to_device_id(args.device)]
 
-    notification_manager = NotificationManager()
+    fw_device_manager = FirmwareDeviceManager(devices)
+    fw_device_manager.force_update_if_available()
+    fw_device_manager.start_file_supervisor()
+
     while True:
-        for dev in devices:
-            try:
-                fw_dev = FirmwareDevice(dev, args.interval)
-                fw_updater = FirmwareUpdater(fw_dev)
-                if fw_updater.update_available():
-                    notification_manager.notify_user(UpdateStatusEnum.WARNING, fw_dev.str_name)
+        fw_device_manager.scan(packet_interval=args.interval)
 
-                    status = UpdateStatusEnum.FAILURE
-                    if fw_updater.install_updates():
-                        status = UpdateStatusEnum.SUCCESS
-                    notification_manager.notify_user(status, fw_dev.str_name)
+        for device in fw_device_manager.connected_devices():
+            if fw_device_manager.was_notified(device):
+                PTLogger.info("{} - User already notified for updates. Skipping...".format(device))
+                continue
 
-            except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-                PTLogger.warning('{} - {}'.format(dev.name, e))
-                continue
-            except Exception as e:
-                PTLogger.error(str(e))
-                continue
+            if fw_device_manager.has_update(device):
+                # notify user about update
+                fw_device_manager.set_notification_status(device, True)
+                user_response = True  # store user response
+                if user_response:
+                    PTLogger.info('{} - User accepted update.'.format(device))
+                    fw_device_manager.update(device)
+                else:
+                    PTLogger.info('{} - User rejected update. Skipping future checks...'.format(device))
+
+        if fw_device_manager.new_files_in_folder():
+            PTLogger.info('New binary files found. Will notify the user.')
 
         if args.loop_time < 0:
             break

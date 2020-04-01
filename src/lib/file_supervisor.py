@@ -28,7 +28,7 @@ class FileSupervisor(object):
 
 
 class FirmwareFileEventManager(pyinotify.ProcessEvent):
-    def __init__(self, queue:  multiprocessing.queues.Queue):
+    def __init__(self, queue):
         if not isinstance(queue, multiprocessing.queues.Queue):
             raise AttributeError('Queue is not a multiprocessing Queue')
         self.queue = queue
