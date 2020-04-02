@@ -75,7 +75,9 @@ class FirmwareDeviceManager:
         try:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = FirmwareUpdater(fw_dev)
-            has_updates = fw_updater.search_updates()
+            fw_updater.search_updates()
+
+            has_updates = fw_updater.has_staged_updates()
             path = fw_updater.fw_file_location
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))

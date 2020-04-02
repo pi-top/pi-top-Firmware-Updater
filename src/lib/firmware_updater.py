@@ -29,7 +29,11 @@ class FirmwareUpdater(object):
         self.device = fw_device
         self._packet = PacketManager()
 
-    def verify_and_stage_file(self, path_to_fw_file: str):
+    def has_staged_updates(self) -> bool:
+        return os.path.isfile(self.fw_file_location) and \
+            self.__read_hash_from_file(self.fw_file_location) == self.fw_file_hash
+
+    def verify_and_stage_file(self, path_to_fw_file: str) -> None:
         PTLogger.info('{} - Verifying file {}'.format(self.device.str_name, path_to_fw_file))
 
         if self.fw_downloaded_successfully():
@@ -41,7 +45,7 @@ class FirmwareUpdater(object):
         self.__prepare_firmware_for_install(path_to_fw_file)
         PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, path_to_fw_file))
 
-    def search_updates(self) -> bool:
+    def search_updates(self) -> None:
         PTLogger.info('{} - Checking for updates in {}'.format(self.device.str_name, self.FW_INITIAL_LOCATION))
 
         board = self.device.get_sch_hardware_version_major()
@@ -50,12 +54,11 @@ class FirmwareUpdater(object):
 
         fw_version = self.__get_latest_fw_version_from_path(path_to_fw_folder)
         if len(fw_version) == 0:
-            return False
+            return
         path_to_fw_file = os.path.join(path_to_fw_folder, fw_version + ".bin")
 
         self.verify_and_stage_file(path_to_fw_file)
         PTLogger.info("{} - Firmware update found: {}".format(self.device.str_name, path_to_fw_file))
-        return True
 
     def install_updates(self) -> bool:
         self.__send_staged_firmware_to_device()
@@ -71,7 +74,7 @@ class FirmwareUpdater(object):
         return False
 
     def __send_staged_firmware_to_device(self) -> None:
-        if not os.path.isfile(self.fw_file_location):
+        if not self.has_staged_updates():
             PTLogger.error("There isn't a firmware staged to be installed on")
             return
 

@@ -86,11 +86,11 @@ def main() -> None:
         fw_updater = FirmwareUpdater(fw_dev)
 
         if args.path:
-            can_install = fw_updater.verify_and_stage_file(args.path)
+            fw_updater.verify_and_stage_file(args.path)
         else:
-            can_install = fw_updater.search_updates()
+            fw_updater.search_updates()
 
-        if can_install:
+        if fw_updater.has_staged_updates():
             PTLogger.info("{} - starting update process".format(device_id))
             fw_updater.install_updates()
             status = UpdateStatusEnum.SUCCESS
