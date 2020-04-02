@@ -9,6 +9,7 @@ from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_updater import FirmwareUpdater
 from file_supervisor import FileSupervisor, FirmwareFileEventManager
+from notification_manager import NotificationManager, UpdateStatusEnum
 
 
 class DeviceInfoKeys(Enum):
@@ -125,6 +126,12 @@ class FirmwareDeviceManager:
 
     def already_notified_this_session(self, device_id: FirmwareDeviceID):
         return self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED]
+
+    def notify_user_about_updates(self, device_id):
+        notification_manager = NotificationManager()
+        path_to_binary = self.path_to_binary(device_id)
+        notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
+        self.set_notification_status(device_id, True)
 
     def start_file_supervisor(self) -> None:
         self.queue = multiprocessing.Queue()

@@ -11,7 +11,6 @@ from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
 path.append("/usr/lib/pt-firmware-updater/")
-from notification_manager import NotificationManager, UpdateStatusEnum
 from firmware_device_manager import FirmwareDeviceManager
 
 
@@ -62,7 +61,6 @@ def main() -> None:
     fw_device_manager.force_update_if_available()
     fw_device_manager.start_file_supervisor()
 
-    notification_manager = NotificationManager()
     while True:
         fw_device_manager.scan()
 
@@ -72,9 +70,7 @@ def main() -> None:
                 continue
 
             if fw_device_manager.has_update(device_id):
-                path_to_binary = fw_device_manager.path_to_binary(device_id)
-                notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
-                fw_device_manager.set_notification_status(device_id, True)
+                fw_device_manager.notify_user_about_updates(device_id)
 
         fw_device_manager.update_notification_states_for_new_firmware_files()
 
