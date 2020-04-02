@@ -7,22 +7,15 @@ from sys import path
 from time import sleep
 
 from ptcommon.common_ids import DeviceID
-from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
 path.append("/usr/lib/pt-firmware-updater/")
+from firmware_updater import FirmwareUpdater
 from notification_manager import NotificationManager, UpdateStatusEnum
-from firmware_device_manager import FirmwareDeviceManager
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
-parser.add_argument(
-    "-a",
-    "--all",
-    action="store_true",
-    help="Find all connected pi-top devices, and apply firmware upgrades "
-         "if necessary",
-)
 parser.add_argument(
     "-d",
     "--device",
@@ -30,7 +23,7 @@ parser.add_argument(
     help="Define specific pi-top firmware device to attempt to apply firmware"
          " upgrade to. This option is ignored if -a flag is used. "
          "Receives only one device name.",
-    required=False
+    required=True
 )
 parser.add_argument(
     "--no-journal",
@@ -52,10 +45,10 @@ parser.add_argument(
     default=0.1
 )
 parser.add_argument(
-    "--loop-time",
-    type=float,
-    help="Sets the time interval in seconds that the script will wait before each update check.",
-    default=-1
+    "-p",
+    "--path",
+    help="Path to the binary file to install",
+    required=True
 )
 
 
@@ -79,40 +72,29 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    if args.all:
-        devices = FirmwareDevice.valid_device_ids()
-    else:
-        devices = [FirmwareDevice.str_name_to_device_id(args.device)]
+    if not os.path.isfile(args.path):
+        PTLogger.error(
+            "The provided path is not valid.")
+        exit(1)
 
-    fw_device_manager = FirmwareDeviceManager(devices)
-    fw_device_manager.force_update_if_available()
-    fw_device_manager.start_file_supervisor()
+    notification_manager = NotificationManager()
+    device_id = FirmwareDevice.str_name_to_device_id(args.device)
+    PTLogger.info("Starting pt-firmware-updater")
+    try:
+        fw_dev = FirmwareDevice(device_id, args.interval)
+        fw_updater = FirmwareUpdater(fw_dev)
 
-    while True:
-        fw_device_manager.scan(packet_interval=args.interval)
+        status = UpdateStatusEnum.FAILURE
+        PTLogger.info("{} - starting update process".format(device_id))
+        fw_updater.install_updates(args.path)
+        status = UpdateStatusEnum.SUCCESS
+        PTLogger.info("{} - successfully updated".format(device_id))
+    except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
+        PTLogger.warning('{} - {}'.format(device_id, e))
+    except Exception as e:
+        PTLogger.error(str(e))
 
-        for device_id in fw_device_manager.connected_devices():
-            if fw_device_manager.was_notified(device_id):
-                PTLogger.info("{} - User already notified for updates. Skipping...".format(device_id))
-                continue
-
-            if fw_device_manager.has_update(device_id):
-                # notify user about update
-                fw_device_manager.set_notification_status(device_id, True)
-                user_response = True  # store user response
-                if user_response:
-                    PTLogger.info('{} - User accepted update.'.format(device_id))
-                    fw_device_manager.update(device_id)
-                else:
-                    PTLogger.info('{} - User rejected update. Skipping future checks...'.format(device_id))
-
-        if fw_device_manager.new_files_in_folder():
-            PTLogger.info('New binary files found. Will notify the user.')
-
-        if args.loop_time < 0:
-            break
-        PTLogger.info('Sleeping for {} secs before next check.'.format(args.loop_time))
-        sleep(args.loop_time)
+    notification_manager.notify_user(status, device_id)
 
 
 if __name__ == '__main__':

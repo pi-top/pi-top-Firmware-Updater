@@ -17,6 +17,7 @@ class DeviceInfoKeys(Enum):
     FW_UPDATER = auto()
     NOTIFIED = auto()
     UPDATE_AVAILABLE = auto()
+    PATH_TO_BINARY = auto()
 
 
 class FirmwareDeviceManager:
@@ -31,12 +32,12 @@ class FirmwareDeviceManager:
             self.__devices_status[dev] = {}
         self.scan()
 
-    def scan(self, packet_interval: float = None):
+    def scan(self):
         PTLogger.debug('Scanning for connected firmware devices')
 
         for dev in self.devices_id_list:
             try:
-                fw_device = FirmwareDevice(dev, packet_interval)
+                fw_device = FirmwareDevice(dev)
                 connected = True
                 PTLogger.debug('{} is connected'.format(dev))
                 self.__devices_status[dev][DeviceInfoKeys.FW_DEVICE] = fw_device
@@ -72,18 +73,22 @@ class FirmwareDeviceManager:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = FirmwareUpdater(fw_dev)
             has_updates = fw_updater.update_available()
+            path = fw_updater.fw_dst_path
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))
             has_updates = False
             fw_updater = None
+            path = None
         except Exception as e:
             PTLogger.error('{} - {}'.format(device_id.name, e))
             has_updates = False
             fw_updater = None
+            path = None
         finally:
             self.set_notification_status(device_id, has_updates)
             self.__devices_status[device_id][DeviceInfoKeys.UPDATE_AVAILABLE] = has_updates
             self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER] = fw_updater
+            self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY] = path
         return has_updates
 
     def update(self, device_id: FirmwareDeviceID) -> bool:
@@ -109,6 +114,9 @@ class FirmwareDeviceManager:
             PTLogger.error('{} - {}'.format(device_id.name, e))
 
         return success
+
+    def path_to_binary(self, device_id: FirmwareDeviceID):
+        return self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
 
     def set_notification_status(self, device_id: FirmwareDeviceID, status: bool) -> None:
         self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED] = status

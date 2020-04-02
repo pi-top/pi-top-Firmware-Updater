@@ -22,11 +22,6 @@ class FirmwareUpdater(object):
         self._packet = PacketManager()
 
     def update_available(self) -> bool:
-        """
-        Checks if there are updates available for the given device
-        :return: tuple with device object and path to firmware update if
-        there's a update available. None otherwise.
-        """
         PTLogger.info('{} - Checking update availability.'.format(self.device.str_name))
 
         if self.fw_downloaded_successfully():
@@ -70,12 +65,10 @@ class FirmwareUpdater(object):
             .format(self.device.str_name, self.fw_dst_path))
         return True
 
-    def install_updates(self) -> bool:
-        """
-        Sends the firmware file to the device
-        :param device: device object
-        :return: Nothing. Exceptions on failure.
-        """
+    def install_updates(self, path: str = "") -> bool:
+        if path:
+            self.fw_dst_path = path
+            self.fw_hash = self.__read_hash_from_file(self.fw_dst_path)
         self.__update_firmware()
         time_wait_mcu = 0.1
         PTLogger.info(
