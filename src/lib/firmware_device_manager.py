@@ -75,8 +75,8 @@ class FirmwareDeviceManager:
         try:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = FirmwareUpdater(fw_dev)
-            has_updates = fw_updater.update_available()
-            path = fw_updater.fw_dst_path
+            has_updates = fw_updater.search_updates()
+            path = fw_updater.fw_file_location
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))
             has_updates = False
@@ -118,9 +118,6 @@ class FirmwareDeviceManager:
 
         return success
 
-    def path_to_binary(self, device_id: FirmwareDeviceID):
-        return self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
-
     def set_notification_status(self, device_id: FirmwareDeviceID, status: bool) -> None:
         self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED] = status
 
@@ -129,7 +126,7 @@ class FirmwareDeviceManager:
 
     def notify_user_about_updates(self, device_id):
         notification_manager = NotificationManager()
-        path_to_binary = self.path_to_binary(device_id)
+        path_to_binary = self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
         notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
         self.set_notification_status(device_id, True)
 

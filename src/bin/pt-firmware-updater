@@ -11,7 +11,7 @@ from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceExce
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_updater import FirmwareUpdater
+from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from notification_manager import NotificationManager, UpdateStatusEnum
 
 
@@ -46,8 +46,10 @@ parser.add_argument(
 parser.add_argument(
     "-p",
     "--path",
-    help="Path to the binary file to install",
-    required=True
+    type=str,
+    help="Path to the binary file to install. If not provided, updates will be "
+         "searched in system folders",
+    default=""
 )
 
 
@@ -71,23 +73,29 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    if not os.path.isfile(args.path):
-        PTLogger.error("{} is not a valid path.".format(args.path))
+    if os.path.isdir(args.path):
+        PTLogger.error("{} is a directory, not a file.".format(args.path))
         exit(1)
 
     notification_manager = NotificationManager()
     device_id = FirmwareDevice.str_name_to_device_id(args.device)
     PTLogger.info("Starting pt-firmware-updater")
+    status = UpdateStatusEnum.FAILURE
     try:
         fw_dev = FirmwareDevice(device_id, args.interval)
         fw_updater = FirmwareUpdater(fw_dev)
 
-        status = UpdateStatusEnum.FAILURE
-        PTLogger.info("{} - starting update process".format(device_id))
-        fw_updater.install_updates(args.path)
-        status = UpdateStatusEnum.SUCCESS
-        PTLogger.info("{} - successfully updated".format(device_id))
-    except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
+        if args.path:
+            can_install = fw_updater.verify_and_stage_file(args.path)
+        else:
+            can_install = fw_updater.search_updates()
+
+        if can_install:
+            PTLogger.info("{} - starting update process".format(device_id))
+            fw_updater.install_updates()
+            status = UpdateStatusEnum.SUCCESS
+            PTLogger.info("{} - successfully updated".format(device_id))
+    except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException, PTInvalidFirmwareFile, PTUpdatePending) as e:
         PTLogger.warning('{} - {}'.format(device_id, e))
     except Exception as e:
         PTLogger.error(str(e))
