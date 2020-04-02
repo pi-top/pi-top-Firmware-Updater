@@ -68,6 +68,7 @@ class FirmwareDeviceManager:
     def has_update(self, device_id: FirmwareDeviceID) -> bool:
         has_updates = False
         if not self.is_connected(device_id):
+            PTLogger.info("{} - Not connected. Skipping update check.".format(device_id))
             return has_updates
 
         try:
@@ -122,7 +123,7 @@ class FirmwareDeviceManager:
     def set_notification_status(self, device_id: FirmwareDeviceID, status: bool) -> None:
         self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED] = status
 
-    def was_notified(self, device_id: FirmwareDeviceID):
+    def already_notified_this_session(self, device_id: FirmwareDeviceID):
         return self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED]
 
     def start_file_supervisor(self) -> None:
@@ -133,15 +134,10 @@ class FirmwareDeviceManager:
         self.file_monitor = FileSupervisor(binary_directories, event_manager)
         self.file_monitor.run(threaded=True)
 
-    def new_files_in_folder(self) -> bool:
-        found_new_files = False
+    def update_notification_states_for_new_firmware_files(self) -> None:
         if not self.queue:
-            return found_new_files
-
+            return
         while not self.queue.empty():
-            found_new_files = True
             device_id = self.queue.get()
             PTLogger.info("{} - Found new firmware file!".format(device_id))
             self.set_notification_status(device_id, False)
-
-        return found_new_files

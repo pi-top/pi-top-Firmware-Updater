@@ -17,13 +17,6 @@ from firmware_device_manager import FirmwareDeviceManager
 
 parser = ArgumentParser(description="pi-top firmware update checker")
 parser.add_argument(
-    "-a",
-    "--all",
-    action="store_true",
-    help="Find all connected pi-top devices, and apply firmware upgrades "
-         "if necessary",
-)
-parser.add_argument(
     "--no-journal",
     help="Prints output to stdout instead of journal.",
     action="store_true"
@@ -36,9 +29,10 @@ parser.add_argument(
 )
 parser.add_argument(
     "--loop-time",
-    type=float,
+    type=int,
     help="Sets the time interval in seconds that the script will wait before each update check.",
-    default=3
+    default=3,
+    choices=range(1, 300)
 )
 
 
@@ -73,7 +67,7 @@ def main() -> None:
         fw_device_manager.scan()
 
         for device_id in fw_device_manager.connected_devices():
-            if fw_device_manager.was_notified(device_id):
+            if fw_device_manager.already_notified_this_session(device_id):
                 PTLogger.info("{} - User already notified for updates. Skipping...".format(device_id))
                 continue
 
@@ -82,8 +76,7 @@ def main() -> None:
                 notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
                 fw_device_manager.set_notification_status(device_id, True)
 
-        if fw_device_manager.new_files_in_folder():
-            PTLogger.info('New binary files found. Will notify the user.')
+        fw_device_manager.update_notification_states_for_new_firmware_files()
 
         if args.loop_time < 0:
             break

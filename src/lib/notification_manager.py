@@ -32,7 +32,7 @@ class NotificationManager(object):
             "actions": [
                 {
                     "text": "Upgrade Now",
-                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptou.sh sudo -A /usr/bin/pt-firmware-updater "
+                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
                 },
             ]
         }
@@ -73,9 +73,9 @@ class NotificationManager(object):
             action_manager = NotificationActionManager()
             for action in self.MESSAGE_DATA[update_enum]['actions']:
                 command = action["command"]
-                command += "-d {} ".format(device_id.name)
+                command += " -d {}".format(device_id.name)
                 if path_to_fw:
-                    command += "--path {} ".format(path_to_fw)
+                    command += " --path {}".format(path_to_fw)
 
                 action_manager.add_action(
                     call_to_action_text=action["text"],
