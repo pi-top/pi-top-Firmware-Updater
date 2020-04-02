@@ -58,14 +58,14 @@ class NotificationManager(object):
 
         if update_enum is UpdateStatusEnum.SUCCESS:
             if device_id == FirmwareDeviceID.pt4_hub:
-                return "Reboot your pi-top to apply changes"
+                return "Reboot your {} to apply changes".format(device_friendly_name)
             elif device_id in (FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_foundation_plate):
-                return "Disconnect and reconnect your plate to apply changes"
-            return "Successfully updated your {}".format(device_friendly_name)
+                return "Disconnect and reconnect your\n{} to apply changes".format(device_friendly_name)
+            return "Successfully updated your\n{}".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.WARNING:
             return "There's a firmware update available\nfor your {}.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.FAILURE:
-            return "There were errors while updating your {}.".format(device_friendly_name)
+            return "There were errors while updating\nyour {}.".format(device_friendly_name)
 
     def __get_action_manager(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> NotificationActionManager:
         action_manager = None
