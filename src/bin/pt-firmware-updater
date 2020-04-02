@@ -91,20 +91,20 @@ def main() -> None:
     while True:
         fw_device_manager.scan(packet_interval=args.interval)
 
-        for device in fw_device_manager.connected_devices():
-            if fw_device_manager.was_notified(device):
-                PTLogger.info("{} - User already notified for updates. Skipping...".format(device))
+        for device_id in fw_device_manager.connected_devices():
+            if fw_device_manager.was_notified(device_id):
+                PTLogger.info("{} - User already notified for updates. Skipping...".format(device_id))
                 continue
 
-            if fw_device_manager.has_update(device):
+            if fw_device_manager.has_update(device_id):
                 # notify user about update
-                fw_device_manager.set_notification_status(device, True)
+                fw_device_manager.set_notification_status(device_id, True)
                 user_response = True  # store user response
                 if user_response:
-                    PTLogger.info('{} - User accepted update.'.format(device))
-                    fw_device_manager.update(device)
+                    PTLogger.info('{} - User accepted update.'.format(device_id))
+                    fw_device_manager.update(device_id)
                 else:
-                    PTLogger.info('{} - User rejected update. Skipping future checks...'.format(device))
+                    PTLogger.info('{} - User rejected update. Skipping future checks...'.format(device_id))
 
         if fw_device_manager.new_files_in_folder():
             PTLogger.info('New binary files found. Will notify the user.')
