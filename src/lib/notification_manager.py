@@ -5,6 +5,7 @@ from ptcommon.logger import PTLogger
 from ptcommon.notifications import send_notification, NotificationActionManager
 from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.common_ids import FirmwareDeviceID
+from ptcommon.common_names import FirmwareDeviceName
 
 
 class UpdateStatusEnum(Enum):
@@ -53,9 +54,8 @@ class NotificationManager(object):
         )
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> str:
-        device_friendly_name = "pi-top [4] "
-        if device_id != FirmwareDeviceID.pt4_hub:
-            device_friendly_name += device_id.name.replace('pt4', '').replace('_', ' ').title()
+        device_friendly_name = FirmwareDeviceName[device_id.name].value
+
         if update_enum is UpdateStatusEnum.SUCCESS:
             if device_id == FirmwareDeviceID.pt4_hub:
                 return "Reboot your pi-top to apply changes"

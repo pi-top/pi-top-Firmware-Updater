@@ -59,6 +59,7 @@ class FirmwareDeviceManager:
         return self.__devices_status[device_id][DeviceInfoKeys.CONNECTED] if device_id in self.__devices_status else False
 
     def force_update_if_available(self) -> None:
+        PTLogger.info("Forcing update if available")
         for device_id in self.devices_id_list:
             if self.has_update(device_id):
                 self.update(device_id)

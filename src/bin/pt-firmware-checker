@@ -78,7 +78,6 @@ def main() -> None:
                 continue
 
             if fw_device_manager.has_update(device_id):
-                # notify user about update
                 path_to_binary = fw_device_manager.path_to_binary(device_id)
                 notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
                 fw_device_manager.set_notification_status(device_id, True)
