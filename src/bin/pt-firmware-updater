@@ -21,8 +21,7 @@ parser.add_argument(
     "--device",
     type=str,
     help="Define specific pi-top firmware device to attempt to apply firmware"
-         " upgrade to. This option is ignored if -a flag is used. "
-         "Receives only one device name.",
+         " upgrade to. Receives only one device name.",
     required=True
 )
 parser.add_argument(
@@ -73,8 +72,7 @@ def main() -> None:
         exit(1)
 
     if not os.path.isfile(args.path):
-        PTLogger.error(
-            "The provided path is not valid.")
+        PTLogger.error("{} is not a valid path.".format(args.path))
         exit(1)
 
     notification_manager = NotificationManager()
