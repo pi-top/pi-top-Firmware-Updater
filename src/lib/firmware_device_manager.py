@@ -129,7 +129,7 @@ class FirmwareDeviceManager:
     def notify_user_about_update(self, device_id):
         notification_manager = NotificationManager()
         path_to_binary = self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
-        notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
+        notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id, path_to_binary)
         self.set_notification_status(device_id, True)
 
     def start_file_supervisor(self) -> None:

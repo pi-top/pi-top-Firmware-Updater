@@ -17,12 +17,8 @@ from notification_manager import NotificationManager, UpdateStatusEnum
 
 parser = ArgumentParser(description="pi-top firmware update checker")
 parser.add_argument(
-    "-d",
-    "--device",
-    type=str,
-    help="Define specific pi-top firmware device to attempt to apply firmware"
-         " upgrade to. Receives only one device name.",
-    required=True
+    "device",
+    help="Define pi-top firmware device to apply firmware upgrade to.",
 )
 parser.add_argument(
     "--no-journal",

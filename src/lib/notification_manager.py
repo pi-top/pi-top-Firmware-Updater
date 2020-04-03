@@ -9,7 +9,7 @@ from ptcommon.common_names import FirmwareDeviceName
 
 
 class UpdateStatusEnum(Enum):
-    WARNING = auto()
+    PROMPT = auto()
     SUCCESS = auto()
     FAILURE = auto()
 
@@ -20,17 +20,26 @@ class NotificationManager(object):
     MESSAGE_DATA = {
         UpdateStatusEnum.SUCCESS: {
             "icon": "vcs-normal",
-            "timeout": 10000,
+            "timeout": 0,
+            "actions": [
+                {
+                    "device": [FirmwareDeviceID.pt4_hub],
+                    "text": "Reboot Now",
+                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
+                }
+            ]
         },
         UpdateStatusEnum.FAILURE: {
             "icon": "messagebox_critical",
-            "timeout": 10000
+            "timeout": 0,
+            "actions": []
         },
-        UpdateStatusEnum.WARNING: {
+        UpdateStatusEnum.PROMPT: {
             "icon": "messagebox_info",
             "timeout": 0,
             "actions": [
                 {
+                    "device": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
                     "text": "Upgrade Now",
                     "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
                 },
@@ -61,23 +70,27 @@ class NotificationManager(object):
                 return "Reboot your {} to apply changes".format(device_friendly_name)
             elif device_id in (FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_foundation_plate):
                 return "Disconnect and reconnect your\n{} to apply changes".format(device_friendly_name)
-            return "Successfully updated your\n{}".format(device_friendly_name)
-        elif update_enum is UpdateStatusEnum.WARNING:
+        elif update_enum is UpdateStatusEnum.PROMPT:
             return "There's a firmware update available\nfor your {}.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.FAILURE:
             return "There were errors while updating\nyour {}.".format(device_friendly_name)
 
     def __get_action_manager(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> NotificationActionManager:
         action_manager = None
-        if update_enum is UpdateStatusEnum.WARNING:
-            action_manager = NotificationActionManager()
-            for action in self.MESSAGE_DATA[update_enum]['actions']:
-                command = action["command"]
-                command += " -d {}".format(device_id.name)
-                if path_to_fw:
-                    command += " --path {}".format(path_to_fw)
+        if len(self.MESSAGE_DATA[update_enum]['actions']) == 0:
+            return action_manager
 
-                action_manager.add_action(
-                    call_to_action_text=action["text"],
-                    command_str=command)
+        action_manager = NotificationActionManager()
+        for action in self.MESSAGE_DATA[update_enum]['actions']:
+            if action["device"] != device_id:
+                continue
+
+            command = action["command"]
+            command += " -d {}".format(device_id.name)
+            if path_to_fw:
+                command += " --path {}".format(path_to_fw)
+
+            action_manager.add_action(
+                call_to_action_text=action["text"],
+                command_str=command)
         return action_manager
