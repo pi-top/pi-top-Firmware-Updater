@@ -55,14 +55,13 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    devices = FirmwareDevice.valid_device_ids()
+    fw_device_manager = FirmwareDeviceManager(FirmwareDevice.valid_device_ids())
 
-    fw_device_manager = FirmwareDeviceManager(devices)
     fw_device_manager.force_update_if_available()
-    fw_device_manager.start_file_supervisor()
 
+    fw_device_manager.start_file_supervisor()
     while True:
-        fw_device_manager.scan()
+        fw_device_manager.scan_for_connected_devices()
 
         for device_id in fw_device_manager.connected_devices():
             if fw_device_manager.already_notified_this_session(device_id):
@@ -70,7 +69,7 @@ def main() -> None:
                 continue
 
             if fw_device_manager.has_update(device_id):
-                fw_device_manager.notify_user_about_updates(device_id)
+                fw_device_manager.notify_user_about_update(device_id)
 
         fw_device_manager.update_notification_states_for_new_firmware_files()
 

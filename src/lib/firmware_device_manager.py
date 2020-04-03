@@ -31,9 +31,9 @@ class FirmwareDeviceManager:
         self.devices_id_list = devices
         for dev in devices:
             self.__devices_status[dev] = {}
-        self.scan()
+        self.scan_for_connected_devices()
 
-    def scan(self):
+    def scan_for_connected_devices(self):
         PTLogger.debug('Scanning for connected firmware devices')
 
         for dev in self.devices_id_list:
@@ -126,7 +126,7 @@ class FirmwareDeviceManager:
     def already_notified_this_session(self, device_id: FirmwareDeviceID):
         return self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED]
 
-    def notify_user_about_updates(self, device_id):
+    def notify_user_about_update(self, device_id):
         notification_manager = NotificationManager()
         path_to_binary = self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
         notification_manager.notify_user(UpdateStatusEnum.WARNING, device_id, path_to_binary)
