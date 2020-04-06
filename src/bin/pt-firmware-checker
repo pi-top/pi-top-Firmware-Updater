@@ -10,6 +10,7 @@ from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
+from ptcommon.lock_file import LockFile
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_device_manager import FirmwareDeviceManager
 
@@ -56,22 +57,25 @@ def main() -> None:
         exit(1)
 
     fw_device_manager = FirmwareDeviceManager(FirmwareDevice.valid_device_ids())
-
     fw_device_manager.force_update_if_available()
-
     fw_device_manager.start_file_supervisor()
+
+    lock_file = LockFile('/tmp/pt-firmware-updater.lock')
     while True:
-        fw_device_manager.scan_for_connected_devices()
+        if lock_file.is_locked():
+            PTLogger.info("Waiting for lock to be released")
+        else:
+            fw_device_manager.scan_for_connected_devices()
 
-        for device_id in fw_device_manager.connected_devices():
-            if fw_device_manager.already_notified_this_session(device_id):
-                PTLogger.info("{} - User already notified for updates. Skipping...".format(device_id))
-                continue
+            for device_id in fw_device_manager.connected_devices():
+                if fw_device_manager.already_notified_this_session(device_id):
+                    PTLogger.info("{} - User already notified for updates. Skipping...".format(device_id))
+                    continue
 
-            if fw_device_manager.has_update(device_id):
-                fw_device_manager.notify_user_about_update(device_id)
+                if fw_device_manager.has_update(device_id):
+                    fw_device_manager.notify_user_about_update(device_id)
 
-        fw_device_manager.update_notification_states_for_new_firmware_files()
+            fw_device_manager.update_notification_states_for_new_firmware_files()
 
         PTLogger.info('Sleeping for {} secs before next check.'.format(args.loop_time))
         sleep(args.loop_time)

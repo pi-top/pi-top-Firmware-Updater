@@ -10,9 +10,11 @@ from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
+from ptcommon.lock_file import LockFile
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from notification_manager import NotificationManager, UpdateStatusEnum
+from firmware_device_manager import FirmwareDeviceManager
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
@@ -73,30 +75,27 @@ def main() -> None:
         PTLogger.error("{} is a directory, not a file.".format(args.path))
         exit(1)
 
-    notification_manager = NotificationManager()
+    lock_file = LockFile('/tmp/pt-firmware-updater.lock')
+    if lock_file.is_locked():
+        PTLogger.error("Lock file is already owned")
+        exit(1)
+
     device_id = FirmwareDevice.str_name_to_device_id(args.device)
     PTLogger.info("Starting pt-firmware-updater")
-    status = UpdateStatusEnum.FAILURE
     try:
-        fw_dev = FirmwareDevice(device_id, args.interval)
-        fw_updater = FirmwareUpdater(fw_dev)
+        lock_file.acquire()
+        fw_device_manager = FirmwareDeviceManager(device_id)
 
-        if args.path:
-            fw_updater.verify_and_stage_file(args.path)
-        else:
-            fw_updater.search_updates()
-
-        if fw_updater.has_staged_updates():
+        if fw_device_manager.has_update(device_id, args.path):
             PTLogger.info("{} - starting update process".format(device_id))
-            fw_updater.install_updates()
-            status = UpdateStatusEnum.SUCCESS
+            fw_device_manager.update()
             PTLogger.info("{} - successfully updated".format(device_id))
     except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException, PTInvalidFirmwareFile, PTUpdatePending) as e:
         PTLogger.warning('{} - {}'.format(device_id, e))
     except Exception as e:
         PTLogger.error(str(e))
-
-    notification_manager.notify_user(status, device_id)
+    finally:
+        lock_file.release()
 
 
 if __name__ == '__main__':
