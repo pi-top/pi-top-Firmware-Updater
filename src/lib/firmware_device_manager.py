@@ -67,7 +67,7 @@ class FirmwareDeviceManager:
                 self.update(device_id)
             self.set_notification_status(device_id, True)
 
-    def has_update(self, device_id: FirmwareDeviceID) -> bool:
+    def has_update(self, device_id: FirmwareDeviceID, path: str = "") -> bool:
         has_updates = False
         if not self.is_connected(device_id):
             PTLogger.info("{} - Not connected. Skipping update check.".format(device_id))
@@ -76,7 +76,10 @@ class FirmwareDeviceManager:
         try:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = FirmwareUpdater(fw_dev)
-            fw_updater.search_updates()
+            if path:
+                fw_updater.verify_and_stage_file(path)
+            else:
+                fw_updater.search_updates()
 
             has_updates = fw_updater.has_staged_updates()
             path = fw_updater.fw_file_location

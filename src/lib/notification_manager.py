@@ -47,7 +47,7 @@ class NotificationManager(object):
         }
     }
 
-    self.__notification_memory = {
+    __notification_memory = {
         UpdateStatusEnum.SUCCESS: {},
         UpdateStatusEnum.FAILURE: {},
         UpdateStatusEnum.PROMPT: {},
