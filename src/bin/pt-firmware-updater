@@ -49,6 +49,12 @@ parser.add_argument(
          "searched in system folders",
     default=""
 )
+parser.add_argument(
+    "-n",
+    "--notification-id",
+    type=int,
+    help="Id of the notification to use during the update",
+)
 
 
 def is_root() -> bool:
@@ -85,6 +91,9 @@ def main() -> None:
     try:
         lock_file.acquire()
         fw_device_manager = FirmwareDeviceManager([device_id])
+
+        if args.notification_id:
+            fw_device_manager.set_notification_id(device_id, args.notification_id)
 
         if fw_device_manager.has_update(device_id, args.path):
             PTLogger.info("{} - starting update process".format(device_id))

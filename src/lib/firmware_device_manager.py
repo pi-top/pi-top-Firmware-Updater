@@ -130,7 +130,8 @@ class FirmwareDeviceManager:
         self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED] = status
 
     def already_notified_this_session(self, device_id: FirmwareDeviceID):
-        return self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED]
+        notified = self.__devices_status[device_id].get(DeviceInfoKeys.NOTIFIED)
+        return notified == True
 
     def notify_user_about_update(self, device_id):
         path_to_binary = self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
@@ -152,3 +153,6 @@ class FirmwareDeviceManager:
             device_id = self.queue.get()
             PTLogger.info("{} - Found new firmware file!".format(device_id))
             self.set_notification_status(device_id, False)
+
+    def set_notification_id(self, device_id: FirmwareDeviceID, notification_id: int) -> None:
+        self.notification_manager.set_notification_id(device_id, notification_id)
