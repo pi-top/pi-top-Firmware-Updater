@@ -47,6 +47,12 @@ class NotificationManager(object):
         }
     }
 
+    self.__notification_memory = {
+        UpdateStatusEnum.SUCCESS: {},
+        UpdateStatusEnum.FAILURE: {},
+        UpdateStatusEnum.PROMPT: {},
+    }
+
     def notify_user(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> None:
         if update_enum not in UpdateStatusEnum:
             PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
@@ -54,13 +60,19 @@ class NotificationManager(object):
 
         PTLogger.info("notify_user() w/device: {}, enum: {}".format(device_id.value, update_enum))
 
-        send_notification(
+        if update_enum == UpdateStatusEnum.PROMPT:
+            self.__notification_memory[update_enum][device_id] = ""
+
+        notification_id = send_notification(
             title=self.NOTIFICATION_TITLE,
             text=self.__get_notification_message(update_enum, device_id),
             icon_name=self.MESSAGE_DATA[update_enum]["icon"],
             timeout=self.MESSAGE_DATA[update_enum]["timeout"],
-            actions_manager=self.__get_action_manager(update_enum, device_id, path_to_fw)
+            actions_manager=self.__get_action_manager(update_enum, device_id, path_to_fw),
+            notification_id=self.__get_notification_id(update_enum, device_id)
         )
+
+        self.__notification_memory[update_enum][device_id] = notification_id
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> str:
         device_friendly_name = FirmwareDeviceName[device_id.name].value
@@ -94,3 +106,8 @@ class NotificationManager(object):
                 call_to_action_text=action["text"],
                 command_str=command)
         return action_manager
+
+    def __get_notification_id(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> str:
+        if device_id not in self.__notification_memory[update_enum]:
+            return ""
+        return self.__notification_memory[update_enum][device_id]

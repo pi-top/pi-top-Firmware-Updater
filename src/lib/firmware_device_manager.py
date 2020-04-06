@@ -32,6 +32,7 @@ class FirmwareDeviceManager:
         for dev in devices:
             self.__devices_status[dev] = {}
         self.scan_for_connected_devices()
+        self.notification_manager = NotificationManager()
 
     def scan_for_connected_devices(self):
         PTLogger.debug('Scanning for connected firmware devices')
@@ -98,6 +99,7 @@ class FirmwareDeviceManager:
 
     def update(self, device_id: FirmwareDeviceID) -> bool:
         success = False
+
         if not self.is_connected(device_id):
             PTLogger.info("{} is not connected".format(device_id))
             return success
@@ -113,6 +115,7 @@ class FirmwareDeviceManager:
                 success = True
                 PTLogger.info("{} - Updated firmware successfully to device".format(device_id))
             self.set_notification_status(device_id, True)
+            self.notification_manager.notify_user(UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE, device_id)
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))
         except Exception as e:
@@ -127,9 +130,8 @@ class FirmwareDeviceManager:
         return self.__devices_status[device_id][DeviceInfoKeys.NOTIFIED]
 
     def notify_user_about_update(self, device_id):
-        notification_manager = NotificationManager()
         path_to_binary = self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY]
-        notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id, path_to_binary)
+        self.notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id, path_to_binary)
         self.set_notification_status(device_id, True)
 
     def start_file_supervisor(self) -> None:
