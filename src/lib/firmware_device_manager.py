@@ -111,6 +111,7 @@ class FirmwareDeviceManager:
             return success
 
         try:
+            self.notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
             fw_updater = self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER]
             PTLogger.info("{} - Updating firmware".format(device_id))
 
@@ -118,11 +119,14 @@ class FirmwareDeviceManager:
                 success = True
                 PTLogger.info("{} - Updated firmware successfully to device".format(device_id))
             self.set_notification_status(device_id, True)
-            self.notification_manager.notify_user(UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE, device_id)
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - {}'.format(device_id.name, e))
         except Exception as e:
             PTLogger.error('{} - {}'.format(device_id.name, e))
+        finally:
+            self.notification_manager.notify_user(
+                UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE,
+                device_id)
 
         return success
 

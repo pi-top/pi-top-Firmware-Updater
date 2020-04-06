@@ -97,7 +97,7 @@ def main() -> None:
 
         if fw_device_manager.has_update(device_id, args.path):
             PTLogger.info("{} - starting update process".format(device_id))
-            fw_device_manager.update()
+            fw_device_manager.update(device_id)
             PTLogger.info("{} - successfully updated".format(device_id))
     except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException, PTInvalidFirmwareFile, PTUpdatePending) as e:
         PTLogger.warning('{} - {}'.format(device_id, e))

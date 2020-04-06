@@ -10,6 +10,7 @@ from ptcommon.common_names import FirmwareDeviceName
 
 class UpdateStatusEnum(Enum):
     PROMPT = auto()
+    ONGOING = auto()
     SUCCESS = auto()
     FAILURE = auto()
 
@@ -23,7 +24,7 @@ class NotificationManager(object):
             "timeout": 0,
             "actions": [
                 {
-                    "device": [FirmwareDeviceID.pt4_hub],
+                    "devices": [FirmwareDeviceID.pt4_hub],
                     "text": "Reboot Now",
                     "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
                 }
@@ -39,12 +40,17 @@ class NotificationManager(object):
             "timeout": 0,
             "actions": [
                 {
-                    "device": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
+                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
                     "text": "Upgrade Now",
                     "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
                 },
             ]
-        }
+        },
+        UpdateStatusEnum.ONGOING: {
+            "icon": "messagebox_info",
+            "timeout": 0,
+            "actions": []
+        },
     }
 
     __notification_ids = {}
@@ -54,10 +60,11 @@ class NotificationManager(object):
             PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
             return
 
-        PTLogger.info("notify_user() w/device: {}, enum: {}".format(device_id.value, update_enum))
+        PTLogger.info("notify_user() w/device: {}, enum: {}".format(device_id.name, update_enum))
 
         if update_enum == UpdateStatusEnum.PROMPT:
-            self.__notification_ids[device_id] = ""
+            notification_id = send_notification(title="", text="")
+            self.set_notification_id(device_id, notification_id)
 
         notification_id = send_notification(
             title=self.NOTIFICATION_TITLE,
@@ -68,7 +75,7 @@ class NotificationManager(object):
             notification_id=self.get_notification_id(device_id)
         )
 
-        self.__notification_ids[device_id] = notification_id
+        self.set_notification_id(device_id, notification_id)
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> str:
         device_friendly_name = FirmwareDeviceName[device_id.name].value
@@ -82,6 +89,8 @@ class NotificationManager(object):
             return "There's a firmware update available\nfor your {}.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.FAILURE:
             return "There were errors while updating\nyour {}.".format(device_friendly_name)
+        elif update_enum is UpdateStatusEnum.ONGOING:
+            return "Updating your {}. Please, don't disconnect it.".format(device_friendly_name)
 
     def __get_action_manager(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> NotificationActionManager:
         action_manager = None
@@ -90,13 +99,17 @@ class NotificationManager(object):
 
         action_manager = NotificationActionManager()
         for action in self.MESSAGE_DATA[update_enum]['actions']:
-            if action["device"] != device_id:
+            if device_id not in action["devices"]:
                 continue
 
             command = action["command"]
-            command += " -d {}".format(device_id.name)
+            command += "{}".format(device_id.name)
             if path_to_fw:
                 command += " --path {}".format(path_to_fw)
+
+            notification_id = self.get_notification_id(device_id)
+            if notification_id:
+                command += " --notification-id {}".format(notification_id)
 
             action_manager.add_action(
                 call_to_action_text=action["text"],
@@ -104,7 +117,10 @@ class NotificationManager(object):
         return action_manager
 
     def get_notification_id(self, device_id: FirmwareDeviceID) -> str:
-        return self.__notification_ids.get(device_id)
+        id = self.__notification_ids.get(device_id)
+        if not id:
+            id = ""
+        return str(id)
 
-    def set_notification_id(self, device_id: FirmwareDeviceID, id: int) -> str:
-        self.__notification_ids[device_id] = id
+    def set_notification_id(self, device_id: FirmwareDeviceID, id: str) -> str:
+        self.__notification_ids[device_id] = str(id)
