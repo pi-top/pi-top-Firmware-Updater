@@ -10,7 +10,7 @@ from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
-from ptcommon.lock_file import LockFile
+from ptcommon.lock_file import PTLock
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_device_manager import FirmwareDeviceManager
 
@@ -60,7 +60,7 @@ def main() -> None:
     fw_device_manager.force_update_if_available()
     fw_device_manager.start_file_supervisor()
 
-    lock_file = LockFile('pt-firmware-updater')
+    lock_file = PTLock('pt-firmware-updater')
     while True:
         if lock_file.is_locked():
             PTLogger.info("Waiting for lock to be released")

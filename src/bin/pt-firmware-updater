@@ -10,7 +10,7 @@ from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
-from ptcommon.lock_file import LockFile
+from ptcommon.lock_file import PTLock
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from notification_manager import NotificationManager, UpdateStatusEnum
@@ -81,7 +81,7 @@ def main() -> None:
         PTLogger.error("{} is a directory, not a file.".format(args.path))
         exit(1)
 
-    lock_file = LockFile('pt-firmware-updater')
+    lock_file = PTLock('pt-firmware-updater')
     if lock_file.is_locked():
         PTLogger.error("Lock file is already owned")
         exit(1)
