@@ -93,7 +93,7 @@ def main() -> None:
         fw_device_manager = FirmwareDeviceManager([device_id])
 
         if args.notification_id:
-            fw_device_manager.set_notification_id(device_id, args.notification_id)
+            fw_device_manager.notification_manager.set_notification_id(device_id, args.notification_id)
 
         if fw_device_manager.has_update(device_id, args.path):
             PTLogger.info("{} - starting update process".format(device_id))

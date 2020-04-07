@@ -157,6 +157,3 @@ class FirmwareDeviceManager:
             device_id = self.queue.get()
             PTLogger.info("{} - Found new firmware file!".format(device_id))
             self.set_notification_status(device_id, False)
-
-    def set_notification_id(self, device_id: FirmwareDeviceID, notification_id: int) -> None:
-        self.notification_manager.set_notification_id(device_id, notification_id)

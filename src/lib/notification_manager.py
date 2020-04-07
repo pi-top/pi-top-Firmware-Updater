@@ -62,10 +62,6 @@ class NotificationManager(object):
 
         PTLogger.info("notify_user() w/device: {}, enum: {}".format(device_id.name, update_enum))
 
-        if update_enum == UpdateStatusEnum.PROMPT:
-            notification_id = send_notification(title="", text="")
-            self.set_notification_id(device_id, notification_id)
-
         notification_id = send_notification(
             title=self.NOTIFICATION_TITLE,
             text=self.__get_notification_message(update_enum, device_id),
