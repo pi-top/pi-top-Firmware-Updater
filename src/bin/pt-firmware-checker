@@ -60,7 +60,7 @@ def main() -> None:
     fw_device_manager.force_update_if_available()
     fw_device_manager.start_file_supervisor()
 
-    lock_file = LockFile('/tmp/pt-firmware-updater.lock')
+    lock_file = LockFile('pt-firmware-updater')
     while True:
         if lock_file.is_locked():
             PTLogger.info("Waiting for lock to be released")

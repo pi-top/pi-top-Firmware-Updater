@@ -81,7 +81,7 @@ def main() -> None:
         PTLogger.error("{} is a directory, not a file.".format(args.path))
         exit(1)
 
-    lock_file = LockFile('/tmp/pt-firmware-updater.lock')
+    lock_file = LockFile('pt-firmware-updater')
     if lock_file.is_locked():
         PTLogger.error("Lock file is already owned")
         exit(1)
