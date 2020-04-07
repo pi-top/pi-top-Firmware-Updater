@@ -33,7 +33,13 @@ class NotificationManager(object):
         UpdateStatusEnum.FAILURE: {
             "icon": "messagebox_critical",
             "timeout": 0,
-            "actions": []
+            "actions": [
+                {
+                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
+                    "text": "Reboot Now",
+                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
+                }
+            ]
         },
         UpdateStatusEnum.PROMPT: {
             "icon": "messagebox_info",
@@ -84,9 +90,14 @@ class NotificationManager(object):
         elif update_enum is UpdateStatusEnum.PROMPT:
             return "There's a firmware update available\nfor your {}.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.FAILURE:
-            return "There were errors while updating\nyour {}.".format(device_friendly_name)
+            msg = "A problem was encountered while attempting\n" \
+                "to update your {}.\n" \
+                "Please reboot and try again.\n" \
+                "If you are repeatedly experiencing\n" \
+                "this issue, please contact pi-top support.".format(device_friendly_name)
+            return msg
         elif update_enum is UpdateStatusEnum.ONGOING:
-            return "Updating your {}. Please, don't disconnect it.".format(device_friendly_name)
+            return "Updating your {}.\nPlease wait for this to finish before\ncontinuing to use your device!".format(device_friendly_name)
 
     def __get_action_manager(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> NotificationActionManager:
         action_manager = None
