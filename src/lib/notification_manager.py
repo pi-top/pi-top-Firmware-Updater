@@ -15,8 +15,15 @@ class UpdateStatusEnum(Enum):
     FAILURE = auto()
 
 
+class ActionEnum(Enum):
+    REBOOT = auto()
+    UPDATE_FW = auto()
+
+
 class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
+    __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
+    __FW_UPDATE_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
 
     MESSAGE_DATA = {
         UpdateStatusEnum.SUCCESS: {
@@ -26,7 +33,7 @@ class NotificationManager(object):
                 {
                     "devices": [FirmwareDeviceID.pt4_hub],
                     "text": "Reboot Now",
-                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
+                    "command": ActionEnum.REBOOT
                 }
             ]
         },
@@ -37,7 +44,7 @@ class NotificationManager(object):
                 {
                     "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
                     "text": "Reboot Now",
-                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
+                    "command": ActionEnum.REBOOT
                 }
             ]
         },
@@ -48,7 +55,7 @@ class NotificationManager(object):
                 {
                     "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
                     "text": "Upgrade Now",
-                    "command": "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
+                    "command": ActionEnum.UPDATE_FW
                 },
             ]
         },
@@ -106,17 +113,22 @@ class NotificationManager(object):
 
         action_manager = NotificationActionManager()
         for action in self.MESSAGE_DATA[update_enum]['actions']:
-            if device_id not in action["devices"]:
-                continue
 
-            command = action["command"]
-            command += " {}".format(device_id.name)
-            if path_to_fw:
-                command += " --path {}".format(path_to_fw)
+            action_enum = action['command']
+            if action_enum == ActionEnum.REBOOT:
+                command = self.__REBOOT_CMD
+            elif action_enum == ActionEnum.UPDATE_FW:
+                if device_id not in action["devices"]:
+                    continue
 
-            notification_id = self.get_notification_id(device_id)
-            if len(notification_id) > 0:
-                command += " --notification-id {}".format(notification_id)
+                command = self.__FW_UPDATE_CMD
+                command += " {}".format(device_id.name)
+                if path_to_fw:
+                    command += " --path {}".format(path_to_fw)
+
+                notification_id = self.get_notification_id(device_id)
+                if notification_id >= 0:
+                    command += " --notification-id {}".format(notification_id)
 
             action_manager.add_action(
                 call_to_action_text=action["text"],
@@ -126,8 +138,8 @@ class NotificationManager(object):
     def get_notification_id(self, device_id: FirmwareDeviceID) -> str:
         id = self.__notification_ids.get(device_id)
         if not id:
-            id = ""
-        return str(id)
+            id = -1
+        return id
 
     def set_notification_id(self, device_id: FirmwareDeviceID, id: str) -> str:
-        self.__notification_ids[device_id] = str(id)
+        self.__notification_ids[device_id] = int(id)
