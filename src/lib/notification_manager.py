@@ -103,12 +103,12 @@ class NotificationManager(object):
                 continue
 
             command = action["command"]
-            command += "{}".format(device_id.name)
+            command += " {}".format(device_id.name)
             if path_to_fw:
                 command += " --path {}".format(path_to_fw)
 
             notification_id = self.get_notification_id(device_id)
-            if notification_id:
+            if len(notification_id) > 0:
                 command += " --notification-id {}".format(notification_id)
 
             action_manager.add_action(
