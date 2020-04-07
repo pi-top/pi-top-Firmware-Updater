@@ -10,7 +10,7 @@ from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
-from ptcommon.lock_file import PTLock
+from ptcommon.lock import PTLock
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from notification_manager import NotificationManager, UpdateStatusEnum
