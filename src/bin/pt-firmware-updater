@@ -17,7 +17,7 @@ from notification_manager import NotificationManager, UpdateStatusEnum
 from firmware_device_manager import FirmwareDeviceManager
 
 
-parser = ArgumentParser(description="pi-top firmware update checker")
+parser = ArgumentParser(description="pi-top firmware updater")
 parser.add_argument(
     "device",
     help="Define pi-top firmware device to apply firmware upgrade to.",
