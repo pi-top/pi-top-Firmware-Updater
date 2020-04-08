@@ -10,6 +10,7 @@ Package: pt-firmware-updater
 Architecture: armhf
 Depends: ${misc:Depends},
  ${python3:Depends},
- python3-pycrc
+ python3-pycrc,
+ python3-pyinotify
 Description: pi-top Firmware Updater
  Ensures pi-top firmware is up to date.

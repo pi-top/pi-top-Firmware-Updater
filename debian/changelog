@@ -1,3 +1,16 @@
+pt-firmware-updater (2.3.0-1) buster; urgency=medium
+
+  * Only run if on a pi-top [4]
+  * Separate updater and monitoring logic
+  * Monitor firmware directories for new firmware
+  * Check for new devices every 3 seconds
+  * Use lock file to prevent multiple firmware updates happening at once
+  * Automatically install firmware on boot
+  * Notify user to install firmware after boot
+  * Use a single notification per device
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 08 Apr 2020 14:30:02 +0100
+
 pt-firmware-updater (2.2.1-1) buster; urgency=medium
 
   * Bump pt4_hub firmware to v3.3

@@ -1,3 +1,4 @@
-src/bin/pt-firmware-updater                 /usr/bin/
+src/bin/*                                   /usr/bin/
 src/lib/*                                   /usr/lib/pt-firmware-updater/
 bin/*                                       /usr/lib/pt-firmware-updater/bin/
+pkg/pwdptfu.sh                              /usr/lib/pt-firmware-updater/
