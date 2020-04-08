@@ -20,7 +20,8 @@ from firmware_device_manager import FirmwareDeviceManager
 parser = ArgumentParser(description="pi-top firmware updater")
 parser.add_argument(
     "device",
-    help="Define pi-top firmware device to apply firmware upgrade to.",
+    help="pi-top firmware device to apply firmware upgrade to. "
+         "Valid devices are {}".format([dev.name for dev in FirmwareDevice.valid_device_ids()]),
 )
 parser.add_argument(
     "--no-journal",
