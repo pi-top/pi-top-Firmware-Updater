@@ -1,3 +1,9 @@
+pt-firmware-updater (2.2.1-1) buster; urgency=medium
+
+  * Bump pt4_hub firmware to v3.3
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 08 Apr 2020 13:44:53 +0100
+
 pt-firmware-updater (2.2.0-1) buster; urgency=medium
 
   * Display user notifications
