@@ -10,3 +10,6 @@ override_dh_systemd_enable:
 
 override_dh_systemd_start:
 	dh_systemd_start --no-start --no-restart-on-upgrade pt-firmware-updater
+
+override_dh_strip:
+	true
