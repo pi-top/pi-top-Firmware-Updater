@@ -37,7 +37,27 @@ class FirmwareDeviceManager:
     def scan_for_connected_devices(self):
         PTLogger.debug('Scanning for connected firmware devices')
 
-        for dev in self.devices_id_list:
+        # Call 'pt-i2cdetect' for the address of each device (avoiding duplicates)
+        i2c_addresses_scanned = list()
+        possible_devices_found = list()
+
+        for device_id in self.devices_id_list:
+            addr = FirmwareDevice.device_info[device_id]['i2c_addr']
+            if addr in i2c_addresses_scanned:
+                continue
+
+            i2c_addresses_scanned.append(addr)
+
+            # TODO: add capturing of exit code to run_command, use that
+            if (run(
+                ["pt-i2cdetect", addr],
+                check=False,
+                timeout=1
+            ).returncode == 0):
+                possible_devices_found.append(device_id)
+
+        # Try and connect to possible candidate devices
+        for dev in possible_devices_found:
             try:
                 fw_device = FirmwareDevice(dev)
                 connected = True
