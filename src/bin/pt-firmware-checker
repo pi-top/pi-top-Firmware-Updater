@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-import os
+from os import geteuid
+from os.path import exists
 from argparse import ArgumentParser
 from sys import exit
 from sys import path
@@ -37,7 +38,7 @@ parser.add_argument(
 
 
 def is_root() -> bool:
-    return os.geteuid() == 0
+    return geteuid() == 0
 
 
 def main() -> None:
@@ -56,10 +57,16 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    fw_device_manager = FirmwareDeviceManager(FirmwareDevice.valid_device_ids())
-    fw_device_manager.force_update_if_available()
-    fw_device_manager.start_file_supervisor()
+    def has_been_run_this_session():
+        return exists("/tmp/pt-firmware-updater.lock")
 
+    fw_device_manager = FirmwareDeviceManager(
+        FirmwareDevice.valid_device_ids())
+
+    if not has_been_run_this_session():
+        fw_device_manager.force_update_if_available()
+
+    fw_device_manager.start_file_supervisor()
     lock_file = PTLock('pt-firmware-updater')
     while True:
         if lock_file.is_locked():
