@@ -1,6 +1,7 @@
 import multiprocessing
 from sys import path
 from enum import Enum, auto
+from subprocess import run
 
 from ptcommon.logger import PTLogger
 from ptcommon.common_ids import FirmwareDeviceID
@@ -49,11 +50,7 @@ class FirmwareDeviceManager:
             i2c_addresses_scanned.append(addr)
 
             # TODO: add capturing of exit code to run_command, use that
-            if (run(
-                ["pt-i2cdetect", addr],
-                check=False,
-                timeout=1
-            ).returncode == 0):
+            if run(["pt-i2cdetect", str(addr)], timeout=1).returncode == 0:
                 possible_devices_found.append(device_id)
 
         # Try and connect to possible candidate devices
