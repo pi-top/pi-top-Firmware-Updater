@@ -1,3 +1,9 @@
+pt-firmware-updater (2.4.1-1) buster; urgency=medium
+
+  * Only force update if service has not already been run before this session
+
+ -- Mike Roberts <mike@pi-top.com>  Tue, 14 Apr 2020 20:53:32 +0100
+
 pt-firmware-updater (2.4.0-1) buster; urgency=medium
 
   * Add and use pt-i2cdetect to detect possible pi-top firmware devices
