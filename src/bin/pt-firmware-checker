@@ -62,16 +62,11 @@ def main() -> None:
             "This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    def has_been_run_this_session():
-        return exists("/tmp/pt-firmware-updater.lock")
-
     fw_device_manager = FirmwareDeviceManager(
         FirmwareDevice.valid_device_ids())
 
-    if not has_been_run_this_session() or args.force:
-        fw_device_manager.force_update_if_available()
-
     if args.force:
+        fw_device_manager.force_update_if_available()
         exit(0)
 
     fw_device_manager.start_file_supervisor()
