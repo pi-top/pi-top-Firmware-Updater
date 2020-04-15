@@ -1,3 +1,9 @@
+pt-firmware-updater (2.5.0-1) buster; urgency=medium
+
+  * Add force flag to update checker
+
+ -- Jorge Capona <jorge@pi-top.com>  Tue, 14 Apr 2020 18:14:54 -0400
+
 pt-firmware-updater (2.4.3-1) buster; urgency=medium
 
   * Use i2cdetect to determine device connection status
