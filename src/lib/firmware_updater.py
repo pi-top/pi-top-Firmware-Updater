@@ -82,7 +82,7 @@ class FirmwareUpdater(object):
 
         if self.fw_file_hash != self.__read_hash_from_file(self.fw_file_location):
             PTLogger.error(
-                "{} - Binary file didn't pass the sanity check. Exiting."
+                "{} - Binary file didn't pass the sanity check."
                     .format(self.device.str_name))
             return
 
@@ -162,7 +162,7 @@ class FirmwareUpdater(object):
         available version of the firmware.
         """
         if not os.path.exists(fw_path):
-            raise FileNotFoundError("Firmware path {} doesn't exist. Exiting.".format(fw_path))
+            raise FileNotFoundError("Firmware path {} doesn't exist.".format(fw_path))
 
         candidate_latest_fw_version = "0.0"
         with os.scandir(fw_path) as i:
@@ -176,7 +176,7 @@ class FirmwareUpdater(object):
                         candidate_latest_fw_version = fw_version_under_inspection
 
         if candidate_latest_fw_version == "0.0":
-            PTLogger.warning("{} - No firmware found in folder. Exiting.".format(self.device.str_name))
+            PTLogger.warning("{} - No firmware found in folder.".format(self.device.str_name))
             candidate_latest_fw_version = ""
         else:
             PTLogger.debug("{} - Latest firmware available is version {}".format(self.device.str_name, candidate_latest_fw_version))
@@ -190,7 +190,7 @@ class FirmwareUpdater(object):
         :return: MD5 hash
         """
         if not os.path.exists(filename):
-            raise FileNotFoundError("Firmware path doesn't exist. Exiting.")
+            raise FileNotFoundError("Firmware path doesn't exist.")
 
         hash = hashlib.md5()
         with open(filename, "rb") as f:
