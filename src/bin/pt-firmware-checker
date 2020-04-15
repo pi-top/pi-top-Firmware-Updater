@@ -35,6 +35,11 @@ parser.add_argument(
     default=3,
     choices=range(1, 300)
 )
+parser.add_argument(
+    "-f", "--force",
+    help="Forces firmware update check and applies to all devices.",
+    action="store_true"
+)
 
 
 def is_root() -> bool:
@@ -63,8 +68,11 @@ def main() -> None:
     fw_device_manager = FirmwareDeviceManager(
         FirmwareDevice.valid_device_ids())
 
-    if not has_been_run_this_session():
+    if not has_been_run_this_session() or args.force:
         fw_device_manager.force_update_if_available()
+
+    if args.force:
+        exit(0)
 
     fw_device_manager.start_file_supervisor()
     lock_file = PTLock('pt-firmware-updater')
