@@ -88,7 +88,7 @@ def main() -> None:
         exit(1)
 
     device_id = FirmwareDevice.str_name_to_device_id(args.device)
-    PTLogger.info("Starting pt-firmware-updater")
+    PTLogger.debug("Starting pt-firmware-updater")
     try:
         lock_file.acquire()
         fw_device_manager = FirmwareDeviceManager([device_id])
