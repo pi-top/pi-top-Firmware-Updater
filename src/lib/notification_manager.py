@@ -81,10 +81,12 @@ class NotificationManager(object):
             icon_name=self.MESSAGE_DATA[update_enum]["icon"],
             timeout=self.MESSAGE_DATA[update_enum]["timeout"],
             actions_manager=self.__get_action_manager(update_enum, device_id, path_to_fw),
-            notification_id=self.get_notification_id(device_id)
+            notification_id=self.get_notification_id(device_id),
+            capture_notification_id=update_enum not in (UpdateStatusEnum.FAILURE, UpdateStatusEnum.SUCCESS)
         )
 
-        self.set_notification_id(device_id, notification_id)
+        if notification_id:
+            self.set_notification_id(device_id, notification_id)
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> str:
         device_friendly_name = FirmwareDeviceName[device_id.name].value
