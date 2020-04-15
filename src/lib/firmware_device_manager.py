@@ -14,7 +14,6 @@ from notification_manager import NotificationManager, UpdateStatusEnum
 
 
 class DeviceInfoKeys(Enum):
-    CONNECTED = auto()
     FW_DEVICE = auto()
     FW_UPDATER = auto()
     NOTIFIED = auto()
@@ -30,8 +29,6 @@ class FirmwareDeviceManager:
 
     def __init__(self, devices: [FirmwareDeviceID]) -> None:
         self.devices_id_list = devices
-        for dev in devices:
-            self.__devices_status[dev] = {}
         self.scan_for_connected_devices()
         self.notification_manager = NotificationManager()
 
@@ -52,34 +49,31 @@ class FirmwareDeviceManager:
             # TODO: add capturing of exit code to run_command, use that
             if run(["pt-i2cdetect", str(addr)], timeout=1).returncode == 0:
                 possible_devices_found.append(device_id)
+                if device_id not in self.__devices_status:
+                    self.__devices_status[device_id] = {}
+            elif device_id in self.__devices_status:
+                del self.__devices_status[device_id]
 
         # Try and connect to possible candidate devices
         for dev in possible_devices_found:
             try:
                 fw_device = FirmwareDevice(dev)
-                connected = True
                 PTLogger.debug('{} is connected'.format(dev))
                 self.__devices_status[dev][DeviceInfoKeys.FW_DEVICE] = fw_device
             except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
                 PTLogger.warning('{} - {}'.format(dev.name, e))
-                connected = False
-                self.__devices_status[dev] = {}
             except Exception as e:
                 PTLogger.error('{} - {}'.format(dev.name, e))
-                connected = False
-                self.__devices_status[dev] = {}
-            finally:
-                self.__devices_status[dev][DeviceInfoKeys.CONNECTED] = connected
 
     def connected_devices(self) -> [FirmwareDeviceID]:
         return [device_id for device_id in self.__devices_status if self.is_connected(device_id)]
 
     def is_connected(self, device_id: FirmwareDeviceID) -> bool:
-        return self.__devices_status[device_id][DeviceInfoKeys.CONNECTED] if device_id in self.__devices_status else False
+        return device_id in self.__devices_status
 
     def force_update_if_available(self) -> None:
         PTLogger.info("Forcing update if available")
-        for device_id in self.devices_id_list:
+        for device_id in self.__devices_status:
             if self.has_update(device_id):
                 self.update(device_id)
             self.set_notification_status(device_id, True)
