@@ -48,6 +48,7 @@ class FirmwareUpdater(object):
     def search_updates(self) -> None:
         PTLogger.debug('{} - Checking for updates in {}'.format(self.device.str_name, self.FW_INITIAL_LOCATION))
 
+        PTLogger.info("Getting major schematic version number from device")
         board = self.device.get_sch_hardware_version_major()
         path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name, "b" + str(board))
         PTLogger.debug("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
@@ -100,6 +101,7 @@ class FirmwareUpdater(object):
                 PTLogger.info("{} - Finished.".format(self.device.str_name))
 
     def fw_downloaded_successfully(self) -> bool:
+        PTLogger.info("Getting state of previously loaded firmware from device")
         check_fw_packet = self.device.get_check_fw_okay()
         return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
@@ -130,6 +132,7 @@ class FirmwareUpdater(object):
             _, candidate_fw_version = os.path.split(path_to_file)
             candidate_fw_version = candidate_fw_version.replace(".bin", "")
 
+            PTLogger.info("Getting firmware version from device")
             current_fw_version = self.device.get_fw_version()
             PTLogger.info(
                 "{} - Current Firmware Version: {}".format(self.device.str_name, current_fw_version))
