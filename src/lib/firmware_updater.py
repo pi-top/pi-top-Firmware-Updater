@@ -34,13 +34,13 @@ class FirmwareUpdater(object):
             self.__read_hash_from_file(self.fw_file_location) == self.fw_file_hash
 
     def verify_and_stage_file(self, path_to_fw_file: str) -> None:
-        PTLogger.info('{} - Verifying file {}'.format(self.device.str_name, path_to_fw_file))
+        PTLogger.debug('{} - Verifying file {}'.format(self.device.str_name, path_to_fw_file))
 
         if self.fw_downloaded_successfully():
             raise PTUpdatePending("There's a binary uploaded to {} waiting to be installed".format(self.device.str_name))
 
         if not self.__can_install_firmware_file(path_to_fw_file):
-            raise PTInvalidFirmwareFile('{} is not a valid firmware file'.format(path_to_fw_file))
+            raise PTInvalidFirmwareFile('{} is not a valid candidate firmware file'.format(path_to_fw_file))
 
         self.__prepare_firmware_for_install(path_to_fw_file)
         PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, path_to_fw_file))
@@ -64,7 +64,8 @@ class FirmwareUpdater(object):
         self.__send_staged_firmware_to_device()
 
         time_wait_mcu = 0.1
-        PTLogger.info("{} - Sleeping for {}s before verifying update".format(self.device.str_name, time_wait_mcu))
+        PTLogger.debug(
+            "{} - Sleeping for {}s before verifying update".format(self.device.str_name, time_wait_mcu))
         sleep(time_wait_mcu)  # Wait for MCU before verifying
 
         if self.fw_downloaded_successfully():
@@ -105,11 +106,11 @@ class FirmwareUpdater(object):
     def __verify_firmware_file_format(self, path_to_file: str) -> bool:
         success = False
         if not os.path.isfile(path_to_file):
-            PTLogger.info("{} - {} is not a file".format(self.device.str_name, path_to_file))
+            PTLogger.warning("{} - {} is not a file".format(self.device.str_name, path_to_file))
             return success
 
         if not path_to_file.endswith(".bin"):
-            PTLogger.info(
+            PTLogger.warning(
                 "{} - filename on {} is not properly formatted".format(self.device.str_name, path_to_file))
             return success
 
@@ -120,7 +121,7 @@ class FirmwareUpdater(object):
             PTLogger.info("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
             success = True
         except ValueError:
-            PTLogger.info("{} - Skipping invalid firmware file: {}".format(self.device.str_name, path_to_file))
+            PTLogger.error("{} - Skipping invalid firmware file: {}".format(self.device.str_name, path_to_file))
 
         return success
 
@@ -130,8 +131,10 @@ class FirmwareUpdater(object):
             candidate_fw_version = candidate_fw_version.replace(".bin", "")
 
             current_fw_version = self.device.get_fw_version()
-            PTLogger.info("{} - Current Firmware Version: {}".format(self.device.str_name, current_fw_version))
-            PTLogger.info("{} - Candidate Firmware Version: {}".format(self.device.str_name, candidate_fw_version))
+            PTLogger.debug(
+                "{} - Current Firmware Version: {}".format(self.device.str_name, current_fw_version))
+            PTLogger.debug(
+                "{} - Candidate Firmware Version: {}".format(self.device.str_name, candidate_fw_version))
 
             if StrictVersion(current_fw_version) >= StrictVersion(candidate_fw_version):
                 PTLogger.info(
@@ -170,7 +173,7 @@ class FirmwareUpdater(object):
                         candidate_latest_fw_version = fw_version_under_inspection
 
         if candidate_latest_fw_version == "0.0":
-            PTLogger.info("{} - No firmware found in folder. Exiting.".format(self.device.str_name))
+            PTLogger.warning("{} - No firmware found in folder. Exiting.".format(self.device.str_name))
             candidate_latest_fw_version = ""
         else:
             PTLogger.info("{} - Latest firmware available is version {}".format(self.device.str_name, candidate_latest_fw_version))
@@ -193,7 +196,7 @@ class FirmwareUpdater(object):
         return hash.hexdigest()
 
     def __prepare_firmware_for_install(self, path_to_fw_file: str) -> None:
-        PTLogger.info('{} - Preparing firmware for installation'.format(self.device.str_name))
+        PTLogger.debug('{} - Preparing firmware for installation'.format(self.device.str_name))
         path_to_fw_file = os.path.abspath(path_to_fw_file)
         if not os.path.exists(path_to_fw_file):
             raise FileNotFoundError("Path {} doesn't exist.".format(path_to_fw_file))
@@ -206,4 +209,4 @@ class FirmwareUpdater(object):
         if self.fw_file_location != path_to_fw_file:
             os.makedirs(os.path.dirname(self.fw_file_location), exist_ok=True)
             shutil.copyfile(path_to_fw_file, self.fw_file_location)
-            PTLogger.info('{} - File copied to {}'.format(self.device.str_name, self.fw_file_location))
+            PTLogger.debug('{} - File copied to {}'.format(self.device.str_name, self.fw_file_location))

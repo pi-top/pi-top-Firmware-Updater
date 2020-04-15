@@ -16,6 +16,7 @@ class UpdateStatusEnum(Enum):
 
 
 class ActionEnum(Enum):
+    HUB_REBOOT = auto()
     REBOOT = auto()
     UPDATE_FW = auto()
 
@@ -23,6 +24,7 @@ class ActionEnum(Enum):
 class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
+    __SHUTDOWN_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
     __FW_UPDATE_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
 
     MESSAGE_DATA = {
@@ -33,7 +35,7 @@ class NotificationManager(object):
                 {
                     "devices": [FirmwareDeviceID.pt4_hub],
                     "text": "Reboot Now",
-                    "command": ActionEnum.REBOOT
+                    "command": ActionEnum.HUB_REBOOT
                 }
             ]
         },
@@ -73,7 +75,7 @@ class NotificationManager(object):
             PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
             return
 
-        PTLogger.info("notify_user() w/device: {}, enum: {}".format(device_id.name, update_enum))
+        PTLogger.info("notify_user() with device: {}, enum: {}".format(device_id.name, update_enum))
 
         notification_id = send_notification(
             title=self.NOTIFICATION_TITLE,
@@ -115,7 +117,9 @@ class NotificationManager(object):
         for action in self.MESSAGE_DATA[update_enum]['actions']:
 
             action_enum = action['command']
-            if action_enum == ActionEnum.REBOOT:
+            if action_enum == ActionEnum.HUB_REBOOT:
+                command = self.__SHUTDOWN_CMD
+            elif action_enum == ActionEnum.REBOOT:
                 command = self.__REBOOT_CMD
             elif action_enum == ActionEnum.UPDATE_FW:
                 if device_id not in action["devices"]:

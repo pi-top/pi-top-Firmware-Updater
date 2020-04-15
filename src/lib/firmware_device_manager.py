@@ -72,7 +72,7 @@ class FirmwareDeviceManager:
         return device_id in self.__devices_status
 
     def force_update_if_available(self) -> None:
-        PTLogger.info("Forcing update if available")
+        PTLogger.debug("Forcing update if available")
         for device_id in self.__devices_status:
             if self.has_update(device_id):
                 self.update(device_id)
@@ -115,10 +115,10 @@ class FirmwareDeviceManager:
         success = False
 
         if not self.is_connected(device_id):
-            PTLogger.info("{} is not connected".format(device_id))
+            PTLogger.warning("{} is not connected".format(device_id))
             return success
         if not self.__devices_status[device_id][DeviceInfoKeys.UPDATE_AVAILABLE]:
-            PTLogger.info("{} - There's no update available".format(device_id))
+            PTLogger.warning("{} - There's no update available".format(device_id))
             return success
 
         try:

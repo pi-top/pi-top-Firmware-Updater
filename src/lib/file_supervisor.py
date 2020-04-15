@@ -42,7 +42,7 @@ class FirmwareFileEventManager(pyinotify.ProcessEvent):
 
     def __process_event(self, event):
         path = event.path
-        PTLogger.info('Processing event on file {}'.format(path))
+        PTLogger.debug('Processing event on file {}'.format(path))
 
         if os.path.isfile(event.path):
             path = os.path.dirname(path)
@@ -50,5 +50,5 @@ class FirmwareFileEventManager(pyinotify.ProcessEvent):
 
         fw_device_str_name = os.path.basename(path)
         fw_device = FirmwareDevice.str_name_to_device_id(fw_device_str_name)
-        PTLogger.info('Device to update: {}'.format(fw_device_str_name))
+        PTLogger.info('Device with new update found: {}'.format(fw_device_str_name))
         self.queue.put(fw_device)

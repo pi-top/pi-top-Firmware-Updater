@@ -68,15 +68,21 @@ def main() -> None:
 
     fw_device_manager.start_file_supervisor()
     lock_file = PTLock('pt-firmware-updater')
+    locked_when_last_checked = False
     while True:
         if lock_file.is_locked():
-            PTLogger.info("Waiting for lock to be released")
+            if locked_when_last_checked:
+                PTLogger.debug("Still waiting for lock to be released")
+            else:
+                PTLogger.info("Waiting for lock to be released")
+            locked_when_last_checked = True
         else:
+            locked_when_last_checked = False
             fw_device_manager.scan_for_connected_devices()
 
             for device_id in fw_device_manager.connected_devices():
                 if fw_device_manager.already_notified_this_session(device_id):
-                    PTLogger.info("{} - User already notified for updates. Skipping...".format(device_id))
+                    PTLogger.debug("{} - User already notified for updates. Skipping...".format(device_id))
                     continue
 
                 if fw_device_manager.has_update(device_id):
@@ -84,7 +90,7 @@ def main() -> None:
 
             fw_device_manager.update_notification_states_for_new_firmware_files()
 
-        PTLogger.info('Sleeping for {} secs before next check.'.format(args.loop_time))
+        PTLogger.debug('Sleeping for {} secs before next check.'.format(args.loop_time))
         sleep(args.loop_time)
 
 
