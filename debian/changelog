@@ -1,3 +1,10 @@
+pt-firmware-updater (2.5.0-1) buster; urgency=medium
+
+  * Apply hub firmware correctly - let hub handle reboot
+  * Reduce logging level for common prints
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 15 Apr 2020 12:20:31 +0100
+
 pt-firmware-updater (2.4.3-1) buster; urgency=medium
 
   * Use i2cdetect to determine device connection status
