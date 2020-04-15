@@ -46,7 +46,7 @@ class FirmwareUpdater(object):
         PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, path_to_fw_file))
 
     def search_updates(self) -> None:
-        PTLogger.info('{} - Checking for updates in {}'.format(self.device.str_name, self.FW_INITIAL_LOCATION))
+        PTLogger.debug('{} - Checking for updates in {}'.format(self.device.str_name, self.FW_INITIAL_LOCATION))
 
         board = self.device.get_sch_hardware_version_major()
         path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name, "b" + str(board))
@@ -118,7 +118,7 @@ class FirmwareUpdater(object):
             _, fw_version = os.path.split(path_to_file)
             fw_version = fw_version.replace(".bin", "")
             StrictVersion(fw_version)
-            PTLogger.info("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
+            PTLogger.debug("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
             success = True
         except ValueError:
             PTLogger.error("{} - Skipping invalid firmware file: {}".format(self.device.str_name, path_to_file))
@@ -127,18 +127,18 @@ class FirmwareUpdater(object):
 
     def __can_install_firmware_file(self, path_to_fw_file: str):
         def can_install_version(path_to_file: str):
-            path_to_fw_folder, candidate_fw_version = os.path.split(path_to_file)
+            _, candidate_fw_version = os.path.split(path_to_file)
             candidate_fw_version = candidate_fw_version.replace(".bin", "")
 
             current_fw_version = self.device.get_fw_version()
-            PTLogger.debug(
+            PTLogger.info(
                 "{} - Current Firmware Version: {}".format(self.device.str_name, current_fw_version))
-            PTLogger.debug(
+            PTLogger.info(
                 "{} - Candidate Firmware Version: {}".format(self.device.str_name, candidate_fw_version))
 
             if StrictVersion(current_fw_version) >= StrictVersion(candidate_fw_version):
                 PTLogger.info(
-                    "{} - Firmware installed is newer than the candidate. Exiting.".format(self.device.str_name))
+                    "{} - Firmware installed is newer than the candidate".format(self.device.str_name))
                 return False
             return True
 
@@ -176,7 +176,7 @@ class FirmwareUpdater(object):
             PTLogger.warning("{} - No firmware found in folder. Exiting.".format(self.device.str_name))
             candidate_latest_fw_version = ""
         else:
-            PTLogger.info("{} - Latest firmware available is version {}".format(self.device.str_name, candidate_latest_fw_version))
+            PTLogger.debug("{} - Latest firmware available is version {}".format(self.device.str_name, candidate_latest_fw_version))
 
         return candidate_latest_fw_version
 
