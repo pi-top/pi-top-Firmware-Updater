@@ -11,8 +11,5 @@ override_dh_systemd_enable:
 override_dh_systemd_start:
 	dh_systemd_start --no-start pt-firmware-updater
 
-override_dh_strip:
-	true
-
 override_dh_shlibdeps:
 	true
