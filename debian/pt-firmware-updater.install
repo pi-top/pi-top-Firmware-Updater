@@ -3,4 +3,3 @@ pt-i2cdetect/build/pt-i2cdetect             /usr/bin/
 src/lib/*                                   /usr/lib/pt-firmware-updater/
 bin/*                                       /usr/lib/pt-firmware-updater/bin/
 pkg/pwdptfu.sh                              /usr/lib/pt-firmware-updater/
-pkg/pwdptfu1.sh                              /usr/lib/pt-firmware-updater/
