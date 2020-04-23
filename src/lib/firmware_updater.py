@@ -25,6 +25,7 @@ class FirmwareUpdater(object):
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
     FW_INITIAL_LOCATION = "/usr/lib/pt-firmware-updater/bin/"
     board = None
+    __already_processed_file = list()
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
@@ -49,7 +50,7 @@ class FirmwareUpdater(object):
 
     def search_updates(self) -> None:
         path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name, "b" + str(self.board))
-        PTLogger.debug("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
+        PTLogger.info("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
 
         fw_version = self.__get_latest_fw_version_from_path(path_to_fw_folder)
         if len(fw_version) == 0:
@@ -160,6 +161,10 @@ class FirmwareUpdater(object):
         candidate_latest_fw_version = "0.0"
         with os.scandir(fw_path) as i:
             for entry in i:
+                if entry.path in self.__already_processed_file:
+                    continue
+                self.__already_processed_file.append(entry.path)
+
                 if self.__verify_firmware_file_format(entry.path):
                     _, version = os.path.split(entry.path)
                     fw_version_under_inspection = version.replace(".bin", "")
