@@ -144,4 +144,7 @@ class NotificationManager(object):
         return id
 
     def set_notification_id(self, device_id: FirmwareDeviceID, id: str) -> str:
-        self.__notification_ids[device_id] = int(id)
+        try:
+            self.__notification_ids[device_id] = int(id)
+        except ValueError:
+            pass
