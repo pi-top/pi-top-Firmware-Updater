@@ -1,3 +1,10 @@
+pt-firmware-updater (2.6.0-1) buster; urgency=medium
+
+  * Reduce i2c bus usage
+  * Keep track of processed files
+
+ -- Jorge Capona <jorge@pi-top.com>  Thu, 23 Apr 2020 17:58:34 -0400
+
 pt-firmware-updater (2.5.0-1) buster; urgency=medium
 
   * Add force flag to update checker
