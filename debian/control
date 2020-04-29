@@ -10,6 +10,9 @@ Package: pt-firmware-updater
 Architecture: armhf
 Depends: ${misc:Depends},
  ${python3:Depends},
+ ${shlibs:Depends},
+# Explicitly included, as dh_shlibdeps is overridden
+ libc6-dev,
  python3-pycrc,
  python3-pyinotify
 Description: pi-top Firmware Updater

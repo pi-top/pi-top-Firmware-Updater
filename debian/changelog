@@ -1,3 +1,9 @@
+pt-firmware-updater (2.5.0-2) buster; urgency=medium
+
+  * Add missing libc dependency
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 29 Apr 2020 16:14:36 +0100
+
 pt-firmware-updater (2.5.0-1) buster; urgency=medium
 
   * Add force flag to update checker
