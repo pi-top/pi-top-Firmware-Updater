@@ -133,7 +133,7 @@ class FirmwareUpdater(object):
             _, candidate_fw_version = os.path.split(path_to_file)
             candidate_fw_version = candidate_fw_version.replace(".bin", "")
 
-            PTLogger.info("Getting firmware version from device")
+            PTLogger.debug("Getting firmware version from device")
             current_fw_version = self.device.get_fw_version()
             PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(self.device.str_name, current_fw_version, candidate_fw_version))
 
