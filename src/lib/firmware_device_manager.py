@@ -85,6 +85,7 @@ class FirmwareDeviceManager:
             PTLogger.info("{} - Not connected. Skipping update check.".format(device_id))
             return has_updates
 
+        got_exception = False
         try:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = FirmwareUpdater(fw_dev)
@@ -97,16 +98,24 @@ class FirmwareDeviceManager:
             path = fw_updater.fw_file_location
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
             PTLogger.warning('{} - Exception while checking for update: {}'.format(device_id.name, e))
-            has_updates = False
-            fw_updater = None
-            path = None
+            got_exception = True
+        except PTInvalidFirmwareFile as e:
+            PTLogger.info(
+                '{} - Skipping update check: no valid candidate firmware'.format(device_id.name))
+            got_exception = True
+        except PTUpdatePending as e:
+            PTLogger.info(
+                '{} - Skipping update check: {}'.format(device_id.name, e))
+            got_exception = True
         except Exception as e:
             PTLogger.error(
                 '{} - Generic exception while checking for update: {}'.format(device_id.name, e))
-            has_updates = False
-            fw_updater = None
-            path = None
+            got_exception = True
         finally:
+            if got_exception:
+                has_updates = False
+                fw_updater = None
+                path = None
             self.set_notification_status(device_id, has_updates)
             self.__devices_status[device_id][DeviceInfoKeys.UPDATE_AVAILABLE] = has_updates
             self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER] = fw_updater
