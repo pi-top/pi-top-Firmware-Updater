@@ -25,7 +25,7 @@ class FirmwareDeviceManager:
     __devices_status = {}
     file_monitor = None
     queue = None
-    FIRMWARE_FILE_PATH = '/usr/lib/pt-firmware-updater/bin/'
+    FIRMWARE_FILE_PATH = '/lib/firmware/pi-top/'
 
     def __init__(self, devices: [FirmwareDeviceID]) -> None:
         self.devices_id_list = devices

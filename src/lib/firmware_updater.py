@@ -23,7 +23,7 @@ class FirmwareUpdater(object):
     fw_file_location = ""
     fw_file_hash = ""
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
-    FW_INITIAL_LOCATION = "/usr/lib/pt-firmware-updater/bin/"
+    FW_INITIAL_LOCATION = "/lib/firmware/pi-top/"
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
