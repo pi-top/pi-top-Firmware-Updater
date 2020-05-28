@@ -5,8 +5,7 @@ from subprocess import run
 
 from ptcommon.logger import PTLogger
 from ptcommon.common_ids import FirmwareDeviceID
-from ptcommon.firmware_device import FirmwareDevice
-from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
+from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from file_supervisor import FileSupervisor, FirmwareFileEventManager
@@ -29,7 +28,6 @@ class FirmwareDeviceManager:
 
     def __init__(self, devices: [FirmwareDeviceID]) -> None:
         self.devices_id_list = devices
-        self.scan_for_connected_devices()
         self.notification_manager = NotificationManager()
 
     def scan_for_connected_devices(self) -> None:
@@ -51,9 +49,12 @@ class FirmwareDeviceManager:
 
                     self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE] = fw_device
                     device_connected = True
-                except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
+                except (ConnectionError, AttributeError) as e:
                     PTLogger.warning(
                         '{} - Exception when attempting to create firmware device: {}'.format(device_id.name, e))
+                except PTInvalidFirmwareDeviceException as e:
+                    # Probably just probing for the wrong device at the same address - nothing to worry about
+                    PTLogger.debug('{} - Invalid firmware device exception: {}'.format(device_id.name, e))
                 except Exception as e:
                     PTLogger.error('{} - Generic exception when attempting to create firmware device: {}'.format(device_id.name, e))
                 finally:
