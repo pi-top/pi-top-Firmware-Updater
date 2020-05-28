@@ -102,7 +102,7 @@ class FirmwareUpdater(object):
                 PTLogger.info("{} - Finished.".format(self.device.str_name))
 
     def fw_downloaded_successfully(self) -> bool:
-        PTLogger.info("Getting state of previously loaded firmware from device")
+        PTLogger.debug("Checking if device has previously loaded firmware ready to be installed")
         check_fw_packet = self.device.get_check_fw_okay()
         return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
