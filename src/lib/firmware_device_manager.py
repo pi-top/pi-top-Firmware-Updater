@@ -43,6 +43,7 @@ class FirmwareDeviceManager:
                 PTLogger.info('{} is newly connected'.format(device_id))
                 self.__devices_status[device_id] = {}
                 self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE] = fw_device
+                self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER] = FirmwareUpdater(fw_device)
 
         def remove_device_if_newly_disconnected(device_id):
             PTLogger.debug('{} is not connected'.format(device_id))
@@ -98,7 +99,7 @@ class FirmwareDeviceManager:
         got_exception = False
         try:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
-            fw_updater = FirmwareUpdater(fw_dev)
+            fw_updater = self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER]
             if path:
                 fw_updater.verify_and_stage_file(path)
             else:
@@ -124,11 +125,9 @@ class FirmwareDeviceManager:
         finally:
             if got_exception:
                 has_updates = False
-                fw_updater = None
                 path = None
             self.set_notification_status(device_id, has_updates)
             self.__devices_status[device_id][DeviceInfoKeys.UPDATE_AVAILABLE] = has_updates
-            self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER] = fw_updater
             self.__devices_status[device_id][DeviceInfoKeys.PATH_TO_BINARY] = path
         return has_updates
 
