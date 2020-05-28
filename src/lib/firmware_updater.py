@@ -24,13 +24,12 @@ class FirmwareUpdater(object):
     fw_file_hash = ""
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
     FW_INITIAL_LOCATION = "/lib/firmware/pi-top/"
-    board = None
-    __processed_firmware_files = list()
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
         self._packet = PacketManager()
         self.board = self.device.get_sch_hardware_version_major()
+        self.__processed_firmware_files = list()
 
     def has_staged_updates(self) -> bool:
         return os.path.isfile(self.fw_file_location) and \
