@@ -80,7 +80,10 @@ def main() -> None:
                 PTLogger.info("Waiting for lock to be released")
             locked_when_last_checked = True
         else:
+            if locked_when_last_checked:
+                PTLogger.info("Lock released")
             locked_when_last_checked = False
+
             fw_device_manager.scan_for_connected_devices()
 
             for device_id in fw_device_manager.connected_devices():
