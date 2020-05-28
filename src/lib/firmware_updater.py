@@ -25,7 +25,7 @@ class FirmwareUpdater(object):
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
     FW_INITIAL_LOCATION = "/lib/firmware/pi-top/"
     board = None
-    __already_processed_file = list()
+    __processed_firmware_files = list()
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
@@ -163,11 +163,13 @@ class FirmwareUpdater(object):
             raise FileNotFoundError("Firmware path {} doesn't exist.".format(fw_path))
 
         candidate_latest_fw_version = "0.0"
+        has_processed_new_fw_file = False
         with os.scandir(fw_path) as i:
             for entry in i:
-                if entry.path in self.__already_processed_file:
+                if entry.path in self.__processed_firmware_files:
                     continue
-                self.__already_processed_file.append(entry.path)
+                has_processed_new_fw_file = True
+                self.__processed_firmware_files.append(entry.path)
 
                 if self.__verify_firmware_file_format(entry.path):
                     _, version = os.path.split(entry.path)
@@ -178,7 +180,8 @@ class FirmwareUpdater(object):
                         candidate_latest_fw_version = fw_version_under_inspection
 
         if candidate_latest_fw_version == "0.0":
-            PTLogger.warning("{} - No firmware found in folder.".format(self.device.str_name))
+            if has_processed_new_fw_file:
+                PTLogger.warning("{} - No firmware found in folder: {}.".format(self.device.str_name, fw_path))
             candidate_latest_fw_version = ""
         else:
             PTLogger.debug("{} - Latest firmware available is version {}".format(self.device.str_name, candidate_latest_fw_version))
