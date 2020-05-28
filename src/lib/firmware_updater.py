@@ -23,7 +23,7 @@ class FirmwareUpdater(object):
     fw_file_location = ""
     fw_file_hash = ""
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
-    FW_INITIAL_LOCATION = "/usr/lib/pt-firmware-updater/bin/"
+    FW_INITIAL_LOCATION = "/lib/firmware/pi-top/"
     board = None
     __already_processed_file = list()
 
@@ -37,7 +37,7 @@ class FirmwareUpdater(object):
             self.__read_hash_from_file(self.fw_file_location) == self.fw_file_hash
 
     def verify_and_stage_file(self, path_to_fw_file: str) -> None:
-        PTLogger.info('{} - Verifying file {}'.format(self.device.str_name, path_to_fw_file))
+        PTLogger.debug('{} - Verifying file {}'.format(self.device.str_name, path_to_fw_file))
 
         if self.fw_downloaded_successfully():
             raise PTUpdatePending("There's a binary uploaded to {} waiting to be installed".format(self.device.str_name))
@@ -50,7 +50,7 @@ class FirmwareUpdater(object):
 
     def search_updates(self) -> None:
         path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name, "b" + str(self.board))
-        PTLogger.info("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
+        PTLogger.debug("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
 
         fw_version = self.__get_latest_fw_version_from_path(path_to_fw_folder)
         if len(fw_version) == 0:
@@ -64,7 +64,7 @@ class FirmwareUpdater(object):
         self.__send_staged_firmware_to_device()
 
         time_wait_mcu = 0.1
-        PTLogger.info("{} - Sleeping for {}s before verifying update".format(self.device.str_name, time_wait_mcu))
+        PTLogger.info("{} - Sleeping for {} secs before verifying update".format(self.device.str_name, time_wait_mcu))
         sleep(time_wait_mcu)  # Wait for MCU before verifying
 
         if self.fw_downloaded_successfully():
@@ -117,7 +117,7 @@ class FirmwareUpdater(object):
             _, fw_version = os.path.split(path_to_file)
             fw_version = fw_version.replace(".bin", "")
             StrictVersion(fw_version)
-            PTLogger.info("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
+            PTLogger.debug("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
             success = True
         except ValueError:
             PTLogger.info("{} - Skipping invalid firmware file: {}".format(self.device.str_name, path_to_file))
@@ -130,12 +130,11 @@ class FirmwareUpdater(object):
             candidate_fw_version = candidate_fw_version.replace(".bin", "")
 
             current_fw_version = self.device.get_fw_version()
-            PTLogger.info("{} - Current Firmware Version: {}".format(self.device.str_name, current_fw_version))
-            PTLogger.info("{} - Candidate Firmware Version: {}".format(self.device.str_name, candidate_fw_version))
+            PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(self.device.str_name, current_fw_version, candidate_fw_version))
 
             if StrictVersion(current_fw_version) >= StrictVersion(candidate_fw_version):
                 PTLogger.info(
-                    "{} - Firmware installed is newer than the candidate. Exiting.".format(self.device.str_name))
+                    "{} - Candidate firmware version is not newer. Skipping...".format(self.device.str_name))
                 return False
             return True
 

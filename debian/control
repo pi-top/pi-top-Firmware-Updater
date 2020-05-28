@@ -10,7 +10,16 @@ Package: pt-firmware-updater
 Architecture: armhf
 Depends: ${misc:Depends},
  ${python3:Depends},
+ ${shlibs:Depends},
+# Explicitly included, as dh_shlibdeps is overridden
+ libc6-dev,
+ pt-firmware-images,
  python3-pycrc,
  python3-pyinotify
 Description: pi-top Firmware Updater
- Ensures pi-top firmware is up to date.
+ This package provides a background service that
+ checks the firmware version of attached pi-top devices
+ with upgradable firmware, and will either automatically
+ upgrade or ask the user to upgrade. Firmware is programmed
+ via I2C, and images are provided by pt-firmware-images
+ package.
