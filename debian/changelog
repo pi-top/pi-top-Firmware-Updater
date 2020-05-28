@@ -1,3 +1,10 @@
+pt-firmware-updater (2.6.0-1) buster; urgency=medium
+
+  * Move bin files to pt-firmware-images package
+  * Package quality updates
+
+ -- Mike Roberts <mike@pi-top.com>  Thu, 28 May 2020 11:42:48 +0100
+
 pt-firmware-updater (2.5.0-2) buster; urgency=medium
 
   * Add missing libc dependency
