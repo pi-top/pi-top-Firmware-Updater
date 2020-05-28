@@ -24,10 +24,13 @@ class FirmwareUpdater(object):
     fw_file_hash = ""
     FW_SAFE_LOCATION = "/tmp/pt-firmware-updater/bin/"
     FW_INITIAL_LOCATION = "/lib/firmware/pi-top/"
+    board = None
+    __already_processed_file = list()
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
         self._packet = PacketManager()
+        self.board = self.device.get_sch_hardware_version_major()
 
     def has_staged_updates(self) -> bool:
         return os.path.isfile(self.fw_file_location) and \
@@ -46,10 +49,7 @@ class FirmwareUpdater(object):
         PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, path_to_fw_file))
 
     def search_updates(self) -> None:
-        PTLogger.debug('{} - Checking for updates in {}'.format(self.device.str_name, self.FW_INITIAL_LOCATION))
-
-        board = self.device.get_sch_hardware_version_major()
-        path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name, "b" + str(board))
+        path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name, "b" + str(self.board))
         PTLogger.debug("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
 
         fw_version = self.__get_latest_fw_version_from_path(path_to_fw_folder)
@@ -160,6 +160,10 @@ class FirmwareUpdater(object):
         candidate_latest_fw_version = "0.0"
         with os.scandir(fw_path) as i:
             for entry in i:
+                if entry.path in self.__already_processed_file:
+                    continue
+                self.__already_processed_file.append(entry.path)
+
                 if self.__verify_firmware_file_format(entry.path):
                     _, version = os.path.split(entry.path)
                     fw_version_under_inspection = version.replace(".bin", "")

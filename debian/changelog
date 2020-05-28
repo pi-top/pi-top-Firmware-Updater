@@ -1,3 +1,10 @@
+pt-firmware-updater (2.6.1-1) buster; urgency=medium
+
+  * Reduce i2c bus usage
+  * Keep track of processed files
+
+ -- Jorge Capona <jorge@pi-top.com>  Thu, 28 May 2020 12:36:23 -0400
+
 pt-firmware-updater (2.6.0-1) buster; urgency=medium
 
   * Move bin files to pt-firmware-images package
