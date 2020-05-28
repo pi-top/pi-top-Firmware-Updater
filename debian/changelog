@@ -1,3 +1,9 @@
+pt-firmware-updater (2.8.0-1) buster; urgency=medium
+
+  * Only try and update each device once per connection
+
+ -- Mike Roberts <mike@pi-top.com>  Thu, 28 May 2020 16:51:20 +0100
+
 pt-firmware-updater (2.7.0-1) buster; urgency=medium
 
   * Apply hub firmware correctly - let hub handle reboot
