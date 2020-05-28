@@ -1,3 +1,10 @@
+pt-firmware-updater (2.7.0-1) buster; urgency=medium
+
+  * Apply hub firmware correctly - let hub handle reboot
+  * Reduce logging level for common prints
+
+ -- Mike Roberts <mike@pi-top.com>  Thu, 28 May 2020 12:59:23 +0100
+
 pt-firmware-updater (2.6.1-1) buster; urgency=medium
 
   * Reduce i2c bus usage
@@ -23,6 +30,7 @@ pt-firmware-updater (2.5.0-1) buster; urgency=medium
   * Add force flag to update checker
 
  -- Jorge Capona <jorge@pi-top.com>  Tue, 14 Apr 2020 18:14:54 -0400
+
 
 pt-firmware-updater (2.4.3-1) buster; urgency=medium
 

@@ -61,9 +61,10 @@ class FirmwareDeviceManager:
                 PTLogger.debug('{} is connected'.format(dev))
                 self.__devices_status[dev][DeviceInfoKeys.FW_DEVICE] = fw_device
             except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-                PTLogger.warning('{} - {}'.format(dev.name, e))
+                PTLogger.warning(
+                    '{} - Exception when attempting to create firmware device: {}'.format(dev.name, e))
             except Exception as e:
-                PTLogger.error('{} - {}'.format(dev.name, e))
+                PTLogger.error('{} - Generic exception when attempting to create firmware device: {}'.format(dev.name, e))
 
     def connected_devices(self) -> [FirmwareDeviceID]:
         return [device_id for device_id in self.__devices_status if self.is_connected(device_id)]
@@ -72,7 +73,7 @@ class FirmwareDeviceManager:
         return device_id in self.__devices_status
 
     def force_update_if_available(self) -> None:
-        PTLogger.info("Forcing update if available")
+        PTLogger.debug("Forcing update if available")
         for device_id in self.__devices_status:
             if self.has_update(device_id):
                 self.update(device_id)
@@ -95,12 +96,13 @@ class FirmwareDeviceManager:
             has_updates = fw_updater.has_staged_updates()
             path = fw_updater.fw_file_location
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-            PTLogger.warning('{} - {}'.format(device_id.name, e))
+            PTLogger.warning('{} - Exception while checking for update: {}'.format(device_id.name, e))
             has_updates = False
             fw_updater = None
             path = None
         except Exception as e:
-            PTLogger.error('{} - {}'.format(device_id.name, e))
+            PTLogger.error(
+                '{} - Generic exception while checking for update: {}'.format(device_id.name, e))
             has_updates = False
             fw_updater = None
             path = None
@@ -115,10 +117,10 @@ class FirmwareDeviceManager:
         success = False
 
         if not self.is_connected(device_id):
-            PTLogger.info("{} is not connected".format(device_id))
+            PTLogger.warning("{} is not connected".format(device_id))
             return success
         if not self.__devices_status[device_id][DeviceInfoKeys.UPDATE_AVAILABLE]:
-            PTLogger.info("{} - There's no update available".format(device_id))
+            PTLogger.warning("{} - There's no update available".format(device_id))
             return success
 
         try:
@@ -131,9 +133,11 @@ class FirmwareDeviceManager:
                 PTLogger.info("{} - Updated firmware successfully to device".format(device_id))
             self.set_notification_status(device_id, True)
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-            PTLogger.warning('{} - {}'.format(device_id.name, e))
+            PTLogger.warning(
+                '{} - Exception while trying to update: {}'.format(device_id.name, e))
         except Exception as e:
-            PTLogger.error('{} - {}'.format(device_id.name, e))
+            PTLogger.error(
+                '{} - Generic exception while trying to update: {}'.format(device_id.name, e))
         finally:
             self.notification_manager.notify_user(
                 UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE,
