@@ -43,23 +43,23 @@ class FirmwareDeviceManager:
             if run(["pt-i2cdetect", str(addr)], timeout=1).returncode == 0:
                 device_connected = False
                 try:
-                    fw_device = FirmwareDevice(dev)
+                    fw_device = FirmwareDevice(device_id)
 
                     if device_id not in self.__devices_status:
-                        PTLogger.info('{} is now connected'.format(dev))
+                        PTLogger.info('{} is now connected'.format(device_id))
                         self.__devices_status[device_id] = {}
 
-                    self.__devices_status[dev][DeviceInfoKeys.FW_DEVICE] = fw_device
+                    self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE] = fw_device
                     device_connected = True
                 except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
                     PTLogger.warning(
-                        '{} - Exception when attempting to create firmware device: {}'.format(dev.name, e))
+                        '{} - Exception when attempting to create firmware device: {}'.format(device_id.name, e))
                 except Exception as e:
-                    PTLogger.error('{} - Generic exception when attempting to create firmware device: {}'.format(dev.name, e))
+                    PTLogger.error('{} - Generic exception when attempting to create firmware device: {}'.format(device_id.name, e))
                 finally:
                     if not device_connected:
                         if device_id in self.__devices_status:
-                            PTLogger.info('{} is now disconnected'.format(dev))
+                            PTLogger.info('{} is now disconnected'.format(device_id))
                             del self.__devices_status[device_id]
 
     def connected_devices(self) -> [FirmwareDeviceID]:
