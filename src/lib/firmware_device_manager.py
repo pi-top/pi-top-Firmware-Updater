@@ -8,7 +8,7 @@ from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_updater import FirmwareUpdater
+from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from file_supervisor import FileSupervisor, FirmwareFileEventManager
 from notification_manager import NotificationManager, UpdateStatusEnum
 
