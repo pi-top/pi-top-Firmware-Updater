@@ -31,23 +31,34 @@ class FirmwareDeviceManager:
         self.notification_manager = NotificationManager()
 
     def scan_for_connected_devices(self) -> None:
-        PTLogger.info('Scanning for connected firmware devices')
+        PTLogger.debug('Scanning for connected firmware devices')
+
+        def i2c_addr_found(addr):
+            # TODO: add capturing of exit code to run_command, use that
+            return run(["pt-i2cdetect", str(addr)], timeout=1).returncode == 0
+
+        def add_device_if_newly_connected(device_id):
+            PTLogger.debug('{} is connected'.format(device_id))
+            if device_id not in self.__devices_status:
+                PTLogger.info('{} is newly connected'.format(device_id))
+                self.__devices_status[device_id] = {}
+                self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE] = fw_device
+
+        def remove_device_if_newly_disconnected(device_id):
+            PTLogger.debug('{} is not connected'.format(device_id))
+            if device_id in self.__devices_status:
+                PTLogger.info('{} is newly disconnected'.format(device_id))
+                del self.__devices_status[device_id]
 
         # Call 'pt-i2cdetect' for the I2C address of each possible device
         for device_id in self.devices_id_list:
             addr = FirmwareDevice.device_info[device_id]['i2c_addr']
 
-            # TODO: add capturing of exit code to run_command, use that
-            if run(["pt-i2cdetect", str(addr)], timeout=1).returncode == 0:
-                device_connected = False
+            device_connected = False
+            if i2c_addr_found(addr):
                 try:
                     fw_device = FirmwareDevice(device_id)
 
-                    if device_id not in self.__devices_status:
-                        PTLogger.info('{} is now connected'.format(device_id))
-                        self.__devices_status[device_id] = {}
-
-                    self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE] = fw_device
                     device_connected = True
                 except (ConnectionError, AttributeError) as e:
                     PTLogger.warning(
@@ -58,10 +69,12 @@ class FirmwareDeviceManager:
                 except Exception as e:
                     PTLogger.error('{} - Generic exception when attempting to create firmware device: {}'.format(device_id.name, e))
                 finally:
-                    if not device_connected:
-                        if device_id in self.__devices_status:
-                            PTLogger.info('{} is now disconnected'.format(device_id))
-                            del self.__devices_status[device_id]
+                    if device_connected:
+                        add_device_if_newly_connected(device_id)
+                    else:
+                        remove_device_if_newly_disconnected(device_id)
+            else:
+                remove_device_if_newly_disconnected(device_id)
 
     def connected_devices(self) -> [FirmwareDeviceID]:
         return [device_id for device_id in self.__devices_status if self.is_connected(device_id)]
