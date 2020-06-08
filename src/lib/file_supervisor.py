@@ -1,7 +1,7 @@
 import os
 import pyinotify
 import multiprocessing
-from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.firmware_device.FirmwareDevice import str_name_to_device_id
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.logger import PTLogger
 
@@ -49,6 +49,6 @@ class FirmwareFileEventManager(pyinotify.ProcessEvent):
         path = os.path.normpath(os.path.join(path, '..'))
 
         fw_device_str_name = os.path.basename(path)
-        fw_device = FirmwareDevice.str_name_to_device_id(fw_device_str_name)
+        fw_device = str_name_to_device_id(fw_device_str_name)
         PTLogger.info('Device with new update found: {}'.format(fw_device_str_name))
         self.queue.put(fw_device)
