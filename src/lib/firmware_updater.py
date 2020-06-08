@@ -167,7 +167,7 @@ class FirmwareUpdater(object):
 
         # preview
         release_type = filename_fields[3]
-        if release_type != "release" & & release_type != "preview":
+        if release_type != "release" and release_type != "preview":
             PTLogger.warning(
                 (
                     "{} - Firmware file release type format not valid '{}'. Skipping..."
