@@ -20,7 +20,7 @@ class PTUpdatePending(Exception):
 
 
 class FirmwareObject(object):
-    def __init__(self, path_to_file=None, device):
+    def __init__(self, path_to_file=None):
         self.path = path_to_file
 
         self.error = True  # Until we have parsed
