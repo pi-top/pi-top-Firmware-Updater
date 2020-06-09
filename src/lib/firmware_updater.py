@@ -144,10 +144,10 @@ class FirmwareUpdater(object):
             raise PTUpdatePending("There's a binary uploaded to {} waiting to be installed".format(self.device.str_name))
 
         if not self.__firmware_file_is_valid(fw_file):
-            raise PTInvalidFirmwareFile('{} is not a valid candidate firmware file'.format(path_to_fw_file))
+            raise PTInvalidFirmwareFile('{} is not a valid candidate firmware file'.format(fw_file.path))
 
         self.__prepare_firmware_for_install(fw_file)
-        PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, path_to_fw_file))
+        PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, fw_file.path))
 
     def search_updates(self) -> None:
         path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name)
@@ -156,7 +156,7 @@ class FirmwareUpdater(object):
             return
 
         self.stage_file(fw_file)
-        PTLogger.info("{} - Firmware update found: {}".format(self.device.str_name, path_to_fw_file))
+        PTLogger.info("{} - Firmware update found: {}".format(self.device.str_name, fw_file.path))
 
     def install_updates(self) -> bool:
         self.__send_staged_firmware_to_device()
@@ -220,7 +220,7 @@ class FirmwareUpdater(object):
         elif self.device.has_extended_build_info():
             PTLogger.info(
                 (
-                    "{} - Candidate firmware version matches current firmware version."
+                    "{} - Candidate firmware version matches current firmware version. "
                     "Checking build metadata to determine if candidate is a newer build."
                 ).format(self.device.str_name)
             )
@@ -230,7 +230,7 @@ class FirmwareUpdater(object):
 
             if fw_file.is_release and not current_fw_is_release_build:
                 PTLogger.info(
-                    "{} - Candidate firmware version is release build.".format(self.device.str_name))
+                    "{} - Candidate firmware version is release build, and current is not.".format(self.device.str_name))
                 return True
 
             if fw_file.timestamp is not None and fw_file.timestamp > current_fw_build_timestamp:
