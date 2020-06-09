@@ -5,7 +5,7 @@ from subprocess import run
 
 from ptcommon.logger import PTLogger
 from ptcommon.common_ids import FirmwareDeviceID
-from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException, device_info
+from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from file_supervisor import FileSupervisor, FirmwareFileEventManager
@@ -53,7 +53,7 @@ class FirmwareDeviceManager:
 
         # Call 'pt-i2cdetect' for the I2C address of each possible device
         for device_id in self.devices_id_list:
-            addr = device_info[device_id]['i2c_addr']
+            addr = FirmwareDevice.device_info[device_id]['i2c_addr']
 
             device_connected = False
             if i2c_addr_found(addr):
