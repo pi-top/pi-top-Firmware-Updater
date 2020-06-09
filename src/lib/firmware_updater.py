@@ -205,15 +205,15 @@ class FirmwareUpdater(object):
 
     def __candidate_fw_version_is_newer_than_current(self, fw_file: FirmwareObject):
         PTLogger.debug("Getting firmware version information from device")
-        current_fw_version = self.device.get_fw_version()
+        current_fw_version = StrictVersion(self.device.get_fw_version())
 
         PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(self.device.str_name, current_fw_version, fw_file.firmware_version))
 
-        if StrictVersion(fw_file.firmware_version) > StrictVersion(current_fw_version):
+        if fw_file.firmware_version > current_fw_version:
             PTLogger.info(
                 "{} - Candidate firmware version is newer.".format(self.device.str_name))
             return True
-        elif StrictVersion(fw_file.firmware_version) < StrictVersion(current_fw_version):
+        elif fw_file.firmware_version < current_fw_version:
             PTLogger.info(
                 "{} - Candidate firmware version is not newer. Skipping...".format(self.device.str_name))
             return False
@@ -274,11 +274,11 @@ class FirmwareUpdater(object):
                 self.__processed_firmware_files.append(entry.path)
 
                 fw_file = FirmwareObject(path_to_file=entry.path)
-                if fw_file.verify(self.device, schematic_version):
+                if fw_file.verify(self.device.str_name, self.schematic_board_rev):
 
                     if candidate_latest_fw_file is None or \
-                        StrictVersion(fw_file.firmware_version) >= \
-                            StrictVersion(candidate_latest_fw_file.firmware_version):
+                        fw_file.firmware_version >= \
+                            candidate_latest_fw_file.firmware_version:
                         candidate_latest_fw_file = fw_file
 
         if candidate_latest_fw_file is None:
