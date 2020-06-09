@@ -55,25 +55,15 @@ class FirmwareFile(object):
             self.error_string = "Invalid device name string: {}".format(device_name)
             return
 
-        self.device_name = device_name
-
         # e.g. 'v21.1'
-        version_str = filename_fields[1]
-        if not re.search(r"^v\d+.\d+$", version_str):
+        version_str = filename_fields[1].replace("v", "")
+        if not re.search(r"^\d+.\d+$", version_str):
             self.error_string = "Invalid firmware version string: {}".format(version_str.replace("v", ""))
             return
 
-        self.firmware_version = StrictVersion(
-            version_str.replace("v", "")
-        )
-
         # e.g. 'sch2'
-        schematic_version_str = filename_fields[2]
-        try:
-            self.schematic_version = StrictVersion(
-                schematic_version_str.replace("sch", "")
-            )
-        except Exception as e:
+        schematic_version_str = filename_fields[2].replace("sch", "")
+        if not str.isdigit(schematic_version_str):
             self.error_string = "Invalid schematic version string: {}".format(schematic_version_str.replace("sch", ""))
             return
 
@@ -83,17 +73,22 @@ class FirmwareFile(object):
             self.error_string = "Invalid release type string: {}".format(release_type_str)
             return
 
-        self.is_release = (release_type == "release")
-
         # e.g. '1591708039'
+        timestamp = None
         if len(filename_fields) >= 5:
             timestamp = filename_fields[4]
             if not str.isdigit(timestamp):
                 self.error_string = "Invalid timestamp string: {}".format(timestamp)
                 return
 
-            self.timestamp = timestamp
+        # Only set parameters at the end, so that they can't be used by accident
+        self.device_name = device_name
+        self.firmware_version = StrictVersion(version_str)
+        self.schematic_version = schematic_version_str
+        self.is_release = (release_type == "release")
+        self.timestamp = timestamp
 
+        # Clear error state
         self.error_string = ""
         self.error = False
 
