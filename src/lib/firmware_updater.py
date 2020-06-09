@@ -1,9 +1,11 @@
+import re
 import os
 import shutil
 import hashlib
 from time import sleep
 from distutils.version import StrictVersion
 
+from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.firmware_device import DeviceInfo, FirmwareDevice
 from ptcommon.logger import PTLogger
 from packet_manager import PacketManager, PacketType
@@ -15,6 +17,85 @@ class PTInvalidFirmwareFile(Exception):
 
 class PTUpdatePending(Exception):
     pass
+
+
+class FirmwareFile(object):
+    def __init__(self, path_to_file):
+        self.path = path_to_file
+
+        self.error = True  # Until we have parsed
+        self.error_string = "Uninitialised"
+
+        self.device_name = None
+        self.firmware_version = None
+        self.schematic_version = None
+        self.is_release = None
+        self.timestamp = None
+
+        if not os.path.isfile(path_to_file):
+            self.error_string = "No file found"
+            return
+
+        if not path_to_file.endswith(".bin"):
+            self.error_string = "Not a .bin file"
+            return
+
+        _, fw_filename = os.path.split(path_to_file)
+
+        # e.g. 'pt4_expansion_plate-v21.1-sch2-release.bin'
+        filename_fields = fw_filename.replace(".bin", "").split('-')
+
+        if len(filename_fields) < 4:
+            self.error_string = "Less than 4 dash-separated fields in filename"
+            return
+
+        # e.g. 'pt4_expansion_plate'
+        device_name = filename_fields[0]
+        if device_name not in FirmwareDeviceID._member_names_:
+            self.error_string = "Invalid device name string: {}".format(device_name)
+            return
+
+        self.device_name = device_name
+
+        # e.g. 'v21.1'
+        version_str = filename_fields[1]
+        if not re.search(r"^v\d+.\d+$", version_str):
+            self.error_string = "Invalid firmware version string: {}".format(version_str.replace("v", ""))
+            return
+
+        self.firmware_version = StrictVersion(
+            version_str.replace("v", "")
+        )
+
+        # e.g. 'sch2'
+        schematic_version_str = filename_fields[2]
+        try:
+            self.schematic_version = StrictVersion(
+                schematic_version_str.replace("sch", "")
+            )
+        except Exception as e:
+            self.error_string = "Invalid schematic version string: {}".format(schematic_version_str.replace("sch", ""))
+            return
+
+        # e.g. 'preview'
+        release_type_str = filename_fields[3]
+        if release_type != "release" and release_type != "preview":
+            self.error_string = "Invalid release type string: {}".format(release_type_str)
+            return
+
+        self.is_release = (release_type == "release")
+
+        # e.g. '1591708039'
+        if len(filename_fields) >= 5:
+            timestamp = filename_fields[4]
+            if not str.isdigit(timestamp):
+                self.error_string = "Invalid timestamp string: {}".format(timestamp)
+                return
+
+            self.timestamp = timestamp
+
+        self.error_string = ""
+        self.error = False
 
 
 class FirmwareUpdater(object):
@@ -46,7 +127,8 @@ class FirmwareUpdater(object):
         PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device.str_name, path_to_fw_file))
 
     def search_updates(self) -> None:
-        fw_file = self.__get_latest_fw_file_for_current_device()
+        path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name)
+        fw_file = self.__get_latest_fw_file_for_current_device(path_to_fw_folder)
         if len(fw_file) == 0:
             return
 
@@ -99,44 +181,17 @@ class FirmwareUpdater(object):
         return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
     def __verify_firmware_file_format(self, path_to_file: str) -> bool:
-        success = False
-        if not os.path.isfile(path_to_file):
-            PTLogger.warning("{} - {} is not a file".format(self.device.str_name, path_to_file))
-            return success
+        fw_file = FirmwareFile(path_to_file)
 
-        if not path_to_file.endswith(".bin"):
-            PTLogger.warning(
-                "{} - filename on {} is not properly formatted".format(self.device.str_name, path_to_file))
-            return success
-
-        try:
-            _, fw_version = os.path.split(path_to_file)
-            fw_version = fw_version.replace(".bin", "")
-            StrictVersion(fw_version)
-            PTLogger.debug("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
-            success = True
-        except ValueError:
-            PTLogger.error("{} - Skipping invalid firmware file: {}".format(self.device.str_name, path_to_file))
-
-        return success
-
-    def __candidate_fw_version_is_newer_than_current(self, path_to_file: str):
-        _, candidate_fw_bin_name = os.path.split(path_to_file)
-
-        # e.g. 'pt4_expansion_plate-v21.1-sch2-release.bin'
-        filename_fields = candidate_fw_bin_name.split('/')
-
-        if len(filename_fields) < 4:
-            PTLogger.warning(
+        if fw_file.error:
+            PTLogger.error(
                 (
-                    "{} - Invalid format for firmware file {}. Skipping..."
-                ).format(self.device.str_name, candidate_fw_bin_name)
+                    "{} - Invalid format for firmware file {}: {}. Skipping..."
+                ).format(self.device.str_name, fw_file.error_string, candidate_fw_bin_name)
             )
             return False
 
-        # e.g. 'pt4_expansion_plate'
-        device_name = filename_fields[0]
-        if device_name != self.device.str_name:
+        if fw_file.device_name != self.device.str_name:
             PTLogger.warning(
                 (
                     "{} - Firmware file does not match device name '{}'. Skipping..."
@@ -144,53 +199,32 @@ class FirmwareUpdater(object):
             )
             return False
 
-        # e.g. 'v21.1'
-        version_str = filename_fields[1]
-        import re
-        if not re.search(r"^v\d+.\d+$", version_str):
+        if fw_file.schematic_version != self.schematic_board_rev:
             PTLogger.warning(
                 (
-                    "{} - Firmware file version format not valid '{}'. Skipping..."
-                ).format(self.device.str_name, version_str)
+                    "{} - Firmware file schematic version does not match device '{}'. Skipping..."
+                ).format(self.device.str_name, device_name)
             )
             return False
 
-        # e.g. 'sch2'
-        schematic_version = filename_fields[2]
-        if schematic_version != self.schematic_board_rev:
-            PTLogger.warning(
-                (
-                    "{} - Firmware file does not match device's board revision '{}', '{}'. Skipping..."
-                ).format(self.device.str_name, schematic_version, self.schematic_board_rev)
-            )
-            return False
+        PTLogger.debug("{} - {} has a valid version ({})".format(self.device.str_name, path_to_file, fw_version))
+        return True
 
-        # e.g. 'preview'
-        release_type = filename_fields[3]
-        if release_type != "release" and release_type != "preview":
-            PTLogger.warning(
-                (
-                    "{} - Firmware file release type format not valid '{}'. Skipping..."
-                ).format(self.device.str_name, release_type)
-            )
-            return False
+    def __candidate_fw_version_is_newer_than_current(self, path_to_file: str):
+        _, candidate_fw_bin_name = os.path.split(path_to_file)
 
-        timestamp = None
-        if len(filename_fields) >= 4:
-            # optional timestamp
-            timestamp = filename_fields[4]
+        fw_file = FirmwareFile(path_to_file)
 
         PTLogger.debug("Getting firmware version information from device")
         current_fw_version = self.device.get_fw_version()
-        candidate_fw_version = version_str.replace("v", "")
 
-        PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(self.device.str_name, current_fw_version, candidate_fw_version))
+        PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(self.device.str_name, current_fw_version, fw_file.firmware_version))
 
-        if StrictVersion(candidate_fw_version) > StrictVersion(current_fw_version):
+        if StrictVersion(fw_file.firmware_version) > StrictVersion(current_fw_version):
             PTLogger.info(
                 "{} - Candidate firmware version is newer.".format(self.device.str_name))
             return True
-        elif StrictVersion(candidate_fw_version) < StrictVersion(current_fw_version):
+        elif StrictVersion(fw_file.firmware_version) < StrictVersion(current_fw_version):
             PTLogger.info(
                 "{} - Candidate firmware version is not newer. Skipping...".format(self.device.str_name))
             return False
@@ -205,15 +239,12 @@ class FirmwareUpdater(object):
             current_fw_is_release_build = self.device.get_is_release_build()
             current_fw_build_timestamp = self.device.get_build_timestamp()
 
-            candidate_fw_is_release_build = (release_type == "release")
-            candidate_fw_build_timestamp = timestamp
-
-            if candidate_fw_is_release_build and not current_fw_is_release_build:
+            if fw_file.is_release and not current_fw_is_release_build:
                 PTLogger.info(
                     "{} - Candidate firmware version is release build.".format(self.device.str_name))
                 return True
 
-            if candidate_fw_build_timestamp > candidate_fw_build_timestamp:
+            if fw_file.timestamp is not None and fw_file.timestamp > current_fw_build_timestamp:
                 PTLogger.info(
                     "{} - Candidate firmware is newer build.".format(self.device.str_name))
                 return True
@@ -224,8 +255,11 @@ class FirmwareUpdater(object):
 
     def __firmware_file_is_valid(self, path_to_fw_file: str):
         verified = self.__verify_firmware_file_format(path_to_fw_file)
+        if not verified:
+            return False
+
         newer = self.__candidate_fw_version_is_newer_than_current(path_to_fw_file)
-        return verified and newer
+        return newer
 
     def __get_latest_fw_file_for_current_device(self, fw_path: str) -> str:
         """
@@ -236,14 +270,7 @@ class FirmwareUpdater(object):
         available version of the firmware.
         """
 
-        ###############################################
-        # TODO: go from '{}/b?/{}' to '{}/{}-sch?-{}' #
-        ###############################################
-        path_to_fw_folder = os.path.join(self.FW_INITIAL_LOCATION, self.device.str_name)
-
-        PTLogger.debug("{} - Looking for binaries in: {}".format(self.device.str_name, path_to_fw_folder))
-
-        path_to_fw_file = os.path.join(path_to_fw_folder, fw_file + ".bin")
+        PTLogger.debug("{} - Looking for binaries in: {}".format(self.device.str_name, fw_path))
 
         if not os.path.exists(fw_path):
             raise FileNotFoundError("Firmware path {} doesn't exist.".format(fw_path))
