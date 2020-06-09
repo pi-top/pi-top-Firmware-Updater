@@ -8,7 +8,7 @@ from time import sleep
 
 from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
-from ptcommon.firmware_device.FirmwareDevice import valid_device_ids, str_name_to_device_id
+from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids and str_name_to_device_id
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
 from ptcommon.lock import PTLock
@@ -22,7 +22,7 @@ parser = ArgumentParser(description="pi-top firmware updater")
 parser.add_argument(
     "device",
     help="pi-top firmware device to apply firmware upgrade to. "
-         "Valid devices are {}".format([dev.name for dev in valid_device_ids()]),
+         "Valid devices are {}".format([dev.name for dev in FirmwareDevice.valid_device_ids()]),
 )
 parser.add_argument(
     "--no-journal",
@@ -88,7 +88,7 @@ def main() -> None:
         PTLogger.error("Lock file is already owned")
         exit(1)
 
-    device_id = str_name_to_device_id(args.device)
+    device_id = FirmwareDevice.str_name_to_device_id(args.device)
     PTLogger.debug("Starting pt-firmware-updater")
     try:
         lock_file.acquire()

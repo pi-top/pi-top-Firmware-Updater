@@ -165,7 +165,7 @@ class FirmwareUpdater(object):
             )
             return False
 
-        # preview
+        # e.g. 'preview'
         release_type = filename_fields[3]
         if release_type != "release" and release_type != "preview":
             PTLogger.warning(
