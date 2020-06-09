@@ -243,7 +243,7 @@ class FirmwareUpdater(object):
         return False
 
     def __firmware_file_is_valid(self, fw_file: FirmwareObject):
-        verified = fw_file.verify(self.device, schematic_version)
+        verified = fw_file.verify(self.device.str_name, self.schematic_board_rev)
         if not verified:
             return False
 
