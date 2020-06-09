@@ -187,23 +187,23 @@ class FirmwareUpdater(object):
             PTLogger.error(
                 (
                     "{} - Invalid format for firmware file {}: {}. Skipping..."
-                ).format(self.device.str_name, fw_file.error_string, candidate_fw_bin_name)
+                ).format(self.device.str_name, path_to_file, fw_file.error_string)
             )
             return False
 
         if fw_file.device_name != self.device.str_name:
             PTLogger.warning(
                 (
-                    "{} - Firmware file does not match device name '{}'. Skipping..."
-                ).format(self.device.str_name, device_name)
+                    "{} - Firmware file '{}' device name does not match current device '{}'. Skipping..."
+                ).format(self.device.str_name, path_to_file, device_name)
             )
             return False
 
         if fw_file.schematic_version != self.schematic_board_rev:
             PTLogger.warning(
                 (
-                    "{} - Firmware file schematic version does not match device '{}'. Skipping..."
-                ).format(self.device.str_name, device_name)
+                    "{} - Firmware file '{}' schematic version does not match current device '{}'. Skipping..."
+                ).format(self.device.str_name, fw_file.path, self.schematic_board_rev)
             )
             return False
 
@@ -211,8 +211,6 @@ class FirmwareUpdater(object):
         return True
 
     def __candidate_fw_version_is_newer_than_current(self, path_to_file: str):
-        _, candidate_fw_bin_name = os.path.split(path_to_file)
-
         fw_file = FirmwareFile(path_to_file)
 
         PTLogger.debug("Getting firmware version information from device")
