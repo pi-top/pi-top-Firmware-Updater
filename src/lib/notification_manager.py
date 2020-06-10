@@ -75,7 +75,7 @@ class NotificationManager(object):
             PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
             return
 
-        PTLogger.info("notify_user() with device: {}, enum: {}".format(device_id.name, update_enum))
+        PTLogger.info("Notifying user. Device: {}; enum: {}".format(device_id.name, update_enum))
 
         notification_id = send_notification(
             title=self.NOTIFICATION_TITLE,

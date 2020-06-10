@@ -7,7 +7,7 @@ from ptcommon.logger import PTLogger
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.firmware_device import FirmwareDevice, PTInvalidFirmwareDeviceException
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
+from firmware_updater import FirmwareObject, FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
 from file_supervisor import FileSupervisor, FirmwareFileEventManager
 from notification_manager import NotificationManager, UpdateStatusEnum
 
@@ -101,7 +101,8 @@ class FirmwareDeviceManager:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER]
             if path:
-                fw_updater.verify_and_stage_file(path)
+                fw_file = FirmwareObject.from_file(path)
+                fw_updater.stage_file(fw_file)
             else:
                 fw_updater.search_updates()
 
@@ -112,11 +113,11 @@ class FirmwareDeviceManager:
             got_exception = True
         except PTInvalidFirmwareFile as e:
             PTLogger.info(
-                '{} - Skipping update check: no valid candidate firmware'.format(device_id.name))
+                '{} - Skipping update: no valid candidate firmware'.format(device_id.name))
             got_exception = True
         except PTUpdatePending as e:
             PTLogger.info(
-                '{} - Skipping update check: {}'.format(device_id.name, e))
+                '{} - Skipping update: {}'.format(device_id.name, e))
             got_exception = True
         except Exception as e:
             PTLogger.error(

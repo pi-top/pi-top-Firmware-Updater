@@ -8,7 +8,7 @@ from sys import path
 from time import sleep
 
 from ptcommon.common_ids import DeviceID
-from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
 from ptcommon.lock import PTLock

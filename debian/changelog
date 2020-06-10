@@ -1,3 +1,11 @@
+pt-firmware-updater (2.9.0-1) buster; urgency=medium
+
+  * Start and enable service by default
+  * Use pt-firmware-images directory structure
+  * Fix Lintian errors
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 10 Jun 2020 17:39:46 +0100
+
 pt-firmware-updater (2.8.0-1) buster; urgency=medium
 
   * Only try and update each device once per connection

@@ -1,8 +1,7 @@
 import os
 import pyinotify
 import multiprocessing
-from ptcommon.firmware_device import FirmwareDevice
-from ptcommon.common_ids import FirmwareDeviceID
+from ptcommon.firmware_device import FirmwareDevice  # Used for str_name_to_device_id
 from ptcommon.logger import PTLogger
 
 
