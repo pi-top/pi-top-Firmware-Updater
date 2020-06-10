@@ -112,11 +112,11 @@ class FirmwareDeviceManager:
             got_exception = True
         except PTInvalidFirmwareFile as e:
             PTLogger.info(
-                '{} - Skipping update check: no valid candidate firmware'.format(device_id.name))
+                '{} - Skipping update: no valid candidate firmware'.format(device_id.name))
             got_exception = True
         except PTUpdatePending as e:
             PTLogger.info(
-                '{} - Skipping update check: {}'.format(device_id.name, e))
+                '{} - Skipping update: {}'.format(device_id.name, e))
             got_exception = True
         except Exception as e:
             PTLogger.error(

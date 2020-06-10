@@ -246,14 +246,11 @@ class FirmwareObject(object):
 
     @staticmethod
     def is_newer(reference: FirmwareDevice, candidate: FirmwareDevice):
-        #############################################
-        # TODO: (2) ONLY evaluate by using internal vars of this class
-        #############################################
         if reference.error or candidate.error:
             return None
 
         PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(
-            reference.device_name, candidate.firmware_version, fw_file.firmware_version)
+            reference.device_name, reference.firmware_version, candidate.firmware_version)
         )
 
         if candidate.firmware_version > reference.firmware_version:
@@ -273,14 +270,14 @@ class FirmwareObject(object):
             )
 
             if reference.is_release is not None:
-                PTLogger.debug("{} - Reference firmware has 'is release build'".format(reference.device_name))
+                PTLogger.info("{} - Reference firmware has 'is release build'".format(reference.device_name))
                 # Assume all candidates have this
                 if candidate.is_release and not reference.is_release:
                     PTLogger.info(
                         "{} - Candidate firmware version is release build, and current is not.".format(reference.device_name))
                     return True
             if reference.timestamp is not None:
-                PTLogger.debug("{} - Reference firmware has 'timestamp'".format(reference.device_name))
+                PTLogger.info("{} - Reference firmware has 'timestamp'".format(reference.device_name))
                 # Assume all candidates have this
                 if reference.timestamp is not None and candidate.timestamp > reference.timestamp:
                     PTLogger.info(
@@ -376,7 +373,7 @@ class FirmwareUpdater(object):
 
     def __candidate_fw_version_is_newer_than_current(self, fw_file: FirmwareObject):
         PTLogger.debug("Checking if candidate firmware version is newer than device")
-        return FirmwareObject.is_newer(fw_file, self.device_info)
+        return FirmwareObject.is_newer(self.device_info, fw_file)
 
     def __firmware_file_is_valid(self, fw_file: FirmwareObject):
         verified = fw_file.verify(self.device_info.device_name, self.device_info.schematic_version)
