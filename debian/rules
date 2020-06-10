@@ -6,10 +6,10 @@ override_dh_installinit:
 	dh_installinit --noscripts
 
 override_dh_systemd_enable:
-	dh_systemd_enable --no-enable --name=pt-firmware-updater
+	dh_systemd_enable --name=pt-firmware-updater
 
 override_dh_systemd_start:
-	dh_systemd_start --no-start pt-firmware-updater
+	dh_systemd_start pt-firmware-updater
 
 override_dh_shlibdeps:
 	true
