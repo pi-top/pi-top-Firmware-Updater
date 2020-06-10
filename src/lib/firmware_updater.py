@@ -270,16 +270,15 @@ class FirmwareObject(object):
             )
 
             if reference.is_release is not None:
-                PTLogger.info("{} - Reference firmware has 'is release build'".format(reference.device_name))
+                PTLogger.info("{} - Reference firmware has 'is release build' property".format(reference.device_name))
                 # Assume all candidates have this
                 if candidate.is_release and not reference.is_release:
                     PTLogger.info(
                         "{} - Candidate firmware version is release build, and current is not.".format(reference.device_name))
                     return True
-            if reference.timestamp is not None:
-                PTLogger.info("{} - Reference firmware has 'timestamp'".format(reference.device_name))
-                # Assume all candidates have this
-                if reference.timestamp is not None and candidate.timestamp > reference.timestamp:
+            if reference.timestamp is not None and candidate.timestamp is not None:
+                PTLogger.info("{} - Both reference and candidate firmware has 'timestamp' property".format(reference.device_name))
+                if candidate.timestamp > reference.timestamp:
                     PTLogger.info(
                         "{} - Candidate firmware is newer build.".format(reference.device_name))
                     return True
