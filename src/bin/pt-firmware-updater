@@ -93,6 +93,7 @@ def main() -> None:
     try:
         lock_file.acquire()
         fw_device_manager = FirmwareDeviceManager([device_id])
+        fw_device_manager.scan_for_connected_devices()
 
         if args.notification_id:
             fw_device_manager.notification_manager.set_notification_id(device_id, args.notification_id)

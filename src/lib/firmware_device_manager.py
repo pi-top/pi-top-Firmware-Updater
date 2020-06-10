@@ -101,7 +101,8 @@ class FirmwareDeviceManager:
             fw_dev = self.__devices_status[device_id][DeviceInfoKeys.FW_DEVICE]
             fw_updater = self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER]
             if path:
-                fw_updater.verify_and_stage_file(path)
+                fw_file = FirmwareObject.from_file(path)
+                fw_updater.stage_file(fw_file)
             else:
                 fw_updater.search_updates()
 
