@@ -28,7 +28,7 @@ class FirmwareObject(object):
                  firmware_version: StrictVersion,
                  schematic_version: int,
                  is_release: bool,
-                 timestamp=None: int
+                 timestamp: int = None
                  ):
         self.path = path
         self.error = error
@@ -300,7 +300,7 @@ class FirmwareUpdater(object):
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
-        self.device_info = FirmwareObject(self.device)
+        self.device_info = FirmwareObject.from_device(self.device)
         self._packet = PacketManager()
         self.__processed_firmware_files = list()
 
@@ -376,7 +376,7 @@ class FirmwareUpdater(object):
 
     def __candidate_fw_version_is_newer_than_current(self, fw_file: FirmwareObject):
         PTLogger.debug("Checking if candidate firmware version is newer than device")
-        return FirmwareObject.is_newer(fw_file, FirmwareObject(self.device))
+        return FirmwareObject.is_newer(fw_file, self.device_info)
 
     def __firmware_file_is_valid(self, fw_file: FirmwareObject):
         verified = fw_file.verify(self.device_info.device_name, self.device_info.schematic_version)
@@ -409,7 +409,7 @@ class FirmwareUpdater(object):
                 has_processed_new_fw_file = True
                 self.__processed_firmware_files.append(entry.path)
 
-                fw_file = FirmwareObject(path_to_file=entry.path)
+                fw_file = FirmwareObject.from_file(entry.path)
                 if fw_file.verify(self.device_info.device_name, self.device_info.schematic_version):
                     if candidate_latest_fw_file is None or \
                             FirmwareObject.is_newer(fw_file, candidate_latest_fw_file):
