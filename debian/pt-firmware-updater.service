@@ -7,4 +7,4 @@ Restart=on-failure
 ExecStart=/usr/bin/python3 -B /usr/bin/pt-firmware-checker --loop-time 3
 
 [Install]
-WantedBy=local-fs.target
+WantedBy=graphical.target

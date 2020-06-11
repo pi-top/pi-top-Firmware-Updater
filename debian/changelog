@@ -1,3 +1,9 @@
+pt-firmware-updater (2.10.0-1) buster; urgency=medium
+
+  * Use graphical target, not local-fs
+
+ -- Mike Roberts <mike@pi-top.com>  Thu, 11 Jun 2020 10:54:05 +0100
+
 pt-firmware-updater (2.9.0-1) buster; urgency=medium
 
   * Start and enable service by default
