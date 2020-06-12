@@ -6,6 +6,8 @@ from argparse import ArgumentParser
 from sys import exit
 from sys import path
 from time import sleep
+from subprocess import getoutput
+from pathlib import Path
 
 from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids
@@ -40,6 +42,12 @@ parser.add_argument(
     help="Forces firmware update check and applies to all devices.",
     action="store_true"
 )
+parser.add_argument(
+    "-t", "--wait-timeout",
+    help="Maximum amount of time (in seconds) to wait for OS updater to report that pt-firmware-images is up-to-date.",
+    default=300,
+    choices=range(0, 999)
+)
 
 
 def is_root() -> bool:
@@ -68,6 +76,24 @@ def main() -> None:
     if args.force:
         fw_device_manager.force_update_if_available()
         exit(0)
+
+    os_updater_is_active = (getoutput("systemctl is-active pt-os-updater") == "active")
+    os_updater_is_enabled = (getoutput("systemctl is-enabled pt-os-updater") == "enabled")
+    wait_for_os_updater = os_updater_is_active or os_updater_is_enabled
+    PTLogger.info("OS updater is active? {}".format(os_updater_is_active))
+    PTLogger.info("OS updater is enabled? {}".format(os_updater_is_enabled))
+    PTLogger.info("Wait for OS updater to report pt-firmware-images as up-to-date? {}".format(wait_for_os_updater))
+
+    if wait_for_os_updater:
+        breadcrumb = Path("/tmp/pt-os-updater.pt-fw-updater")
+        wait_time = 1
+        while wait_time <= args.wait_timeout:
+            PTLogger.debug("Waiting for OS updater to report pt-firmware-images as up-to-date. Wait time: {}/{}".format(wait_time, args.wait_timeout))
+            if breadcrumb.is_file():
+                break
+            else:
+                wait_time += 1
+                sleep(1)
 
     fw_device_manager.start_file_supervisor()
     lock_file = PTLock('pt-firmware-updater')
