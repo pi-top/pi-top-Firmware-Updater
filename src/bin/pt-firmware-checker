@@ -45,13 +45,17 @@ parser.add_argument(
 parser.add_argument(
     "-t", "--wait-timeout",
     type=int,
-    help="Maximum amount of time (in seconds) to wait for OS updater to report that pt-firmware-images is up-to-date.",
+    help="Amount of time (in seconds) to wait for OS updater to report that firmware updates can start, excluding an OS upgrade.",
     default=300,
     choices=range(0, 999)
 )
-
-
-max_wait_time = 3600  # 1h
+parser.add_argument(
+    "-m", "--max-wait-timeout",
+    type=int,
+    help="Maximum amount of time (in seconds) to wait for OS updater to report that firmware updates can start, including an OS upgrade.",
+    default=3600,
+    choices=range(0, 9999)
+)
 
 
 def is_root() -> bool:
@@ -95,14 +99,14 @@ def main() -> None:
         wait_time = 0
         was_ignoring_timeout = no_timeout.is_file()
 
-        while wait_time <= max_wait_time:
+        while wait_time <= args.max_wait_timeout:
             ignoring_timeout = no_timeout.is_file()
 
             if ignoring_timeout:
                 if not was_ignoring_timeout:
                     PTLogger.info("Ignoring default timeout")
-                if wait_time <= max_wait_time:
-                    PTLogger.debug("Wait time: {}s/{}s".format(wait_time, max_wait_time))
+                if wait_time <= args.max_wait_timeout:
+                    PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.max_wait_timeout))
                     if breadcrumb.is_file():
                         break
 
