@@ -90,16 +90,9 @@ def main() -> None:
 
     if wait_for_os_updater:
         PTLogger.info("Waiting {} seconds.".format(args.wait_timeout))
-        found_breadcrumb = False
         breadcrumb = Path("/tmp/pt-firmware-updater.ready")
         wait_time = 0
         was_ignoring_timeout = Path("/tmp/pt-firmware-updater.no-timeout").is_file()
-
-        def breadcrumb_found():
-            found_breadcrumb = breadcrumb.is_file()
-            if found_breadcrumb:
-                PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
-                PTLogger.info("Reason: %s" % breadcrumb.read_text())
 
         while wait_time <= max_wait_time:
             ignoring_timeout = Path("/tmp/pt-firmware-updater.no-timeout").is_file()
@@ -109,19 +102,26 @@ def main() -> None:
                     PTLogger.info("Ignoring default timeout")
                 if wait_time <= max_wait_time:
                     PTLogger.debug("Wait time: {}s/{}s".format(wait_time, max_wait_time))
-                    if breadcrumb_found():
+                    if breadcrumb.is_file():
                         break
 
             elif wait_time <= args.wait_timeout:
                 PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
-                if breadcrumb_found():
+                if breadcrumb.is_file():
                     break
+
+            else:
+                PTLogger.debug("Wait time expired, and not ignoring default")
+                break
 
             was_ignoring_timeout = ignoring_timeout
             wait_time += 1
             sleep(1)
 
-        if not found_breadcrumb:
+        if breadcrumb.is_file():
+            PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
+            PTLogger.info("Reason: %s" % breadcrumb.read_text())
+        else:
             PTLogger.info("OS updater did not report pt-firmware-images as up-to-date - timed out.")
 
     fw_device_manager.start_file_supervisor()
