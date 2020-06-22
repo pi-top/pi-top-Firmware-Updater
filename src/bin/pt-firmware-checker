@@ -87,13 +87,14 @@ def main() -> None:
     if wait_for_os_updater:
         PTLogger.info("Waiting {} seconds.".format(args.wait_timeout))
         found_breadcrumb = False
-        breadcrumb = Path("/tmp/pt-os-updater.pt-fw-updater")
+        breadcrumb = Path("/tmp/pt-firmware-updater.ready")
         wait_time = 0
         while wait_time <= args.wait_timeout:
             PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
             found_breadcrumb = breadcrumb.is_file()
             if found_breadcrumb:
-                PTLogger.info("OS updater has reported pt-firmware-images as up-to-date. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
+                PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
+                PTLogger.info("Reason: %s" % breadcrumb.read_text())
                 break
             else:
                 wait_time += 1
