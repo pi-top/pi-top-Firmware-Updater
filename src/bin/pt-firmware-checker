@@ -44,10 +44,14 @@ parser.add_argument(
 )
 parser.add_argument(
     "-t", "--wait-timeout",
+    type=int,
     help="Maximum amount of time (in seconds) to wait for OS updater to report that pt-firmware-images is up-to-date.",
     default=300,
     choices=range(0, 999)
 )
+
+
+max_wait_time = 3600  # 1h
 
 
 def is_root() -> bool:
@@ -82,23 +86,40 @@ def main() -> None:
     wait_for_os_updater = os_updater_is_active or os_updater_is_enabled
     PTLogger.info("OS updater is active? {}".format(os_updater_is_active))
     PTLogger.info("OS updater is enabled? {}".format(os_updater_is_enabled))
-    PTLogger.info("Wait for OS updater to report pt-firmware-images as up-to-date? {}".format(wait_for_os_updater))
+    PTLogger.info("Wait for OS updater to report that it is ready to start a firmware update? {}".format(wait_for_os_updater))
 
     if wait_for_os_updater:
         PTLogger.info("Waiting {} seconds.".format(args.wait_timeout))
         found_breadcrumb = False
         breadcrumb = Path("/tmp/pt-firmware-updater.ready")
         wait_time = 0
-        while wait_time <= args.wait_timeout:
-            PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
+        was_ignoring_timeout = Path("/tmp/pt-firmware-updater.no-timeout").is_file()
+
+        def breadcrumb_found():
             found_breadcrumb = breadcrumb.is_file()
             if found_breadcrumb:
                 PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
                 PTLogger.info("Reason: %s" % breadcrumb.read_text())
-                break
-            else:
-                wait_time += 1
-                sleep(1)
+
+        while wait_time <= max_wait_time:
+            ignoring_timeout = Path("/tmp/pt-firmware-updater.no-timeout").is_file()
+
+            if ignoring_timeout:
+                if not was_ignoring_timeout:
+                    PTLogger.info("Ignoring default timeout")
+                if wait_time <= max_wait_time:
+                    PTLogger.debug("Wait time: {}s/{}s".format(wait_time, max_wait_time))
+                    if breadcrumb_found():
+                        break
+
+            elif wait_time <= args.wait_timeout:
+                PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
+                if breadcrumb_found():
+                    break
+
+            was_ignoring_timeout = ignoring_timeout
+            wait_time += 1
+            sleep(1)
 
         if not found_breadcrumb:
             PTLogger.info("OS updater did not report pt-firmware-images as up-to-date - timed out.")
