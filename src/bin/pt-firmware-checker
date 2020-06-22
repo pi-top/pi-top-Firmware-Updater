@@ -91,11 +91,12 @@ def main() -> None:
     if wait_for_os_updater:
         PTLogger.info("Waiting {} seconds.".format(args.wait_timeout))
         breadcrumb = Path("/tmp/pt-firmware-updater.ready")
+        no_timeout = Path("/tmp/pt-firmware-updater.no-timeout")
         wait_time = 0
-        was_ignoring_timeout = Path("/tmp/pt-firmware-updater.no-timeout").is_file()
+        was_ignoring_timeout = no_timeout.is_file()
 
         while wait_time <= max_wait_time:
-            ignoring_timeout = Path("/tmp/pt-firmware-updater.no-timeout").is_file()
+            ignoring_timeout = no_timeout.is_file()
 
             if ignoring_timeout:
                 if not was_ignoring_timeout:
