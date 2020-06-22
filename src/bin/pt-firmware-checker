@@ -1,13 +1,11 @@
 #!/usr/bin/python3
 
 from os import geteuid
-from os.path import exists
 from argparse import ArgumentParser
-from sys import exit
-from sys import path
-from time import sleep
-from subprocess import getoutput
 from pathlib import Path
+from subprocess import getoutput
+from sys import exit, path
+from time import sleep
 
 from ptcommon.common_ids import DeviceID
 from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids
@@ -125,7 +123,7 @@ def main() -> None:
 
         if breadcrumb.is_file():
             PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
-            PTLogger.info("Reason: %s" % breadcrumb.read_text())
+            PTLogger.info("Reason: {}" % breadcrumb.read_text())
         else:
             PTLogger.info("OS updater did not report pt-firmware-images as up-to-date - timed out.")
 
