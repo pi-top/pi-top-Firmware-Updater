@@ -88,10 +88,10 @@ def wait_for_os_updater_if_required() -> None:
         if wait_time <= args.wait_timeout or is_using_extended_timeout:
             PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.max_wait_timeout))
             if ready_breadcrumb.is_file():
-                PTLogger.debug("Found 'ready' breadcrumb")
+                PTLogger.info("Found 'ready' breadcrumb")
                 break
         else:
-            PTLogger.debug("Wait time expired, and have not been told to extend timeout")
+            PTLogger.info("Wait time expired, and have not been told to extend timeout")
             break
 
         was_using_extended_timeout = is_using_extended_timeout
@@ -102,7 +102,7 @@ def wait_for_os_updater_if_required() -> None:
         PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
         PTLogger.info("Reason: {}" % ready_breadcrumb.read_text())
     else:
-        PTLogger.info("OS updater did not report pt-firmware-images as up-to-date - timed out.")
+        PTLogger.info("OS updater did not report that it is ready for pi-top firmware checks - timed out.")
 
 
 def main() -> None:
