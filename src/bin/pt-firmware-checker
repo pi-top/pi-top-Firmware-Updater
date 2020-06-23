@@ -60,6 +60,51 @@ def is_root() -> bool:
     return geteuid() == 0
 
 
+def wait_for_os_updater_if_required() -> None:
+    os_updater_is_active = (getoutput("systemctl is-active pt-os-updater") == "active")
+    os_updater_is_enabled = (getoutput("systemctl is-enabled pt-os-updater") == "enabled")
+    wait_for_os_updater = os_updater_is_active or os_updater_is_enabled
+    PTLogger.info("OS updater is active? {}".format(os_updater_is_active))
+    PTLogger.info("OS updater is enabled? {}".format(os_updater_is_enabled))
+    PTLogger.info("Wait for OS updater to report that it is ready to start a firmware update? {}".format(wait_for_os_updater))
+
+    if not wait_for_os_updater:
+        PTLogger.info("Nothing to wait for - continuing...")
+        return
+
+    PTLogger.info("Waiting {} seconds.".format(args.wait_timeout))
+    ready_breadcrumb = Path("/tmp/pt-firmware-updater.ready")
+    extend_timeout_breadcrumb = Path("/tmp/pt-firmware-updater.extend-timeout")
+    wait_time = 0
+    was_using_extended_timeout = extend_timeout_breadcrumb.is_file()
+
+    # Wait no longer than max wait time
+    while wait_time <= args.max_wait_timeout:
+        is_using_extended_timeout = extend_timeout_breadcrumb.is_file()
+
+        if is_using_extended_timeout and not was_using_extended_timeout:
+            PTLogger.info("Extending timeout - using 'max-wait-timeout', not 'wait-timeout'")
+
+        if wait_time <= args.wait_timeout or is_using_extended_timeout:
+            PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.max_wait_timeout))
+            if ready_breadcrumb.is_file():
+                PTLogger.debug("Found 'ready' breadcrumb")
+                break
+        else:
+            PTLogger.debug("Wait time expired, and have not been told to extend timeout")
+            break
+
+        was_using_extended_timeout = is_using_extended_timeout
+        wait_time += 1
+        sleep(1)
+
+    if ready_breadcrumb.is_file():
+        PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
+        PTLogger.info("Reason: {}" % ready_breadcrumb.read_text())
+    else:
+        PTLogger.info("OS updater did not report pt-firmware-images as up-to-date - timed out.")
+
+
 def main() -> None:
     args = parser.parse_args()
     PTLogger.setup_logging(
@@ -83,49 +128,7 @@ def main() -> None:
         fw_device_manager.force_update_if_available()
         exit(0)
 
-    os_updater_is_active = (getoutput("systemctl is-active pt-os-updater") == "active")
-    os_updater_is_enabled = (getoutput("systemctl is-enabled pt-os-updater") == "enabled")
-    wait_for_os_updater = os_updater_is_active or os_updater_is_enabled
-    PTLogger.info("OS updater is active? {}".format(os_updater_is_active))
-    PTLogger.info("OS updater is enabled? {}".format(os_updater_is_enabled))
-    PTLogger.info("Wait for OS updater to report that it is ready to start a firmware update? {}".format(wait_for_os_updater))
-
-    if wait_for_os_updater:
-        PTLogger.info("Waiting {} seconds.".format(args.wait_timeout))
-        breadcrumb = Path("/tmp/pt-firmware-updater.ready")
-        no_timeout = Path("/tmp/pt-firmware-updater.no-timeout")
-        wait_time = 0
-        was_ignoring_timeout = no_timeout.is_file()
-
-        while wait_time <= args.max_wait_timeout:
-            ignoring_timeout = no_timeout.is_file()
-
-            if ignoring_timeout:
-                if not was_ignoring_timeout:
-                    PTLogger.info("Ignoring default timeout")
-                if wait_time <= args.max_wait_timeout:
-                    PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.max_wait_timeout))
-                    if breadcrumb.is_file():
-                        break
-
-            elif wait_time <= args.wait_timeout:
-                PTLogger.debug("Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
-                if breadcrumb.is_file():
-                    break
-
-            else:
-                PTLogger.debug("Wait time expired, and not ignoring default")
-                break
-
-            was_ignoring_timeout = ignoring_timeout
-            wait_time += 1
-            sleep(1)
-
-        if breadcrumb.is_file():
-            PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, args.wait_timeout))
-            PTLogger.info("Reason: {}" % breadcrumb.read_text())
-        else:
-            PTLogger.info("OS updater did not report pt-firmware-images as up-to-date - timed out.")
+    wait_for_os_updater_if_required()
 
     fw_device_manager.start_file_supervisor()
     lock_file = PTLock('pt-firmware-updater')
