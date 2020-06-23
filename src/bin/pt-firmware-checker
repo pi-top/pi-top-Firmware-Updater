@@ -43,14 +43,14 @@ parser.add_argument(
 parser.add_argument(
     "-t", "--wait-timeout",
     type=int,
-    help="Amount of time (in seconds) to wait for OS updater to report that firmware updates can start, excluding an OS upgrade.",
+    help="Amount of time (in seconds) to wait for OS updater to report that firmware updates can start, excluding an OS (system packages) upgrade.",
     default=300,
     choices=range(0, 999)
 )
 parser.add_argument(
     "-m", "--max-wait-timeout",
     type=int,
-    help="Maximum amount of time (in seconds) to wait for OS updater to report that firmware updates can start, including an OS upgrade.",
+    help="Maximum amount of time (in seconds) to wait for OS updater to report that firmware updates can start, including an OS (system packages) upgrade.",
     default=3600,
     choices=range(0, 9999)
 )
