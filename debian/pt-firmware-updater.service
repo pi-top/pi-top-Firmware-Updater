@@ -4,7 +4,7 @@ Description=pi-top device firmware updater daemon
 [Service]
 Type=simple
 Restart=on-failure
-ExecStart=/usr/bin/python3 -B /usr/bin/pt-firmware-checker --loop-time 3
+ExecStart=/usr/bin/python3 -B /usr/bin/pt-firmware-checker --loop-time 3 --wait-timeout 300 --max-wait-timeout 3600
 
 [Install]
 WantedBy=graphical.target
