@@ -1,3 +1,9 @@
+pt-firmware-updater (2.11.0-1) buster; urgency=medium
+
+  * Wait for OS updater to report that firmware updates can start
+
+ -- Mike Roberts <mike@pi-top.com>  Tue, 23 Jun 2020 15:03:38 +0100
+
 pt-firmware-updater (2.10.0-1) buster; urgency=medium
 
   * Use graphical target, not local-fs
