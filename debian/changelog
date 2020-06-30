@@ -1,3 +1,9 @@
+pt-firmware-updater (2.11.1-1) buster; urgency=medium
+
+  * "Upgrade" --> "Update"
+
+ -- Mike Roberts <mike@pi-top.com>  Tue, 30 Jun 2020 11:02:35 +0100
+
 pt-firmware-updater (2.11.0-1) buster; urgency=medium
 
   * Wait for OS updater to report that firmware updates can start
@@ -126,7 +132,7 @@ pt-firmware-updater (2.0.0-1) buster; urgency=medium
   * Overhaul structure to be purely Python
   * No hard-coded address or hub firmware file
   * Allow dynamic upgrading of firmware files from directory
-  * Implement and enable firmware upgrade verification
+  * Implement and enable firmware update verification
 
  -- Mike Roberts <mike@pi-top.com>  Fri, 08 Nov 2019 14:09:22 +0800
 

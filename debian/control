@@ -20,6 +20,6 @@ Description: pi-top Firmware Updater
  This package provides a background service that
  checks the firmware version of attached pi-top devices
  with upgradable firmware, and will either automatically
- upgrade or ask the user to upgrade. Firmware is programmed
+ update or ask the user to update. Firmware is programmed
  via I2C, and images are provided by pt-firmware-images
  package.

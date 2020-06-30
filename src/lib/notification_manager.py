@@ -55,7 +55,7 @@ class NotificationManager(object):
             "actions": [
                 {
                     "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
-                    "text": "Upgrade Now",
+                    "text": "Update Now",
                     "command": ActionEnum.UPDATE_FW
                 },
             ]
