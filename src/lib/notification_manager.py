@@ -23,7 +23,7 @@ class ActionEnum(Enum):
 class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
-    __SHUTDOWN_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
+    __HUB_REBOOT_CMD = "touch /tmp/pt-poweroff.reboot && env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
     __FW_UPDATE_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
 
     MESSAGE_DATA = {
@@ -119,7 +119,7 @@ class NotificationManager(object):
 
             action_enum = action['command']
             if action_enum == ActionEnum.HUB_REBOOT:
-                command = self.__SHUTDOWN_CMD
+                command = self.__HUB_REBOOT_CMD
             elif action_enum == ActionEnum.REBOOT:
                 command = self.__REBOOT_CMD
             elif action_enum == ActionEnum.UPDATE_FW:
