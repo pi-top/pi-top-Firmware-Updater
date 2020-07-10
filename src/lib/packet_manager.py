@@ -62,7 +62,7 @@ class PacketManager(object):
     @staticmethod
     def _check_first_byte_of_received_packet(hex_of_packet):
         if "8a" not in hex_of_packet[:2]:
-            raise ValueError("first byte not found in received packet")
+            raise ValueError("First byte (8A) not found in received packet: {}".format(hex_of_packet))
 
     @staticmethod
     def _validate_and_return_crc_of_received_packet(hex_of_packet):

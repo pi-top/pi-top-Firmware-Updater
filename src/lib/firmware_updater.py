@@ -245,46 +245,55 @@ class FirmwareObject(object):
         return True
 
     @staticmethod
-    def is_newer(reference: FirmwareDevice, candidate: FirmwareDevice):
+    def is_newer(reference: FirmwareDevice, candidate: FirmwareDevice, quiet: bool = False):
         if reference.error or candidate.error:
             return None
 
-        PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(
-            reference.device_name, reference.firmware_version, candidate.firmware_version)
-        )
-
-        if candidate.firmware_version > reference.firmware_version:
-            PTLogger.info(
-                "{} - Candidate firmware version is newer.".format(reference.device_name))
-            return True
-        elif candidate.firmware_version < reference.firmware_version:
-            PTLogger.info(
-                "{} - Candidate firmware version is not newer. Skipping...".format(reference.device_name))
-            return False
-        else:
-            PTLogger.info(
-                (
-                    "{} - Candidate firmware version matches current firmware version. "
-                    "Checking build metadata to determine if candidate is a newer build."
-                ).format(reference.device_name)
+        if not quiet:
+            PTLogger.info("{} - Firmware Versions: Current = {}, Candidate = {}".format(
+                reference.device_name, reference.firmware_version, candidate.firmware_version)
             )
 
+        if candidate.firmware_version > reference.firmware_version:
+            if not quiet:
+                PTLogger.info(
+                    "{} - Candidate firmware version is newer.".format(reference.device_name))
+            return True
+        elif candidate.firmware_version < reference.firmware_version:
+            if not quiet:
+                PTLogger.info(
+                    "{} - Candidate firmware version is not newer. Skipping...".format(reference.device_name))
+            return False
+        else:
+            if not quiet:
+                PTLogger.info(
+                    (
+                        "{} - Candidate firmware version matches current firmware version. "
+                        "Checking build metadata to determine if candidate is a newer build."
+                    ).format(reference.device_name)
+                )
+
             if reference.is_release is not None:
-                PTLogger.info("{} - Reference firmware has 'is release build' property".format(reference.device_name))
+                if not quiet:
+                    PTLogger.info("{} - Reference firmware has 'is release build' property".format(reference.device_name))
                 # Assume all candidates have this
                 if candidate.is_release and not reference.is_release:
-                    PTLogger.info(
-                        "{} - Candidate firmware version is release build, and current is not.".format(reference.device_name))
+                    if not quiet:
+                        PTLogger.info(
+                            "{} - Candidate firmware version is release build, and current is not.".format(reference.device_name))
                     return True
             if reference.timestamp is not None and candidate.timestamp is not None:
-                PTLogger.info("{} - Both reference and candidate firmware has 'timestamp' property".format(reference.device_name))
+                if not quiet:
+                    PTLogger.info("{} - Both reference and candidate firmware has 'timestamp' property".format(reference.device_name))
                 if candidate.timestamp > reference.timestamp:
-                    PTLogger.info(
-                        "{} - Candidate firmware is newer build.".format(reference.device_name))
+                    if not quiet:
+                        PTLogger.info(
+                            "{} - Candidate firmware is newer build.".format(reference.device_name))
                     return True
 
-        PTLogger.info(
-            "{} - Candidate firmware is not newer. Skipping...".format(reference.device_name))
+        if not quiet:
+            PTLogger.info(
+                "{} - Candidate firmware is not newer. Skipping...".format(reference.device_name))
         return False
 
 
@@ -328,7 +337,7 @@ class FirmwareUpdater(object):
     def install_updates(self) -> bool:
         self.__send_staged_firmware_to_device()
 
-        time_wait_mcu = 0.1
+        time_wait_mcu = 2
 
         PTLogger.debug(
             "{} - Sleeping for {} secs before verifying update".format(self.device_info.device_name, time_wait_mcu))
@@ -408,8 +417,11 @@ class FirmwareUpdater(object):
                 fw_file = FirmwareObject.from_file(entry.path)
                 if fw_file.verify(self.device_info.device_name, self.device_info.schematic_version):
                     if candidate_latest_fw_file is None or \
-                            FirmwareObject.is_newer(fw_file, candidate_latest_fw_file):
+                            FirmwareObject.is_newer(candidate_latest_fw_file, fw_file, quiet=True):
                         candidate_latest_fw_file = fw_file
+                        PTLogger.debug("{} - Current latest firmware available is version {}".format(
+                            self.device_info.device_name, candidate_latest_fw_file.firmware_version)
+                        )
 
         if candidate_latest_fw_file is None:
             if has_processed_new_fw_file:
@@ -417,7 +429,7 @@ class FirmwareUpdater(object):
                     self.device_info.device_name, fw_path)
                 )
         else:
-            PTLogger.debug("{} - Latest firmware available is version {}".format(
+            PTLogger.info("{} - Latest firmware available is version {}".format(
                 self.device_info.device_name, candidate_latest_fw_file.firmware_version)
             )
 
