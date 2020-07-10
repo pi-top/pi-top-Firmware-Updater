@@ -343,17 +343,6 @@ class FirmwareUpdater(object):
             "{} - Sleeping for {} secs before verifying update".format(self.device_info.device_name, time_wait_mcu))
         sleep(time_wait_mcu)  # Wait for MCU before verifying
 
-        ##########################################################################
-        # TODO: check loaded version on non-hub devices to see if it was applied
-        #
-        # firmware_version = FirmwareObject.from_file(self.fw_file_location).firmware_version
-        #
-        # Foundation v6.2
-        # Expansion v21.3
-        # Touchscreen v1.1
-        # read versions to check whether the upgrade is successful
-        # Don’t need to reboot the pi-top[4] or disconnect the plates.
-        ##########################################################################
         if self.fw_downloaded_successfully():
             PTLogger.info("{} - Successfully applied update.".format(self.device_info.device_name))
             return True
