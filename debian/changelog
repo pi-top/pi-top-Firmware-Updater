@@ -2,7 +2,7 @@ pt-firmware-updater (2.12.2-1) buster; urgency=medium
 
   * Disable pt-firmware-checker (temporarily)
 
- -- Mike Roberts <mike@pi-top.com>  Fri, 10 Jul 2020 16:26:21 +0100
+ -- Mike Roberts <mike@pi-top.com>  Mon, 13 Jul 2020 12:03:10 +0100
 
 pt-firmware-updater (2.12.1-1) buster; urgency=medium
 
