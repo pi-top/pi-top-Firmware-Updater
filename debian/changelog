@@ -1,3 +1,9 @@
+pt-firmware-updater (2.12.3-1) buster; urgency=medium
+
+  * Add dpkg trigger
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 05 Aug 2020 17:26:04 +0100
+
 pt-firmware-updater (2.12.2-1) buster; urgency=medium
 
   * Disable pt-firmware-checker (temporarily)
