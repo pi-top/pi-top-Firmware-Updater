@@ -1,3 +1,10 @@
+pt-firmware-updater (2.13.0-1) buster; urgency=medium
+
+  * Re-enable pt-firmware-checker
+  * Add support for auto-restarting firmware devices
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 23 Sep 2020 11:01:37 +0100
+
 pt-firmware-updater (2.12.3-1) buster; urgency=medium
 
   * Add dpkg trigger

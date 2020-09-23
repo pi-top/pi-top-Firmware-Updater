@@ -305,9 +305,12 @@ class FirmwareUpdater(object):
 
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
-        self.device_info = FirmwareObject.from_device(self.device)
         self._packet = PacketManager()
         self.__processed_firmware_files = list()
+        self.set_current_device_info()
+
+    def set_current_device_info(self):
+        self.device_info = FirmwareObject.from_device(self.device)
 
     def has_staged_updates(self) -> bool:
         return os.path.isfile(self.fw_file_location) and \
@@ -335,19 +338,37 @@ class FirmwareUpdater(object):
         PTLogger.info("{} - Firmware update found: {}".format(self.device_info.device_name, fw_file.path))
 
     def install_updates(self) -> bool:
+        fw_version_before_install = self.device_info.firmware_version
+
         self.__send_staged_firmware_to_device()
+
+        success = self.fw_downloaded_successfully()
+        if success:
+            PTLogger.info("{} - Successfully applied update.".format(self.device_info.device_name))
+
+        if self.device_info.device_name != "pt4_hub" \
+                or self.device.get_fw_version_update_schema() == 0:
+            requires_restart = True
+            return success, requires_restart
+
+        self.device.reset()
 
         time_wait_mcu = 2
 
         PTLogger.debug(
             "{} - Sleeping for {} secs before verifying update".format(self.device_info.device_name, time_wait_mcu))
-        sleep(time_wait_mcu)  # Wait for MCU before verifying
+        sleep(time_wait_mcu)
 
-        if self.fw_downloaded_successfully():
-            PTLogger.info("{} - Successfully applied update.".format(self.device_info.device_name))
-            return True
-        PTLogger.error("{} - Failed to update.".format(self.device_info.device_name))
-        return False
+        self.set_current_device_info()
+        success = self.device_info.firmware_version > fw_version_before_install
+
+        if success:
+            PTLogger.info("{} - Successfully restarted after update.".format(self.device_info.device_name))
+        else:
+            PTLogger.error("{} - Failed to update.".format(self.device_info.device_name))
+
+        requires_restart = False
+        return success, requires_restart
 
     def __send_staged_firmware_to_device(self) -> None:
         if not self.has_staged_updates():

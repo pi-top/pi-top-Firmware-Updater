@@ -133,22 +133,23 @@ class FirmwareDeviceManager:
         return has_updates
 
     def update(self, device_id: FirmwareDeviceID) -> bool:
-        success = False
-
         if not self.is_connected(device_id):
             PTLogger.warning("{} is not connected".format(device_id))
-            return success
+            return False
+
         if not self.__devices_status[device_id][DeviceInfoKeys.UPDATE_AVAILABLE]:
             PTLogger.warning("{} - There's no update available".format(device_id))
-            return success
+            return False
 
+        success = False
+        requires_restart = False
         try:
             self.notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
             fw_updater = self.__devices_status[device_id][DeviceInfoKeys.FW_UPDATER]
             PTLogger.info("{} - Updating firmware".format(device_id))
 
-            if fw_updater.install_updates():
-                success = True
+            success, requires_restart = fw_updater.install_updates()
+            if success:
                 PTLogger.info("{} - Updated firmware successfully to device".format(device_id))
             self.set_notification_status(device_id, True)
         except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
@@ -158,9 +159,13 @@ class FirmwareDeviceManager:
             PTLogger.error(
                 '{} - Generic exception while trying to update: {}'.format(device_id.name, e))
         finally:
-            self.notification_manager.notify_user(
-                UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE,
-                device_id)
+            if success:
+                status = UpdateStatusEnum.SUCCESS_REQUIRES_RESTART \
+                    if requires_restart else UpdateStatusEnum.SUCCESS
+            else:
+                status = UpdateStatusEnum.FAILURE
+
+            self.notification_manager.notify_user(status, device_id)
 
         return success
 

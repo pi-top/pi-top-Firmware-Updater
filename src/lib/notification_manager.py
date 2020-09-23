@@ -11,6 +11,7 @@ class UpdateStatusEnum(Enum):
     PROMPT = auto()
     ONGOING = auto()
     SUCCESS = auto()
+    SUCCESS_REQUIRES_RESTART = auto()
     FAILURE = auto()
 
 
@@ -30,6 +31,11 @@ class NotificationManager(object):
         UpdateStatusEnum.SUCCESS: {
             "icon": "vcs-normal",
             "timeout": 0,
+            "actions": []
+        },
+        UpdateStatusEnum.SUCCESS_REQUIRES_RESTART: {
+            "icon": "vcs-normal",
+            "timeout": 0,
             "actions": [
                 {
                     "devices": [FirmwareDeviceID.pt4_hub],
@@ -43,7 +49,7 @@ class NotificationManager(object):
             "timeout": 0,
             "actions": [
                 {
-                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
+                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_touchscreen],
                     "text": "Reboot Now",
                     "command": ActionEnum.REBOOT
                 }
@@ -54,7 +60,7 @@ class NotificationManager(object):
             "timeout": 0,
             "actions": [
                 {
-                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
+                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_touchscreen],
                     "text": "Update Now",
                     "command": ActionEnum.UPDATE_FW
                 },
@@ -83,7 +89,7 @@ class NotificationManager(object):
             timeout=self.MESSAGE_DATA[update_enum]["timeout"],
             actions_manager=self.__get_action_manager(update_enum, device_id, path_to_fw),
             notification_id=self.get_notification_id(device_id),
-            capture_notification_id=update_enum not in (UpdateStatusEnum.FAILURE, UpdateStatusEnum.SUCCESS)
+            capture_notification_id=update_enum not in (UpdateStatusEnum.FAILURE, UpdateStatusEnum.SUCCESS, UpdateStatusEnum.SUCCESS_REQUIRES_RESTART)
         )
 
         if notification_id:
@@ -94,9 +100,11 @@ class NotificationManager(object):
 
         if update_enum is UpdateStatusEnum.SUCCESS:
             if device_id == FirmwareDeviceID.pt4_hub:
-                return "Reboot your {} to apply changes".format(device_friendly_name)
+                return "Reboot your {} to apply changes.".format(device_friendly_name)
             elif device_id in (FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_foundation_plate):
-                return "Disconnect and reconnect your\n{} to apply changes".format(device_friendly_name)
+                return "Your {} has been updated and is ready to use.".format(device_friendly_name)
+        elif update_enum is UpdateStatusEnum.SUCCESS_REQUIRES_RESTART:
+            passreturn "Disconnect and reconnect your\n{} to apply changes.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.PROMPT:
             return "There's a firmware update available\nfor your {}.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.FAILURE:
