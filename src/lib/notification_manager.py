@@ -99,12 +99,12 @@ class NotificationManager(object):
         device_friendly_name = FirmwareDeviceName[device_id.name].value
 
         if update_enum is UpdateStatusEnum.SUCCESS:
+            return "Your {} has been updated and is ready to use.".format(device_friendly_name)
+        elif update_enum is UpdateStatusEnum.SUCCESS_REQUIRES_RESTART:
             if device_id == FirmwareDeviceID.pt4_hub:
                 return "Reboot your {} to apply changes.".format(device_friendly_name)
-            elif device_id in (FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_foundation_plate):
-                return "Your {} has been updated and is ready to use.".format(device_friendly_name)
-        elif update_enum is UpdateStatusEnum.SUCCESS_REQUIRES_RESTART:
-            passreturn "Disconnect and reconnect your\n{} to apply changes.".format(device_friendly_name)
+            else:
+                return "Disconnect and reconnect your\n{} to apply changes.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.PROMPT:
             return "There's a firmware update available\nfor your {}.".format(device_friendly_name)
         elif update_enum is UpdateStatusEnum.FAILURE:
