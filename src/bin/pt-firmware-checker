@@ -159,8 +159,5 @@ def main() -> None:
         sleep(args.loop_time)
 
 
-#################################
-# TODO: re-enable after testing #
-#################################
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
