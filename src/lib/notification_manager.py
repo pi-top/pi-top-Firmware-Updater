@@ -49,7 +49,7 @@ class NotificationManager(object):
             "timeout": 0,
             "actions": [
                 {
-                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_touchscreen],
+                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
                     "text": "Reboot Now",
                     "command": ActionEnum.REBOOT
                 }
@@ -60,7 +60,7 @@ class NotificationManager(object):
             "timeout": 0,
             "actions": [
                 {
-                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate, FirmwareDeviceID.pt4_touchscreen],
+                    "devices": [FirmwareDeviceID.pt4_hub, FirmwareDeviceID.pt4_foundation_plate, FirmwareDeviceID.pt4_expansion_plate],
                     "text": "Update Now",
                     "command": ActionEnum.UPDATE_FW
                 },
