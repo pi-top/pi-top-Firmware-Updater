@@ -1,19 +1,26 @@
 #!/usr/bin/python3
 
-from os import geteuid
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 from subprocess import getoutput
 from sys import exit, path
 from time import sleep
+from typing import List
 
+from ptcommon.command_runner import run_command
 from ptcommon.common_ids import DeviceID
-from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids
+from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.lock import PTLock
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
-from ptcommon.lock import PTLock
+
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_device_manager import FirmwareDeviceManager
+from firmware_file_object import FirmwareFileObject
+
+
+devices_notified_this_session = []
+processed_firmware_files = {}
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
@@ -57,7 +64,7 @@ parser.add_argument(
 
 
 def is_root() -> bool:
-    return geteuid() == 0
+    return os.geteuid() == 0
 
 
 def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) -> None:
@@ -105,59 +112,127 @@ def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) ->
         PTLogger.info("OS updater did not report that it is ready for pi-top firmware checks - timed out.")
 
 
-def main() -> None:
-    args = parser.parse_args()
-    PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=args.log_level, log_to_journal=args.no_journal is False)
+def get_pi_top_fw_devices() -> List[dict]:
+    return FirmwareDevice.device_info
 
+
+def i2c_addr_found(device_address: int) -> bool:
+    try:
+        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True)
+        is_connected = True
+    except:
+        is_connected = False
+    return is_connected
+
+
+def already_notified_this_session(device_str: str) -> bool:
+    return device_str in devices_notified_this_session
+
+
+def already_processed_file(file_path: str, device_str: str) -> None:
+    processed_files = processed_firmware_files.get(device_str)
+    if processed_files is None:
+        processed_firmware_files[device_str] = []
+    elif file_path in processed_files:
+        return True
+    processed_firmware_files[device_str].append(file_path)
+    return False
+
+
+def default_firmware_folder(device_str: str) -> str:
+    DEFAULT_FIRMWARE_FOLDER_BASE = "/lib/firmware/pi-top/"
+    return DEFAULT_FIRMWARE_FOLDER_BASE + device_str
+
+
+def find_latest_firmware(path_to_fw_folder: str, firmware_device: FirmwareDevice) -> str:
+    if not os.path.exists(path_to_fw_folder):
+        raise FileNotFoundError("Firmware path {} doesn't exist.".format(path_to_fw_folder))
+
+    firmware_object = FirmwareFileObject.from_device(firmware_device)
+
+    candidate_latest_fw_object = None
+    with os.scandir(path_to_fw_folder) as i:
+        for entry in i:
+            if already_processed_file(entry.path, firmware_device.str_name):
+                continue
+            fw_object = FirmwareFileObject.from_file(entry.path)
+            if fw_object.verify(firmware_object.device_name, firmware_object.schematic_version):
+                if candidate_latest_fw_object is None or FirmwareFileObject.is_newer(candidate_latest_fw_object, fw_object, quiet=True):
+                    candidate_latest_fw_object = fw_object
+                    PTLogger.debug(f"Current latest firmware available is version {candidate_latest_fw_object.firmware_version}")
+
+    if candidate_latest_fw_object:
+        PTLogger.info(f"Latest firmware available is version {candidate_latest_fw_object.firmware_version}")
+    return candidate_latest_fw_object
+
+
+def is_valid_fw_object(fw_file_object: FirmwareFileObject) -> bool:
+    return not (fw_file_object is None or fw_file_object.error)
+
+
+def run_firmware_updater(device_str: str, path_to_fw_object: str) -> int:
+    FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
+    run_command(f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}", timeout=60)
+    devices_notified_this_session.append(device_str)
+
+
+def check_and_update(device_enum):
+    lock = PTLock(device_enum.name)
+    if lock.is_locked():
+        PTLogger.warning(f"Already running an operation on {device_enum.name}... skipping")
+        return
+
+    device_str = device_enum.name
+    path_to_fw_folder = default_firmware_folder(device_str)
+
+    fw_device = FirmwareDevice(device_enum)  # TODO: reuse object
+    fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
+    if is_valid_fw_object(fw_file_object):
+        lock.acquire()  # TODO: acquire in pt-firmware-updater
+        run_firmware_updater(device_str, fw_file_object.path)
+        lock.release()
+
+
+def main(parsed_args) -> None:
+    wait_for_os_updater_if_required(parsed_args.wait_timeout, parsed_args.max_wait_timeout)
+
+    pi_top_fw_devices_data = get_pi_top_fw_devices()
+    while True:
+        for device_enum, device_info in pi_top_fw_devices_data.items():
+            device_str = device_enum.name
+            device_address = device_info.get("i2c_addr")
+
+            if i2c_addr_found(device_address):
+                if already_notified_this_session(device_str):
+                    continue
+                try:
+                    check_and_update(device_enum)
+                except Exception as e:
+                    PTLogger.warning(f"{device_str} error: {e}")
+            else:
+                if device_str in processed_firmware_files:
+                    processed_firmware_files[device_str] = {}
+                if device_str in devices_notified_this_session:
+                    devices_notified_this_session.remove(device_str)
+
+        PTLogger.debug('Sleeping for {} secs before next check.'.format(parsed_args.loop_time))
+        sleep(parsed_args.loop_time)
+
+
+if __name__ == '__main__':
     if get_host_device_version() != DeviceID.pi_top_4.name:
         PTLogger.error("This program only runs on a pi-top[4]")
         exit(1)
 
     if not is_root():
-        PTLogger.error(
-            "This program requires root privileges. Run as root using 'sudo'.")
+        PTLogger.error("This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    fw_device_manager = FirmwareDeviceManager(
-        FirmwareDevice.valid_device_ids())
-
-    if args.force:
-        fw_device_manager.force_update_if_available()
-        exit(0)
-
-    wait_for_os_updater_if_required(args.wait_timeout, args.max_wait_timeout)
-
-    fw_device_manager.start_file_supervisor()
-    lock_file = PTLock('pt-firmware-updater')
-    locked_when_last_checked = False
-    while True:
-        if lock_file.is_locked():
-            if locked_when_last_checked:
-                PTLogger.debug("Still waiting for lock to be released")
-            else:
-                PTLogger.info("Waiting for lock to be released")
-            locked_when_last_checked = True
-        else:
-            if locked_when_last_checked:
-                PTLogger.info("Lock released")
-            locked_when_last_checked = False
-
-            fw_device_manager.scan_for_connected_devices()
-
-            for device_id in fw_device_manager.connected_devices():
-                if fw_device_manager.already_notified_this_session(device_id):
-                    PTLogger.debug("{} - User already notified for updates. Skipping...".format(device_id))
-                    continue
-
-                if fw_device_manager.has_update(device_id):
-                    fw_device_manager.notify_user_about_update(device_id)
-
-            fw_device_manager.update_notification_states_for_new_firmware_files()
-
-        PTLogger.debug('Sleeping for {} secs before next check.'.format(args.loop_time))
-        sleep(args.loop_time)
-
-
-if __name__ == '__main__':
-    main()
+    parsed_args = parser.parse_args()
+    PTLogger.setup_logging(logger_name="pt-firmware-updater",
+                           logging_level=parsed_args.log_level, log_to_journal=parsed_args.no_journal is False)
+    try:
+        main(parsed_args)
+    except Exception as e:
+        PTLogger.error(f"{e}")
+        exit(1)
