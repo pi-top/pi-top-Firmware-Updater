@@ -1,10 +1,9 @@
 from enum import Enum, auto
 
-from ptcommon.logger import PTLogger
-from ptcommon.notifications import send_notification, NotificationActionManager
-from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.common_names import FirmwareDeviceName
+from ptcommon.logger import PTLogger
+from ptcommon.notifications import send_notification, NotificationActionManager
 
 
 class UpdateStatusEnum(Enum):
@@ -25,7 +24,7 @@ class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
     __HUB_REBOOT_CMD = "touch /tmp/pt-poweroff.reboot && env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
-    __FW_UPDATE_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A /usr/bin/pt-firmware-updater"
+    __FW_UPDATE_CMD = "echo UPGRADE"
 
     MESSAGE_DATA = {
         UpdateStatusEnum.SUCCESS: {
@@ -75,25 +74,29 @@ class NotificationManager(object):
 
     __notification_ids = {}
 
-    def notify_user(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> None:
+    def notify_user(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> None:
         if update_enum not in UpdateStatusEnum:
             PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
             return
 
         PTLogger.info("Notifying user. Device: {}; enum: {}".format(device_id.name, update_enum))
 
-        notification_id = send_notification(
+        notification_output = send_notification(
             title=self.NOTIFICATION_TITLE,
             text=self.__get_notification_message(update_enum, device_id),
             icon_name=self.MESSAGE_DATA[update_enum]["icon"],
             timeout=self.MESSAGE_DATA[update_enum]["timeout"],
-            actions_manager=self.__get_action_manager(update_enum, device_id, path_to_fw),
+            actions_manager=self.__get_action_manager(update_enum, device_id),
             notification_id=self.get_notification_id(device_id),
             capture_notification_id=update_enum not in (UpdateStatusEnum.FAILURE, UpdateStatusEnum.SUCCESS, UpdateStatusEnum.SUCCESS_REQUIRES_RESTART)
         )
 
-        if notification_id:
+        notification_output_list = []
+        if notification_output:
+            PTLogger.error(notification_output)
+            notification_id, *notification_output_list = notification_output.split()
             self.set_notification_id(device_id, notification_id)
+        return notification_output_list
 
     def __get_notification_message(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> str:
         device_friendly_name = FirmwareDeviceName[device_id.name].value
@@ -133,15 +136,7 @@ class NotificationManager(object):
             elif action_enum == ActionEnum.UPDATE_FW:
                 if device_id not in action["devices"]:
                     continue
-
                 command = self.__FW_UPDATE_CMD
-                command += " {}".format(device_id.name)
-                if path_to_fw:
-                    command += " --path {}".format(path_to_fw)
-
-                notification_id = self.get_notification_id(device_id)
-                if notification_id >= 0:
-                    command += " --notification-id {}".format(notification_id)
 
             action_manager.add_action(
                 call_to_action_text=action["text"],
