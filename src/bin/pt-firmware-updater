@@ -14,7 +14,7 @@ from ptcommon.sys_info import get_host_device_version
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_file_object import FirmwareFileObject
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
-from notification_manager import NotificationManager, UpdateStatusEnum
+from notification_manager import ActionEnum, NotificationManager, UpdateStatusEnum
 
 
 parser = ArgumentParser(description="pi-top firmware updater")
@@ -152,7 +152,7 @@ def main(parsed_args) -> None:
     if parsed_args.notify_user:
         notification_manager = NotificationManager()
         user_response = notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id)
-        if "UPGRADE" not in user_response:
+        if ActionEnum.UPDATE_FW.name not in user_response:
             PTLogger.info("User declined upgrade... exiting")
             return
         notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
