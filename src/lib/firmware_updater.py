@@ -1,13 +1,13 @@
-import os
-import shutil
-import hashlib
+from hashlib import md5
+from os import makedirs, path
+from shutil import copyfile
 from time import sleep
 
 from ptcommon.firmware_device import DeviceInfo, FirmwareDevice
 from ptcommon.logger import PTLogger
 
-from .packet_manager import PacketManager, PacketType
-from .firmware_file_object import FirmwareFileObject
+from packet_manager import PacketManager, PacketType
+from firmware_file_object import FirmwareFileObject
 
 
 class PTInvalidFirmwareFile(Exception):
@@ -33,7 +33,7 @@ class FirmwareUpdater(object):
         self.device_info = FirmwareFileObject.from_device(self.device)
 
     def has_staged_updates(self) -> bool:
-        return os.path.isfile(self.fw_file_location) and \
+        return path.isfile(self.fw_file_location) and \
             self.__read_hash_from_file(self.fw_file_location) == self.fw_file_hash
 
     def stage_file(self, fw_file: FirmwareFileObject, force: bool = False) -> None:
@@ -42,8 +42,8 @@ class FirmwareUpdater(object):
         if self.fw_downloaded_successfully():
             raise PTUpdatePending("There's a binary uploaded to {} waiting to be installed".format(self.device_info.device_name))
 
-        if force == True:
-            PTLogger.warning("Skipping firmware file verification (--force)")
+        if force is True:
+            PTLogger.warning("Skipping firmware file verification (using --force argument)")
         elif not self.__firmware_file_is_valid(fw_file):
             raise PTInvalidFirmwareFile('{} is not a valid candidate firmware file'.format(fw_file.path))
 
@@ -120,7 +120,7 @@ class FirmwareUpdater(object):
                 if check_fw_packet:
                     break
             except:
-                PTLogger.debug("Couldn't read FW OKAY register from device. Sleeping for {time_sleep_on_error} secs")
+                PTLogger.debug(f"Couldn't read FW OKAY register from device. Sleeping for {time_sleep_on_error} secs")
                 sleep(time_sleep_on_error)
 
         if check_fw_packet is None:
@@ -146,10 +146,10 @@ class FirmwareUpdater(object):
         :param filename: path to a file
         :return: MD5 hash
         """
-        if not os.path.exists(filename):
+        if not path.exists(filename):
             raise FileNotFoundError("Firmware path doesn't exist.")
 
-        hash = hashlib.md5()
+        hash = md5()
         with open(filename, "rb") as f:
             buff = f.read()
             hash.update(buff)
@@ -157,16 +157,16 @@ class FirmwareUpdater(object):
 
     def __prepare_firmware_for_install(self, fw_file: FirmwareFileObject) -> None:
         PTLogger.debug('{} - Preparing firmware for installation'.format(self.device_info.device_name))
-        path_to_fw_file = os.path.abspath(fw_file.path)
+        path_to_fw_file = path.abspath(fw_file.path)
 
         self.fw_file_hash = self.__read_hash_from_file(path_to_fw_file)
 
-        _, fw_filename = os.path.split(path_to_fw_file)
-        self.fw_file_location = os.path.join(
+        _, fw_filename = path.split(path_to_fw_file)
+        self.fw_file_location = path.join(
             self.FW_SAFE_LOCATION, self.device_info.device_name, fw_filename
         )
 
         if self.fw_file_location != path_to_fw_file:
-            os.makedirs(os.path.dirname(self.fw_file_location), exist_ok=True)
-            shutil.copyfile(path_to_fw_file, self.fw_file_location)
+            makedirs(path.dirname(self.fw_file_location), exist_ok=True)
+            copyfile(path_to_fw_file, self.fw_file_location)
             PTLogger.debug('{} - File copied to {}'.format(self.device_info.device_name, self.fw_file_location))

@@ -24,7 +24,7 @@ class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
     __HUB_REBOOT_CMD = "touch /tmp/pt-poweroff.reboot && env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
-    __FW_UPDATE_CMD = f"echo {ActionEnum.UPDATE_FW.name}"
+    __FW_UPDATE_CMD = f"echo OK"
 
     MESSAGE_DATA = {
         UpdateStatusEnum.SUCCESS: {
@@ -145,9 +145,7 @@ class NotificationManager(object):
 
     def get_notification_id(self, device_id: FirmwareDeviceID) -> str:
         id = self.__notification_ids.get(device_id)
-        if not id:
-            id = -1
-        return id
+        return -1 if not id else id
 
     def set_notification_id(self, device_id: FirmwareDeviceID, id: str) -> str:
         try:

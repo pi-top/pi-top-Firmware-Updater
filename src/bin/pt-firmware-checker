@@ -211,7 +211,7 @@ def main(parsed_args) -> None:
                     PTLogger.warning(f"{device_str} error: {e}")
             else:
                 if device_str in processed_firmware_files:
-                    processed_firmware_files[device_str] = {}
+                    processed_firmware_files[device_str] = []
                 if device_str in devices_notified_this_session:
                     devices_notified_this_session.remove(device_str)
 

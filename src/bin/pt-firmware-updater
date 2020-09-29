@@ -14,7 +14,7 @@ from ptcommon.sys_info import get_host_device_version
 path.append("/usr/lib/pt-firmware-updater/")
 from firmware_file_object import FirmwareFileObject
 from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
-from notification_manager import ActionEnum, NotificationManager, UpdateStatusEnum
+from notification_manager import NotificationManager, UpdateStatusEnum
 
 
 parser = ArgumentParser(description="pi-top firmware updater")
@@ -101,7 +101,6 @@ def create_firmware_device(device_id: FirmwareDeviceID):
 
 def create_fw_updater_object(device_id: FirmwareDeviceID):
     fw_device = create_firmware_device(device_id)
-
     try:
         return FirmwareUpdater(fw_device)
     except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
@@ -152,7 +151,7 @@ def main(parsed_args) -> None:
     if parsed_args.notify_user:
         notification_manager = NotificationManager()
         user_response = notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id)
-        if ActionEnum.UPDATE_FW.name not in user_response:
+        if "OK" not in user_response:
             PTLogger.info("User declined upgrade... exiting")
             return
         notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
@@ -161,7 +160,7 @@ def main(parsed_args) -> None:
 
     if parsed_args.notify_user:
         status = UpdateStatusEnum.FAILURE
-        if requires_restart:
+        if success and requires_restart:
             status = UpdateStatusEnum.SUCCESS_REQUIRES_RESTART
         elif success:
             status = UpdateStatusEnum.SUCCESS
