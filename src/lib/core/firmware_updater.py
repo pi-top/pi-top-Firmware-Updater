@@ -6,8 +6,8 @@ from time import sleep
 from ptcommon.firmware_device import DeviceInfo, FirmwareDevice
 from ptcommon.logger import PTLogger
 
-from packet_manager import PacketManager, PacketType
-from firmware_file_object import FirmwareFileObject
+from .packet_manager import PacketManager, PacketType
+from .firmware_file_object import FirmwareFileObject
 
 
 class PTInvalidFirmwareFile(Exception):
@@ -48,11 +48,12 @@ class FirmwareUpdater(object):
             raise PTInvalidFirmwareFile('{} is not a valid candidate firmware file'.format(fw_file.path))
 
         self.__prepare_firmware_for_install(fw_file)
-        PTLogger.info("{} - {} is valid and was staged to be updated.".format(self.device_info.device_name, fw_file.path))
+        PTLogger.info("{} - {} was staged to be updated (version {}).".format(self.device_info.device_name, fw_file.path, fw_file.firmware_version))
 
     def install_updates(self) -> bool:
         fw_version_before_install = self.device_info.firmware_version
 
+        PTLogger.info(f"Current device version is {fw_version_before_install}")
         self.__send_staged_firmware_to_device()
 
         success = self.fw_downloaded_successfully()

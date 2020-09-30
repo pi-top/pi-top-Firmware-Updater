@@ -74,10 +74,9 @@ class NotificationManager(object):
 
     __notification_ids = {}
 
-    def notify_user(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> None:
+    def notify_user(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> list:
         if update_enum not in UpdateStatusEnum:
-            PTLogger.debug("{} is not a UpdateStatusEnum".format(update_enum))
-            return
+            raise ValueError("{} is not a UpdateStatusEnum".format(update_enum))
 
         PTLogger.info("Notifying user. Device: {}; enum: {}".format(device_id.name, update_enum))
 
@@ -120,7 +119,7 @@ class NotificationManager(object):
         elif update_enum is UpdateStatusEnum.ONGOING:
             return "Updating your {}.\nPlease wait for this to finish before\ncontinuing to use your device!".format(device_friendly_name)
 
-    def __get_action_manager(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID, path_to_fw: str = "") -> NotificationActionManager:
+    def __get_action_manager(self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID) -> NotificationActionManager:
         action_manager = None
         if len(self.MESSAGE_DATA[update_enum]['actions']) == 0:
             return action_manager
@@ -143,11 +142,11 @@ class NotificationManager(object):
                 command_str=command)
         return action_manager
 
-    def get_notification_id(self, device_id: FirmwareDeviceID) -> str:
+    def get_notification_id(self, device_id: FirmwareDeviceID) -> int:
         id = self.__notification_ids.get(device_id)
         return -1 if not id else id
 
-    def set_notification_id(self, device_id: FirmwareDeviceID, id: str) -> str:
+    def set_notification_id(self, device_id: FirmwareDeviceID, id: str) -> None:
         try:
             self.__notification_ids[device_id] = int(id)
         except ValueError:

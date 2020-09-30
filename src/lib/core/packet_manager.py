@@ -1,8 +1,8 @@
-from frame_creator import FrameCreator, get_crc16
-
 import binascii
 import os
 from enum import Enum
+
+from .frame_creator import FrameCreator, get_crc16
 
 
 class PacketType(Enum):

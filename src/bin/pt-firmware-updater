@@ -1,21 +1,15 @@
 #!/usr/bin/python3
-
-import os
 from argparse import ArgumentParser
-from sys import exit, path
+from os import geteuid
+from sys import path
 
-from ptcommon.command_runner import run_command
-from ptcommon.common_ids import DeviceID, FirmwareDeviceID
-from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
-from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids and str_name_to_device_id
+from ptcommon.common_ids import DeviceID
+from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
 
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_file_object import FirmwareFileObject
-from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
-from notification_manager import NotificationManager, UpdateStatusEnum
-
+import pt_firmware_updater
 
 parser = ArgumentParser(description="pi-top firmware updater")
 parser.add_argument(
@@ -65,106 +59,7 @@ parser.add_argument(
 
 
 def is_root() -> bool:
-    return os.geteuid() == 0
-
-
-def i2c_addr_found(device_address: int) -> bool:
-
-    try:
-        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True)
-        is_connected = True
-    except:
-        is_connected = False
-    return is_connected
-
-
-def get_device_data(device_str: str):
-    id = FirmwareDevice.str_name_to_device_id(device_str)
-    addr = FirmwareDevice.device_info[id]['i2c_addr']
-    return id, addr
-
-
-def create_firmware_device(device_id: FirmwareDeviceID):
-    try:
-        return FirmwareDevice(device_id)
-    except (ConnectionError, AttributeError) as e:
-        PTLogger.warning('{} - Exception when attempting to create firmware device: {}'.format(device_id.name, e))
-        raise
-    except PTInvalidFirmwareDeviceException as e:
-        # Probably just probing for the wrong device at the same address - nothing to worry about
-        PTLogger.debug('{} - Invalid firmware device exception: {}'.format(device_id.name, e))
-        raise
-    except Exception as e:
-        PTLogger.error('{} - Generic exception when attempting to create firmware device: {}'.format(device_id.name, e))
-        raise
-
-
-def create_fw_updater_object(device_id: FirmwareDeviceID):
-    fw_device = create_firmware_device(device_id)
-    try:
-        return FirmwareUpdater(fw_device)
-    except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-        PTLogger.warning('Exception while checking for update: {}'.format(e))
-        raise
-    except Exception as e:
-        PTLogger.error('Generic exception while checking for update: {}'.format(e))
-        raise
-
-
-def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool):
-    try:
-        fw_file = FirmwareFileObject.from_file(path_to_fw_file)
-        fw_updater.stage_file(fw_file, force)
-    except PTInvalidFirmwareFile as e:
-        PTLogger.info('Skipping update: no valid candidate firmware')
-        raise
-    except PTUpdatePending as e:
-        PTLogger.info('Skipping update: {}'.format(e))
-        raise
-
-
-def apply_update(fw_updater: FirmwareUpdater):
-    try:
-        if fw_updater.has_staged_updates():
-            return fw_updater.install_updates()
-    except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-        PTLogger.warning('Exception while trying to update: {}'.format(e))
-        raise
-    except Exception as e:
-        PTLogger.error('Generic exception while trying to update: {}'.format(e))
-        raise
-
-
-def main(parsed_args) -> None:
-    PTLogger.debug("Starting pt-firmware-updater")
-
-    if os.path.isdir(parsed_args.path):
-        raise ValueError("{} is a directory, not a file.".format(parsed_args.path))
-
-    device_id, device_addr = get_device_data(parsed_args.device)
-    if not i2c_addr_found(device_addr):
-        raise ConnectionError("Device {parsed_args.device} not detected")
-
-    fw_updater = create_fw_updater_object(device_id)
-    stage_update(fw_updater, parsed_args.path, parsed_args.force)
-
-    if parsed_args.notify_user:
-        notification_manager = NotificationManager()
-        user_response = notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id)
-        if "OK" not in user_response:
-            PTLogger.info("User declined upgrade... exiting")
-            return
-        notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
-
-    success, requires_restart = apply_update(fw_updater)
-
-    if parsed_args.notify_user:
-        status = UpdateStatusEnum.FAILURE
-        if success and requires_restart:
-            status = UpdateStatusEnum.SUCCESS_REQUIRES_RESTART
-        elif success:
-            status = UpdateStatusEnum.SUCCESS
-        notification_manager.notify_user(status, device_id)
+    return geteuid() == 0
 
 
 if __name__ == '__main__':
@@ -177,10 +72,8 @@ if __name__ == '__main__':
         exit(1)
 
     parsed_args = parser.parse_args()
-    PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=parsed_args.log_level, log_to_journal=parsed_args.no_journal is False)
     try:
-        main(parsed_args)
+        pt_firmware_updater.main(parsed_args)
     except Exception as e:
         PTLogger.error(f"{e}")
         exit(1)

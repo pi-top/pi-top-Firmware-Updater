@@ -1,5 +1,5 @@
-import re
 import os
+import re
 from distutils.version import StrictVersion
 
 from ptcommon.common_ids import FirmwareDeviceID
