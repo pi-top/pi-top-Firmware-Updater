@@ -126,15 +126,17 @@ class NotificationManager(object):
 
         action_manager = NotificationActionManager()
         for action in self.MESSAGE_DATA[update_enum]['actions']:
+            action_enum = action.get('command')
+            if action_enum is None:
+                continue
+            if device_id not in action["devices"]:
+                continue
 
-            action_enum = action['command']
             if action_enum == ActionEnum.HUB_REBOOT:
                 command = self.__HUB_REBOOT_CMD
             elif action_enum == ActionEnum.REBOOT:
                 command = self.__REBOOT_CMD
             elif action_enum == ActionEnum.UPDATE_FW:
-                if device_id not in action["devices"]:
-                    continue
                 command = self.__FW_UPDATE_CMD
 
             action_manager.add_action(

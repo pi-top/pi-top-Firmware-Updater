@@ -48,7 +48,8 @@ parser.add_argument(
     type=str,
     help="Path to the binary file to install. If not provided, updates will be "
          "searched in system folders",
-    default=""
+    default="",
+    required=True
 )
 parser.add_argument(
     "-n",
