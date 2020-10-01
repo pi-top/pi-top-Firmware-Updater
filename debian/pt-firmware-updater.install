@@ -1,5 +1,4 @@
 src/bin/*                                   /usr/bin/
 pt-i2cdetect/build/pt-i2cdetect             /usr/bin/
 src/lib/*                                   /usr/lib/pt-firmware-updater/
-src/lib/core                                /usr/lib/pt-firmware-updater/core/
 pkg/pwdptfu.sh                              /usr/lib/pt-firmware-updater/
