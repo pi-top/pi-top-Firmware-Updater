@@ -1,22 +1,15 @@
 #!/usr/bin/python3
-
-import os
 from argparse import ArgumentParser
-from sys import exit
+from os import geteuid
 from sys import path
-from time import sleep
 
 from ptcommon.common_ids import DeviceID
-from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
-from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids and str_name_to_device_id
+from ptcommon.firmware_device import FirmwareDevice
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
-from ptcommon.lock import PTLock
-path.append("/usr/lib/pt-firmware-updater/")
-from firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending
-from notification_manager import NotificationManager, UpdateStatusEnum
-from firmware_device_manager import FirmwareDeviceManager
 
+path.append("/usr/lib/pt-firmware-updater/")
+import pt_firmware_updater
 
 parser = ArgumentParser(description="pi-top firmware updater")
 parser.add_argument(
@@ -27,6 +20,12 @@ parser.add_argument(
 parser.add_argument(
     "--no-journal",
     help="Prints output to stdout instead of journal.",
+    action="store_true"
+)
+parser.add_argument(
+    "-f",
+    "--force",
+    help="Skip internal checks of fw file",
     action="store_true"
 )
 parser.add_argument(
@@ -49,64 +48,33 @@ parser.add_argument(
     type=str,
     help="Path to the binary file to install. If not provided, updates will be "
          "searched in system folders",
-    default=""
+    default="",
+    required=True
 )
 parser.add_argument(
     "-n",
-    "--notification-id",
-    type=int,
-    help="Id of the notification to use during the update",
+    "--notify-user",
+    help="Make update interactive by displaying desktop notifcations to the user",
+    action="store_true"
 )
 
 
 def is_root() -> bool:
-    return os.geteuid() == 0
+    return geteuid() == 0
 
 
-def main() -> None:
-    args = parser.parse_args()
-    PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=args.log_level, log_to_journal=args.no_journal is False)
-
+if __name__ == '__main__':
     if get_host_device_version() != DeviceID.pi_top_4.name:
         PTLogger.error("This program only runs on a pi-top[4]")
         exit(1)
 
     if not is_root():
-        PTLogger.error(
-            "This program requires root privileges. Run as root using 'sudo'.")
+        PTLogger.error("This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    if os.path.isdir(args.path):
-        PTLogger.error("{} is a directory, not a file.".format(args.path))
-        exit(1)
-
-    lock_file = PTLock('pt-firmware-updater')
-    if lock_file.is_locked():
-        PTLogger.error("Lock file is already owned")
-        exit(1)
-
-    device_id = FirmwareDevice.str_name_to_device_id(args.device)
-    PTLogger.debug("Starting pt-firmware-updater")
+    parsed_args = parser.parse_args()
     try:
-        lock_file.acquire()
-        fw_device_manager = FirmwareDeviceManager([device_id])
-        fw_device_manager.scan_for_connected_devices()
-
-        if args.notification_id:
-            fw_device_manager.notification_manager.set_notification_id(device_id, args.notification_id)
-
-        if fw_device_manager.has_update(device_id, args.path):
-            PTLogger.info("{} - starting update process".format(device_id))
-            fw_device_manager.update(device_id)
-            PTLogger.info("{} - successfully updated".format(device_id))
-    except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException, PTInvalidFirmwareFile, PTUpdatePending) as e:
-        PTLogger.warning('{} - {}'.format(device_id, e))
+        pt_firmware_updater.main(parsed_args)
     except Exception as e:
-        PTLogger.error(str(e))
-    finally:
-        lock_file.release()
-
-
-if __name__ == '__main__':
-    main()
+        PTLogger.error(f"{e}")
+        exit(1)

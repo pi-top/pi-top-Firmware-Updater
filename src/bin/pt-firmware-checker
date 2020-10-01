@@ -1,19 +1,14 @@
 #!/usr/bin/python3
-
-from os import geteuid
 from argparse import ArgumentParser
-from pathlib import Path
-from subprocess import getoutput
+from os import geteuid
 from sys import exit, path
-from time import sleep
 
 from ptcommon.common_ids import DeviceID
-from ptcommon.firmware_device import FirmwareDevice  # Used for valid_device_ids
 from ptcommon.logger import PTLogger
 from ptcommon.sys_info import get_host_device_version
-from ptcommon.lock import PTLock
+
 path.append("/usr/lib/pt-firmware-updater/")
-from firmware_device_manager import FirmwareDeviceManager
+import pt_firmware_checker
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
@@ -60,107 +55,20 @@ def is_root() -> bool:
     return geteuid() == 0
 
 
-def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) -> None:
-    os_updater_is_active = (getoutput("systemctl is-active pt-os-updater") == "active")
-    os_updater_is_enabled = (getoutput("systemctl is-enabled pt-os-updater") == "enabled")
-    wait_for_os_updater = os_updater_is_active or os_updater_is_enabled
-    PTLogger.info("OS updater is active? {}".format(os_updater_is_active))
-    PTLogger.info("OS updater is enabled? {}".format(os_updater_is_enabled))
-    PTLogger.info("Wait for OS updater to report that it is ready to start a firmware update? {}".format(wait_for_os_updater))
-
-    if not wait_for_os_updater:
-        PTLogger.info("Nothing to wait for - continuing...")
-        return
-
-    PTLogger.info("Waiting {} seconds.".format(wait_timeout))
-    ready_breadcrumb = Path("/tmp/pt-firmware-updater.ready")
-    extend_timeout_breadcrumb = Path("/tmp/pt-firmware-updater.extend-timeout")
-    wait_time = 0
-    was_using_extended_timeout = extend_timeout_breadcrumb.is_file()
-
-    # Wait no longer than max wait time
-    while wait_time <= max_wait_timeout:
-        is_using_extended_timeout = extend_timeout_breadcrumb.is_file()
-
-        if is_using_extended_timeout and not was_using_extended_timeout:
-            PTLogger.info("Extending timeout - using 'max-wait-timeout', not 'wait-timeout'")
-
-        if wait_time <= wait_timeout or is_using_extended_timeout:
-            PTLogger.debug("Wait time: {}s/{}s".format(wait_time, max_wait_timeout))
-            if ready_breadcrumb.is_file():
-                PTLogger.info("Found 'ready' breadcrumb")
-                break
-        else:
-            PTLogger.info("Wait time expired, and have not been told to extend timeout")
-            break
-
-        was_using_extended_timeout = is_using_extended_timeout
-        wait_time += 1
-        sleep(1)
-
-    if ready_breadcrumb.is_file():
-        PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, wait_timeout))
-        PTLogger.info("Reason: {}".format(ready_breadcrumb.read_text()))
-    else:
-        PTLogger.info("OS updater did not report that it is ready for pi-top firmware checks - timed out.")
-
-
-def main() -> None:
-    args = parser.parse_args()
-    PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=args.log_level, log_to_journal=args.no_journal is False)
-
+if __name__ == '__main__':
     if get_host_device_version() != DeviceID.pi_top_4.name:
         PTLogger.error("This program only runs on a pi-top[4]")
         exit(1)
 
     if not is_root():
-        PTLogger.error(
-            "This program requires root privileges. Run as root using 'sudo'.")
+        PTLogger.error("This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
-    fw_device_manager = FirmwareDeviceManager(
-        FirmwareDevice.valid_device_ids())
-
-    if args.force:
-        fw_device_manager.force_update_if_available()
-        exit(0)
-
-    wait_for_os_updater_if_required(args.wait_timeout, args.max_wait_timeout)
-
-    fw_device_manager.start_file_supervisor()
-    lock_file = PTLock('pt-firmware-updater')
-    locked_when_last_checked = False
-    while True:
-        if lock_file.is_locked():
-            if locked_when_last_checked:
-                PTLogger.debug("Still waiting for lock to be released")
-            else:
-                PTLogger.info("Waiting for lock to be released")
-            locked_when_last_checked = True
-        else:
-            if locked_when_last_checked:
-                PTLogger.info("Lock released")
-            locked_when_last_checked = False
-
-            fw_device_manager.scan_for_connected_devices()
-
-            for device_id in fw_device_manager.connected_devices():
-                if fw_device_manager.already_notified_this_session(device_id):
-                    PTLogger.debug("{} - User already notified for updates. Skipping...".format(device_id))
-                    continue
-
-                if fw_device_manager.has_update(device_id):
-                    fw_device_manager.notify_user_about_update(device_id)
-
-            fw_device_manager.update_notification_states_for_new_firmware_files()
-
-        PTLogger.debug('Sleeping for {} secs before next check.'.format(args.loop_time))
-        sleep(args.loop_time)
-
-
-#################################
-# TODO: re-enable after testing #
-#################################
-# if __name__ == '__main__':
-#     main()
+    parsed_args = parser.parse_args()
+    PTLogger.setup_logging(logger_name="pt-firmware-updater",
+                           logging_level=parsed_args.log_level, log_to_journal=parsed_args.no_journal is False)
+    try:
+        pt_firmware_checker.main(parsed_args)
+    except Exception as e:
+        PTLogger.error(f"{e}")
+        exit(1)
