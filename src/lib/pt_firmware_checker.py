@@ -137,9 +137,7 @@ def check_and_update(device_enum):
     fw_device = FirmwareDevice(device_enum)  # TODO: reuse object
     fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
     if is_valid_fw_object(fw_file_object):
-        lock.acquire()  # TODO: acquire in pt-firmware-updater
         run_firmware_updater(device_str, fw_file_object.path)
-        lock.release()
 
 
 def main(parsed_args) -> None:

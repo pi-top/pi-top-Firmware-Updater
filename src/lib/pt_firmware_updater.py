@@ -6,6 +6,7 @@ from ptcommon.command_runner import run_command
 from ptcommon.common_ids import FirmwareDeviceID
 from ptcommon.firmware_device import PTInvalidFirmwareDeviceException
 from ptcommon.firmware_device import FirmwareDevice
+from ptcommon.lock import PTLock
 from ptcommon.logger import PTLogger
 
 from core.firmware_file_object import FirmwareFileObject
@@ -102,7 +103,9 @@ def main(parsed_args) -> None:
             return
         notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
 
-    success, requires_restart = apply_update(fw_updater)
+    lock_file = PTLock(parsed_args.device)
+    with lock_file:
+        success, requires_restart = apply_update(fw_updater)
 
     if success:
         PTLogger.info(f"Operation finished successfully")
