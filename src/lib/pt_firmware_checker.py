@@ -14,6 +14,7 @@ from core.firmware_file_object import FirmwareFileObject
 
 devices_notified_this_session = []
 processed_firmware_files = {}
+fw_device_cache = {}
 
 
 def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) -> None:
@@ -134,7 +135,11 @@ def check_and_update(device_enum):
     device_str = device_enum.name
     path_to_fw_folder = default_firmware_folder(device_str)
 
-    fw_device = FirmwareDevice(device_enum)  # TODO: reuse object
+    fw_device = fw_device_cache.get(device_enum.name)
+    if fw_device_cache.get(device_enum.name) is None:
+        fw_device = FirmwareDevice(device_enum)
+        fw_device_cache[device_str] = fw_device
+
     fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
     if is_valid_fw_object(fw_file_object):
         run_firmware_updater(device_str, fw_file_object.path)
@@ -161,6 +166,8 @@ def main(parsed_args) -> None:
                     processed_firmware_files[device_str] = []
                 if device_str in devices_notified_this_session:
                     devices_notified_this_session.remove(device_str)
+                if device_str in fw_device_cache:
+                    processed_firmware_files[device_str] = None
 
         PTLogger.debug('Sleeping for {} secs before next check.'.format(parsed_args.loop_time))
         sleep(parsed_args.loop_time)
