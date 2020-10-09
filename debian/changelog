@@ -1,3 +1,9 @@
+pt-firmware-updater (2.13.1-1) buster; urgency=medium
+
+  * Wait indefinitely for user to interact with notification
+
+ -- Jorge Capona <jorge@pi-top.com>  Fri, 09 Oct 2020 13:45:03 -0300
+
 pt-firmware-updater (2.13.0-1) buster; urgency=medium
 
   * Re-enable pt-firmware-checker

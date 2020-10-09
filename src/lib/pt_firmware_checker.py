@@ -122,7 +122,7 @@ def is_valid_fw_object(fw_file_object: FirmwareFileObject) -> bool:
 
 def run_firmware_updater(device_str: str, path_to_fw_object: str) -> int:
     FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
-    run_command(f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}", timeout=60)
+    run_command(f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}", timeout=None)
     devices_notified_this_session.append(device_str)
 
 
