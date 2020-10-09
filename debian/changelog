@@ -1,3 +1,9 @@
+pt-firmware-updater (2.13.1-2) buster; urgency=medium
+
+  * Add python3-pt-common as package dependency
+
+ -- Jorge Capona <jorge@pi-top.com>  Fri, 09 Oct 2020 14:02:02 -0300
+
 pt-firmware-updater (2.13.1-1) buster; urgency=medium
 
   * Wait indefinitely for user to interact with notification
