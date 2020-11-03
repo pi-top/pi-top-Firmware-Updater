@@ -4,9 +4,9 @@ from unittest import TestCase
 from sys import modules
 from unittest.mock import Mock, patch, ANY
 
-mock_command_runner = modules["ptcommon.command_runner"] = Mock()
-mock_logger = modules["ptcommon.logger"] = Mock()
-mock_i2c = modules["ptcommon.i2c_device"] = Mock()
+mock_command_runner = modules["pitop.core.command_runner"] = Mock()
+mock_logger = modules["pitop.core.logger"] = Mock()
+mock_i2c = modules["pitop.core.i2c_device"] = Mock()
 mock_pycrc = modules["PyCRC.CRC16Kermit"] = Mock()
 
 import core.notification_manager
@@ -14,8 +14,8 @@ import pt_firmware_updater as pt_firmware_updater
 from core.firmware_file_object import FirmwareFileObject
 from core.firmware_updater import PTInvalidFirmwareFile
 
-from ptcommon.common_ids import FirmwareDeviceID
-from ptcommon.firmware_device import FirmwareDevice
+from pitop.core.common_ids import FirmwareDeviceID
+from pitop.core.firmware_device import FirmwareDevice
 from tests.utils import dotdict
 
 

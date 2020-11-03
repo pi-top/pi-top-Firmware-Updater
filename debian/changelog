@@ -1,4 +1,13 @@
-pt-firmware-updater (2.13.1-2) buster; urgency=medium
+pt-firmware-updater (3.0.0) buster; urgency=medium
+
+  * ptcommon -> pitop.core
+  * Upgrade to compat 12
+  * Migrate to using dh-sequence-python3
+  * Use dh_installsystemd
+
+ -- Mike Roberts <mike@pi-top.com>  Tue, 03 Nov 2020 16:14:35 +0000
+
+ pt-firmware-updater (2.13.1-2) buster; urgency=medium
 
   * Add python3-pt-common as package dependency
 
