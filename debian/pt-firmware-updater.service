@@ -1,5 +1,6 @@
 [Unit]
 Description=pi-top device firmware updater daemon
+Documentation=https://knowledgebase.pi-top.com/knowledge
 
 [Service]
 Type=simple
