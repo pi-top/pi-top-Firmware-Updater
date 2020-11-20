@@ -4,10 +4,10 @@ from subprocess import getoutput
 from time import sleep
 from typing import List
 
-from pitop.core.command_runner import run_command
-from pitop.core.firmware_device import FirmwareDevice
-from pitop.core.lock import PTLock
-from pitop.core.logger import PTLogger
+from pitop.utils.command_runner import run_command
+from pitop.utils.firmware_device import FirmwareDevice
+from pitop.utils.lock import PTLock
+from pitop.utils.logger import PTLogger
 
 from core.firmware_file_object import FirmwareFileObject
 
