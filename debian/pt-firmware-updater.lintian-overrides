@@ -1,1 +1,2 @@
 pt-firmware-updater: binary-without-manpage
+pt-firmware-updater: hardening-no-pie usr/bin/pt-i2cdetect
