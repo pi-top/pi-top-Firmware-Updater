@@ -6,7 +6,7 @@ DIR="$(pwd)"
 BUILD_DIR="${DIR}/build"
 mkdir -p "${BUILD_DIR}"
 
-build_cmd="cc -O2 -Wall -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Winline -W -Wundef -Wmissing-prototypes -I${DIR}/include/i2c-tools/include -I${DIR}/include/i2c-tools/tools"
+build_cmd="cc -O2 -g -Wall -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Winline -W -Wundef -Wmissing-prototypes -I${DIR}/include/i2c-tools/include -I${DIR}/include/i2c-tools/tools"
 
 {
 	# Build i2cbusses
