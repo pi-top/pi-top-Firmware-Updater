@@ -9,21 +9,21 @@ mock_logger = modules["pitopcommon.logger"] = Mock()
 mock_i2c = modules["pitopcommon.i2c_device"] = Mock()
 mock_pycrc = modules["PyCRC.CRC16Kermit"] = Mock()
 
-import core.notification_manager
-import pt_firmware_updater as pt_firmware_updater
-from core.firmware_file_object import FirmwareFileObject
-from core.firmware_updater import PTInvalidFirmwareFile
+import core.notification_manager  # noqa: E402
+import pt_firmware_updater as pt_firmware_updater  # noqa: E402
+from core.firmware_file_object import FirmwareFileObject  # noqa: E402
+from core.firmware_updater import PTInvalidFirmwareFile  # noqa: E402
 
-from pitopcommon.common_ids import FirmwareDeviceID
-from pitopcommon.firmware_device import FirmwareDevice
-from tests.utils import dotdict
+from pitopcommon.common_ids import FirmwareDeviceID  # noqa: E402
+from pitopcommon.firmware_device import FirmwareDevice  # noqa: E402
+from tests.utils import dotdict  # noqa: E402
 
 
 class FirmwareUpdaterFunctionsTestCase(TestCase):
 
     def test_main_fails_with_invalid_files(self):
-        for path in ("/tmp", "/tmp/not_existant_file"):
-            parsed_args = dotdict({"path": path})
+        for _path in ("/tmp", "/tmp/not_existant_file"):
+            parsed_args = dotdict({"path": _path})
             with self.assertRaises(ValueError):
                 pt_firmware_updater.main(parsed_args)
 
@@ -84,8 +84,8 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
 
     def setUp(self):
         self.device_to_mock = FirmwareDeviceID.pt4_hub
-        self.path_to_fw_device = f"/tmp/pt4_hub-v5.1-sch8-release.bin"
-        self.path_to_fw_to_upgrade = f"/tmp/pt4_hub-v5.2-sch8-release.bin"
+        self.path_to_fw_device = "/tmp/pt4_hub-v5.1-sch8-release.bin"
+        self.path_to_fw_to_upgrade = "/tmp/pt4_hub-v5.2-sch8-release.bin"
 
         for f in (self.path_to_fw_device, self.path_to_fw_to_upgrade):
             Path(f).touch()
@@ -184,9 +184,16 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
         })
 
         pt_firmware_updater.main(parsed_args)
+        text_fields = [
+            "A problem was encountered while attempting",
+            "to update your pi-top [4].",
+            "Please reboot and try again.",
+            "If you are repeatedly experiencing",
+            "this issue, please contact pi-top support."
+        ]
         self.send_notification_mock.assert_called_with(
             title='Firmware Device Update',
-            text="A problem was encountered while attempting\nto update your pi-top [4].\nPlease reboot and try again.\nIf you are repeatedly experiencing\nthis issue, please contact pi-top support.",
+            text=text_fields.join("\n"),
             icon_name='messagebox_critical',
             timeout=0,
             notification_id=-1,

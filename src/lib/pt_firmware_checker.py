@@ -70,7 +70,7 @@ def i2c_addr_found(device_address: int) -> bool:
     try:
         run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True)
         is_connected = True
-    except:
+    except Exception:
         is_connected = False
     return is_connected
 

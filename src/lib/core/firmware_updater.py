@@ -120,7 +120,7 @@ class FirmwareUpdater(object):
                 check_fw_packet = self.device.get_check_fw_okay()
                 if check_fw_packet:
                     break
-            except:
+            except Exception:
                 PTLogger.debug(f"Couldn't read FW OKAY register from device. Sleeping for {time_sleep_on_error} secs")
                 sleep(time_sleep_on_error)
 

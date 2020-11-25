@@ -24,6 +24,11 @@ repos:
 -   repo: https://github.com/pre-commit/mirrors-autopep8
     rev: v1.5.4
     hooks:
-    -   id: autopep8
-        name: autopep8-default
-        args: ["-i", "--ignore=E226,E24,W50,W690,E402", "--max-line-length=150"]
+    - id: autopep8
+      args: ["-i", "--ignore=E402", "--max-line-length=150"]
+
+-   repo: https://gitlab.com/PyCQA/flake8
+    rev: 3.8.4
+    hooks:
+    - id: flake8
+      args: ["--max-line-length=150"]

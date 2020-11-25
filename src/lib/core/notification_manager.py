@@ -24,7 +24,7 @@ class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
     __HUB_REBOOT_CMD = "touch /tmp/pt-poweroff.reboot && env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
-    __FW_UPDATE_CMD = f"echo OK"
+    __FW_UPDATE_CMD = "echo OK"
 
     MESSAGE_DATA = {
         UpdateStatusEnum.SUCCESS: {

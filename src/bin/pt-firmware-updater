@@ -9,7 +9,7 @@ from pitopcommon.logger import PTLogger
 from pitopcommon.sys_info import get_host_device_version
 
 path.append("/usr/lib/pt-firmware-updater/")
-import pt_firmware_updater
+import pt_firmware_updater  # noqa: E402
 
 parser = ArgumentParser(description="pi-top firmware updater")
 parser.add_argument(

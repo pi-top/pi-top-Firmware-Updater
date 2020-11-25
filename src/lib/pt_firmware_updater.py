@@ -18,7 +18,7 @@ def i2c_addr_found(device_address: int) -> bool:
     try:
         run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True)
         is_connected = True
-    except:
+    except Exception:
         is_connected = False
     return is_connected
 
@@ -60,7 +60,7 @@ def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool)
     try:
         fw_file = FirmwareFileObject.from_file(path_to_fw_file)
         fw_updater.stage_file(fw_file, force)
-    except PTInvalidFirmwareFile as e:
+    except PTInvalidFirmwareFile:
         PTLogger.info('Skipping update: no valid candidate firmware')
         raise
     except PTUpdatePending as e:
@@ -108,13 +108,13 @@ def main(parsed_args) -> None:
         success, requires_restart = apply_update(fw_updater)
 
     if success:
-        PTLogger.info(f"Operation finished successfully")
+        PTLogger.info("Operation finished successfully")
         if requires_restart and device_id == FirmwareDeviceID.pt4_hub:
-            PTLogger.info(f"Restart your pi-top to apply changes")
+            PTLogger.info("Restart your pi-top to apply changes")
         else:
-            PTLogger.info(f"Disconnect and reconnect your device to apply changes")
+            PTLogger.info("Disconnect and reconnect your device to apply changes")
     else:
-        PTLogger.error(f"A problem was encountered while attempting to upgrade. Please reboot and try again")
+        PTLogger.error("A problem was encountered while attempting to upgrade. Please reboot and try again")
 
     if parsed_args.notify_user:
         status = UpdateStatusEnum.FAILURE
