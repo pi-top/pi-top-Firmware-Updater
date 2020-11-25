@@ -1,9 +1,9 @@
 from enum import Enum, auto
 
-from pitop.utils.common_ids import FirmwareDeviceID
-from pitop.utils.common_names import FirmwareDeviceName
-from pitop.utils.logger import PTLogger
-from pitop.utils.notifications import send_notification, NotificationActionManager
+from pitopcommon.common_ids import FirmwareDeviceID
+from pitopcommon.common_names import FirmwareDeviceName
+from pitopcommon.logger import PTLogger
+from pitopcommon.notifications import send_notification, NotificationActionManager
 
 
 class UpdateStatusEnum(Enum):

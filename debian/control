@@ -17,7 +17,7 @@ Depends: ${misc:Depends},
  libc6-dev,
  pt-firmware-images,
  python3-pitop,
- python3-pitop.utils,
+ python3-pitopcommon,
  python3-pycrc,
  python3-pyinotify,
 Description: pi-top Firmware Updater

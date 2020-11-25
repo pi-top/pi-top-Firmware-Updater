@@ -1,1 +1,1 @@
--e git+ssh://git@github.com/pi-top/pitop.utils.git@master#egg=pitop.utils
+-e git+ssh://git@github.com/pi-top/pitopcommon.git@master#egg=pitopcommon
