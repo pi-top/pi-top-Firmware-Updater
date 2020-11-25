@@ -1,4 +1,5 @@
 # Refresh when pi-top Python common library dependency is updated
-interest-noawait updated-pt-common-lib
+interest-noawait updated-pitop-common-lib
+
 # Refresh when pi-top firmware images dependency is updated
 interest-noawait updated-pt-firmware-images
