@@ -10,7 +10,8 @@ Homepage: https://pi-top.com/
 
 Package: pt-firmware-updater
 Architecture: any
-Depends: ${misc:Depends},
+Depends:
+ ${misc:Depends},
  ${python3:Depends},
  ${shlibs:Depends},
 # Explicitly included, as dh_shlibdeps is overridden
@@ -20,6 +21,9 @@ Depends: ${misc:Depends},
  python3-pitopcommon,
  python3-pycrc,
  python3-pyinotify,
+Recommends:
+# Required for 'pt-notify-send' from common library
+ pt-notifications,
 Description: pi-top Firmware Updater
  This package provides a background service that
  checks the firmware version of attached pi-top devices
