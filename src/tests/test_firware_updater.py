@@ -193,7 +193,7 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
         ]
         self.send_notification_mock.assert_called_with(
             title='Firmware Device Update',
-            text=text_fields.join("\n"),
+            text="\n".join(text_fields),
             icon_name='messagebox_critical',
             timeout=0,
             notification_id=-1,
