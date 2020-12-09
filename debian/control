@@ -17,13 +17,12 @@ Depends:
 # Explicitly included, as dh_shlibdeps is overridden
  libc6-dev,
  pt-firmware-images,
+# Required for 'pt-notify-send', handled by common lib
+ pt-notifications,
  python3-pitop,
  python3-pitopcommon,
  python3-pycrc,
  python3-pyinotify,
-Recommends:
-# Required for 'pt-notify-send' from common library
- pt-notifications,
 Description: pi-top Firmware Updater
  This package provides a background service that
  checks the firmware version of attached pi-top devices
