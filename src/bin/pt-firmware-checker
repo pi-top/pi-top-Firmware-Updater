@@ -3,20 +3,15 @@ from argparse import ArgumentParser
 from os import geteuid
 from sys import exit, path
 
-from pitopcommon.common_ids import DeviceID
 from pitopcommon.logger import PTLogger
-from pitopcommon.sys_info import get_host_device_version
+from pitop.system import device_type
 
 path.append("/usr/lib/pt-firmware-updater/")
 import pt_firmware_checker  # noqa: E402
 
 
 parser = ArgumentParser(description="pi-top firmware update checker")
-parser.add_argument(
-    "--no-journal",
-    help="Prints output to stdout instead of journal.",
-    action="store_true"
-)
+
 parser.add_argument(
     "--log-level",
     type=int,
@@ -56,8 +51,8 @@ def is_root() -> bool:
 
 
 if __name__ == '__main__':
-    if get_host_device_version() != DeviceID.pi_top_4.name:
-        PTLogger.error("This program only runs on a pi-top[4]")
+    if device_type() != "pi-top [4]":
+        PTLogger.error("This program only runs on a pi-top [4]")
         exit(1)
 
     if not is_root():
@@ -66,7 +61,7 @@ if __name__ == '__main__':
 
     parsed_args = parser.parse_args()
     PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=parsed_args.log_level, log_to_journal=parsed_args.no_journal is False)
+                           logging_level=parsed_args.log_level, log_to_journal=False)
     try:
         pt_firmware_checker.main(parsed_args)
     except Exception as e:

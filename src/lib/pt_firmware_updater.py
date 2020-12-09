@@ -82,7 +82,7 @@ def apply_update(fw_updater: FirmwareUpdater) -> Tuple:
 
 def main(parsed_args) -> None:
     PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=parsed_args.log_level, log_to_journal=parsed_args.no_journal is False)
+                           logging_level=parsed_args.log_level, log_to_journal=False)
     PTLogger.debug("Starting pt-firmware-updater")
 
     if not os.path.isfile(parsed_args.path):
