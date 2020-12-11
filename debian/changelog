@@ -1,3 +1,12 @@
+pt-firmware-updater (3.1.0) buster; urgency=medium
+
+  * Apply Flake8 linting
+  * Update dependencies
+  * Update dpkg triggers
+  * Remove double logging to journal
+
+ -- Mike Roberts <mike@pi-top.com>  Fri, 11 Dec 2020 14:05:51 +0000
+
 pt-firmware-updater (3.0.0) buster; urgency=medium
 
   * ptcommon -> pitop.core
@@ -7,7 +16,6 @@ pt-firmware-updater (3.0.0) buster; urgency=medium
 
  -- Mike Roberts <mike@pi-top.com>  Tue, 03 Nov 2020 16:14:35 +0000
 
-Old Changelog:
 pt-firmware-updater (2.13.1-2) buster; urgency=medium
 
   * Add python3-pt-common as package dependency
