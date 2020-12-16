@@ -1,11 +1,15 @@
 [Unit]
 Description=pi-top device firmware updater daemon
 Documentation=https://knowledgebase.pi-top.com/knowledge
+# Required to determine what type of device
+After=pt-device-manager.service
 
 [Service]
 Type=simple
 Restart=on-failure
-ExecStart=/usr/bin/python3 -B /usr/bin/pt-firmware-checker --loop-time 3 --wait-timeout 300 --max-wait-timeout 3600
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONDONTWRITEBYTECODE=1"
+ExecStart=/usr/bin/pt-firmware-checker --loop-time 3 --wait-timeout 300 --max-wait-timeout 3600
 
 [Install]
 WantedBy=graphical.target

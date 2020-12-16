@@ -1,3 +1,10 @@
+pt-firmware-updater (3.1.1) buster; urgency=medium
+
+  * After=pt-device-manager.service
+  * Use environment variables in systemd service
+
+ -- Mike Roberts <mike@pi-top.com>  Wed, 16 Dec 2020 18:54:56 +0000
+
 pt-firmware-updater (3.1.0) buster; urgency=medium
 
   * Apply Flake8 linting
