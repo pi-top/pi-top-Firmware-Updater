@@ -1,3 +1,13 @@
+pt-firmware-updater (3.2.0) buster; urgency=medium
+
+  * Fix hub upgrade logic
+  * Reduce logging of I2C address scanning
+  * Improve logging around installing updates
+  * Print firmware updater command to output
+  * Firmware checker and updater log to journal
+
+ -- Mike Roberts <mike@pi-top.com>  Thu, 17 Dec 2020 00:14:59 +0000
+
 pt-firmware-updater (3.1.1) buster; urgency=medium
 
   * After=pt-device-manager.service

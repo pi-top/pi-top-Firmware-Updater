@@ -68,7 +68,7 @@ def get_pi_top_fw_devices() -> List[dict]:
 
 def i2c_addr_found(device_address: int) -> bool:
     try:
-        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True)
+        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True, log_errors=False)
         is_connected = True
     except Exception:
         is_connected = False
@@ -122,7 +122,9 @@ def is_valid_fw_object(fw_file_object: FirmwareFileObject) -> bool:
 
 def run_firmware_updater(device_str: str, path_to_fw_object: str) -> int:
     FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
-    run_command(f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}", timeout=None)
+    command_str = f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}"
+    PTLogger.info(f"Running command: {command_str}")
+    run_command(command_str, timeout=None)
     devices_notified_this_session.append(device_str)
 
 

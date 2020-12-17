@@ -16,7 +16,7 @@ from core.notification_manager import NotificationManager, UpdateStatusEnum
 
 def i2c_addr_found(device_address: int) -> bool:
     try:
-        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True)
+        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True, log_errors=False)
         is_connected = True
     except Exception:
         is_connected = False
@@ -82,7 +82,7 @@ def apply_update(fw_updater: FirmwareUpdater) -> Tuple:
 
 def main(parsed_args) -> None:
     PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=parsed_args.log_level, log_to_journal=False)
+                           logging_level=parsed_args.log_level, log_to_journal=True)
     PTLogger.debug("Starting pt-firmware-updater")
 
     if not os.path.isfile(parsed_args.path):
@@ -98,6 +98,7 @@ def main(parsed_args) -> None:
     if parsed_args.notify_user:
         notification_manager = NotificationManager()
         user_response = notification_manager.notify_user(UpdateStatusEnum.PROMPT, device_id)
+        PTLogger.info(f"User response: {user_response}")
         if "OK" not in user_response:
             PTLogger.info("User declined upgrade... exiting")
             return

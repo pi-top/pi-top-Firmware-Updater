@@ -56,11 +56,11 @@ class FirmwareUpdater(object):
         PTLogger.info(f"Current device version is {fw_version_before_install}")
         self.__send_staged_firmware_to_device()
 
-        success = True
-        if success:
-            PTLogger.info("{} - Successfully applied update.".format(self.device_info.device_name))
+        PTLogger.info("{} - Successfully sent firmware to device.".format(self.device_info.device_name))
 
-        if self.device_info.device_name != "pt4_hub" \
+        success = True
+
+        if self.device_info.device_name == "pt4_hub" \
                 or self.device.get_fw_version_update_schema() == 0:
             requires_restart = True
             return success, requires_restart
@@ -69,7 +69,7 @@ class FirmwareUpdater(object):
 
         time_wait_mcu = 2
 
-        PTLogger.debug(
+        PTLogger.info(
             "{} - Sleeping for {} secs before verifying update".format(self.device_info.device_name, time_wait_mcu))
         sleep(time_wait_mcu)
 
