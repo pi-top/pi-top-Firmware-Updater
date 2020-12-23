@@ -5,7 +5,10 @@ from time import sleep
 from typing import List
 
 from pitopcommon.command_runner import run_command
-from pitopcommon.firmware_device import FirmwareDevice
+from pitopcommon.firmware_device import (
+    FirmwareDevice,
+    PTInvalidFirmwareDeviceException,
+)
 from pitopcommon.lock import PTLock
 from pitopcommon.logger import PTLogger
 
@@ -161,6 +164,9 @@ def main(parsed_args) -> None:
                     continue
                 try:
                     check_and_update(device_enum)
+                except PTInvalidFirmwareDeviceException as e:
+                    # Probably just probing for the wrong device at the same address - nothing to worry about
+                    PTLogger.debug(f"{device_str} error: {e}")
                 except Exception as e:
                     PTLogger.warning(f"{device_str} error: {e}")
             else:
