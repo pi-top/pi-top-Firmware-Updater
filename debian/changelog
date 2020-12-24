@@ -1,3 +1,9 @@
+pt-firmware-updater (3.2.1) buster; urgency=medium
+
+  * Reduce logging levels when probing devices
+
+ -- Jorge Capona <jorge@pi-top.com>  Wed, 23 Dec 2020 17:36:27 -0300
+
 pt-firmware-updater (3.2.0) buster; urgency=medium
 
   * Fix hub upgrade logic
