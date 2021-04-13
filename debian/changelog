@@ -1,3 +1,170 @@
+pt-firmware-updater (3.2.2) buster; urgency=medium
+
+  [ m-roberts ]
+  * Remove shit
+
+  [ Mike Roberts ]
+  * Initial commit
+  * Add Jenkinsfile and README
+
+  [ ItsChoudhry ]
+  * Add gitignore file
+  * Update firmware files and firmware version i2c address
+  * Fix import
+  * Correct i2c address
+  * Comment out the broken firmware version checker
+  * Add script to run firmware upgrader
+  * Add new line end of file
+  * Run pre-commit checks
+  * Run autopep8 manually
+  * Correct path to firmware updater and if logic
+
+  [ Mike Roberts ]
+  * Refactor code
+  * Remove script from install file
+  * Refactor code
+  * PEP8
+  * Re-add pt-firmware-updater entry point
+  * Only reboot on success; add more prints
+  * Press ENTER
+  * Faster write, dynamic i2c address
+  * Fix bugs
+  * Add send interval parameter
+  * Run faster, fix exit, improve progress printout, use I2CDevice's internal delay mechanism
+  * Fix typos
+  * Improve readout
+  * Slow down write speed for safety
+  * Add basic error handling
+  * Bump changelog - v1.1.0
+
+  [ ItsChoudhry ]
+  * Fix python style print in bash script
+  * Correct changelog date and time
+
+  [ Choudhry Amjad ]
+  * Apply shfmt formatting
+
+  [ Mike Roberts ]
+  * pt-update -> pt-firmware-updater
+  * Add latest hub firmware bin; Application refactor, improved usability and scalability
+
+  [ Jorge Cápona ]
+  * Add foundation plate and expansion plate firmware binaries
+  * Support automatic update feature (#7)
+
+  [ Jorge Capona ]
+  * Add loop-time argument to set time between checks
+  * Add systemd service file
+  * Update changelog
+  * Update loop-time default value
+
+  [ Jorge Cápona ]
+  * OS-672 Display notifications (#10)
+
+  [ Mike Roberts ]
+  * Bump pt4_hub firmware to v3.3
+
+  [ Jorge Cápona ]
+  * Implement new flow & notifications
+
+  [ Mike Roberts ]
+  * Add and use pt-i2cdetect to detect possible pi-top firmware devices
+  * Only force update if service has not already been run before this session (#13)
+  * Bugfix import
+  * Fix changelog
+
+  [ Jorge Cápona ]
+  * Use i2cdetect to determine connection status (#14)
+  * Add force flag to update checker (#15)
+
+  [ Mike Roberts ]
+  * Use new Jenkinsfile
+  * No longer override stripping
+  * Simplify Jenkinsfile
+  * Test Devops by breaking package
+  * Revert "Test Devops by breaking package"
+  * Updated Jenkinsfile
+  * Add missing libc dependency
+  * Compat level 11
+  * Move bin files to pt-firmware-images package
+  * Update pre-commit
+  * Suppress Lintian warnings
+  * Bump changelog
+  * Quieter logging
+
+  [ Jorge Cápona ]
+  * Performance improvements (#16)
+
+  [ Mike Roberts ]
+  * Reduce logging noise (#17)
+  * fw_downloaded_successfully: Quieter and clearer logging
+  * Only print 'No firmware found in folder' when there is actually no firmware found, not just when there is nothing new to try
+  * Fix changelog
+  * Quiet!
+  * Improve output when an update is pending or there are no updates available
+  * Fix import
+  * Try and improve print-out from device scanning
+  * Fix var name
+  * Be quiet when probing for the wrong device at the same address
+  * Correctly track if device is newly connected or disconnected
+  * Make variables instance-specific, not global
+  * Create firmware updater object at the same time as device and always use that
+  * Bump changelog
+  * Use pt-firmware-images (#18)
+  * Use graphical target
+  * OS-751 Wait for breadcrumb or default 5m timeout (#19)
+  * Fix errors
+  * Bump changelog
+  * Use kwargs for setting up logging
+  * 'Upgrade' --> 'Update'
+  * Leave hub reboot breadcrumb for shutdown routine
+  * Fixes (#20)
+  * Bump changelog
+  * Disable pt-firmware-checker (temporarily)
+  * Fix changelog
+  * Add dpkg trigger to restart service on common lib update
+  * Bump changelog
+
+  [ Jorge Cápona ]
+  * MVP (#22)
+
+  [ Jorge Capona ]
+  * Wait indefinitely for user to click notification
+  * Add python3-pt-common as package dependency
+
+  [ Mike Roberts ]
+  * Compat level 12; ptcommon -> pitop.core
+
+  [ Jorge Cápona ]
+  * pitop.core -> pitop.utils, update pt-i2cdetect binary
+
+  [ Mike Roberts ]
+  * Remove debian-pyversions-is-obsolete
+  * Remove systemd-service-file-missing-documentation-key
+  * Update triggers
+  * pitop.utils -> pitopcommon
+  * Fix requirements.txt
+  * Add pt-notifications dependency
+  * Fix flake8 errors
+  * Fix syntax
+  * Add SDK dpkg trigger
+  * Skip journal logging; update function to determine connected hub
+  * Require pt-notifications
+  * Bump changelog
+  * Start after pt-device-manager
+  * Fix hub upgrades
+
+  [ Jorge Cápona ]
+  * Reduce logging levels when probing devices
+
+  [ Mike Roberts ]
+  * Allow external sources when testing shell scripts
+
+  [ Jorge Capona ]
+  * Exit with code 0 if device is not a pi-top[4] (#25)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Tue, 13 Apr 2021 16:33:12 +0000
+
 pt-firmware-updater (3.2.1) buster; urgency=medium
 
   * Reduce logging levels when probing devices
