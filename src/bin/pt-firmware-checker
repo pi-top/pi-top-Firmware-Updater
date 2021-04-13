@@ -54,7 +54,7 @@ def is_root() -> bool:
 if __name__ == '__main__':
     if device_type() != "pi-top [4]":
         PTLogger.error("This program only runs on a pi-top [4]")
-        exit(1)
+        exit(0)
 
     if not is_root():
         PTLogger.error("This program requires root privileges. Run as root using 'sudo'.")
