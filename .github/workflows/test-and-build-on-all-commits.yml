@@ -18,14 +18,14 @@ jobs:
             -e PYTHON_TARGET_DIR=src/lib \
             pitop/test-run
 
-      - name: Upload test coverage report to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          files: ./coverage.xml
-          flags: unittests
-          env_vars: OS,PYTHON
-          fail_ci_if_error: true
-          verbose: true
+#      - name: Upload test coverage report to Codecov
+#        uses: codecov/codecov-action@v1
+#        with:
+#          files: ./coverage.xml
+#          flags: unittests
+#          env_vars: OS,PYTHON
+#          fail_ci_if_error: true
+#          verbose: true
 
   build-debian-packages:
     # needs: test-coverage
