@@ -1,3 +1,9 @@
+pt-firmware-updater (3.2.2) buster; urgency=medium
+
+  * Exit with status code 0 if device is not a pi-top [4]
+
+ -- pi-top <deb-maintainers@pi-top.com>  Tue, 13 Apr 2021 16:33:12 +0000
+
 pt-firmware-updater (3.2.1) buster; urgency=medium
 
   * Reduce logging levels when probing devices
