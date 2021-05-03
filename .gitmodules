@@ -1,3 +1,0 @@
-[submodule "pt-i2cdetect/include/i2c-tools"]
-	path = pt-i2cdetect/include/i2c-tools
-	url = https://github.com/mozilla-b2g/i2c-tools/

@@ -1,3 +1,0 @@
-pt-firmware-updater: binary-without-manpage
-pt-firmware-updater: hardening-no-pie usr/bin/pt-i2cdetect
-pt-firmware-updater: arch-independent-package-contains-binary-or-object usr/bin/pt-i2cdetect
