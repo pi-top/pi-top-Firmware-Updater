@@ -16,7 +16,7 @@ from core.notification_manager import NotificationManager, UpdateStatusEnum
 
 def i2c_addr_found(device_address: int) -> bool:
     try:
-        run_command(f"pt-i2cdetect {device_address}", timeout=1, check=True, log_errors=False)
+        run_command(f"i2cping {device_address}", timeout=1, check=True, log_errors=False)
         is_connected = True
     except Exception:
         is_connected = False

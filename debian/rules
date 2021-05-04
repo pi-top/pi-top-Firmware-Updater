@@ -4,6 +4,3 @@
 
 override_dh_installsystemd:
 	dh_installsystemd --name=pt-firmware-updater
-
-override_dh_shlibdeps:
-	true
