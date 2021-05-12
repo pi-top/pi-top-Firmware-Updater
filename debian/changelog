@@ -1,3 +1,9 @@
+pt-firmware-updater (3.2.3) buster; urgency=medium
+
+  * Use `i2cping` instead of `pt-i2cdetect`
+
+ -- pi-top <deb-maintainers@pi-top.com>  Tue, 04 May 2021 12:58:25 +0000
+
 pt-firmware-updater (3.2.2) buster; urgency=medium
 
   * Exit with status code 0 if device is not a pi-top [4]
