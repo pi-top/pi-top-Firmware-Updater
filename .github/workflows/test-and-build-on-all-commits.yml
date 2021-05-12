@@ -11,11 +11,14 @@ jobs:
 
       - name: Run tests
         run: |
-          docker run --rm \
+          docker run \
+            --rm \
             --volume ${{ github.workspace }}:/src \
-            -e RUN_PYTHON_TESTS=1 \
-            -e PYTHON_TESTS_DIR=src/tests \
-            -e PYTHON_TARGET_DIR=src/lib \
+            --env RUN_PYTHON_TESTS=1 \
+            --env PYTHON_TESTS_DIR=src/tests \
+            --env PYTHON_TARGET_DIR=src/lib \
+            --env PYTHON_COVERAGE_DIR=src/lib \
+            --env DEBUG=1 \
             pitop/test-run
 
 #      - name: Upload test coverage report to Codecov
