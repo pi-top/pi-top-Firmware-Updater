@@ -1,7 +1,6 @@
 pt-firmware-updater (3.2.4) buster; urgency=medium
 
-  [ Jorge Capona ]
-  * Handle invalid expansion plate update schema version (#30)
+  * Handle invalid expansion plate update schema version
 
  -- pi-top <deb-maintainers@pi-top.com>  Thu, 17 Jun 2021 13:42:47 +0000
 
