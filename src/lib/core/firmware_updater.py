@@ -61,6 +61,7 @@ class FirmwareUpdater(object):
         success = True
 
         if self.device_info.device_name == "pt4_hub" \
+                or self.device_info.device_name == "pt4_expansion_plate" \
                 or self.device.get_fw_version_update_schema() == 0:
             requires_restart = True
             return success, requires_restart
