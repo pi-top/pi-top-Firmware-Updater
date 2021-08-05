@@ -4,13 +4,13 @@ from subprocess import getoutput
 from time import sleep
 from typing import List
 
-from pitopcommon.command_runner import run_command
-from pitopcommon.firmware_device import (
+from pitop.common.command_runner import run_command
+from pitop.common.firmware_device import (
     FirmwareDevice,
     PTInvalidFirmwareDeviceException,
 )
-from pitopcommon.lock import PTLock
-from pitopcommon.logger import PTLogger
+from pitop.common.lock import PTLock
+from pitop.common.logger import PTLogger
 
 from core.firmware_file_object import FirmwareFileObject
 

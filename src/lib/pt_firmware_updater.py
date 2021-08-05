@@ -2,12 +2,12 @@
 import os
 from typing import Tuple
 
-from pitopcommon.command_runner import run_command
-from pitopcommon.common_ids import FirmwareDeviceID
-from pitopcommon.firmware_device import PTInvalidFirmwareDeviceException
-from pitopcommon.firmware_device import FirmwareDevice
-from pitopcommon.lock import PTLock
-from pitopcommon.logger import PTLogger
+from pitop.common.command_runner import run_command
+from pitop.common.common_ids import FirmwareDeviceID
+from pitop.common.firmware_device import PTInvalidFirmwareDeviceException
+from pitop.common.firmware_device import FirmwareDevice
+from pitop.common.lock import PTLock
+from pitop.common.logger import PTLogger
 
 from core.firmware_file_object import FirmwareFileObject
 from core.firmware_updater import FirmwareUpdater, PTInvalidFirmwareFile, PTUpdatePending

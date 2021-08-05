@@ -3,8 +3,8 @@ from os import makedirs, path
 from shutil import copyfile
 from time import sleep
 
-from pitopcommon.firmware_device import DeviceInfo, FirmwareDevice
-from pitopcommon.logger import PTLogger
+from pitop.common.firmware_device import DeviceInfo, FirmwareDevice
+from pitop.common.logger import PTLogger
 
 from .packet_manager import PacketManager, PacketType
 from .firmware_file_object import FirmwareFileObject

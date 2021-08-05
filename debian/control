@@ -19,7 +19,6 @@ Depends:
 # Required for 'pt-notify-send', handled by common lib
  pt-notifications,
  python3-pitop,
- python3-pitopcommon,
  python3-pyinotify,
 Description: pi-top Firmware Updater
  This package provides a background service that
