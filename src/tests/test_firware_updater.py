@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch, ANY
 mock_command_runner = modules["pitopcommon.command_runner"] = Mock()
 mock_logger = modules["pitopcommon.logger"] = Mock()
 mock_i2c = modules["pitopcommon.i2c_device"] = Mock()
-mock_pycrc = modules["PyCRC.CRC16Kermit"] = Mock()
 
 import core.notification_manager  # noqa: E402
 import pt_firmware_updater as pt_firmware_updater  # noqa: E402

@@ -20,7 +20,6 @@ Depends:
  pt-notifications,
  python3-pitop,
  python3-pitopcommon,
- python3-pycrc,
  python3-pyinotify,
 Description: pi-top Firmware Updater
  This package provides a background service that
