@@ -1,5 +1,5 @@
 import binascii
-from PyCRC.CRC16Kermit import CRC16Kermit
+from .crc import CRC16Kermit
 
 
 def get_crc16(frame_data):
