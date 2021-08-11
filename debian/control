@@ -17,7 +17,7 @@ Depends:
  i2c-tools-extra,
  pt-firmware-images,
 # Required for 'pt-notify-send', handled by common lib
- pt-notifications,
+ pt-os-notifications,
  python3-pitop,
  python3-pyinotify,
 Description: pi-top Firmware Updater
