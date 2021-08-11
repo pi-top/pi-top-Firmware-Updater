@@ -23,7 +23,8 @@ class ActionEnum(Enum):
 class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
-    __HUB_REBOOT_CMD = "touch /tmp/pt-poweroff.reboot && env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
+    __HUB_REBOOT_CMD = "touch /tmp/.com.pi-top.pt-device-manager.pt-poweroff.reboot-on-shutdown && "
+    "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
     __FW_UPDATE_CMD = "echo OK"
 
     MESSAGE_DATA = {
