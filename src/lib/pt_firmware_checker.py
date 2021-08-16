@@ -33,8 +33,8 @@ def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) ->
         return
 
     PTLogger.info("Waiting {} seconds.".format(wait_timeout))
-    ready_breadcrumb = Path("/tmp/pt-firmware-updater.ready")
-    extend_timeout_breadcrumb = Path("/tmp/pt-firmware-updater.extend-timeout")
+    ready_breadcrumb = Path("/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.ready")
+    extend_timeout_breadcrumb = Path("/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.extend-timeout")
     wait_time = 0
     was_using_extended_timeout = extend_timeout_breadcrumb.is_file()
 
