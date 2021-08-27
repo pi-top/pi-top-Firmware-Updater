@@ -4,13 +4,13 @@ from subprocess import getoutput
 from time import sleep
 from typing import List
 
-from pitopcommon.command_runner import run_command
-from pitopcommon.firmware_device import (
+from pitop.common.command_runner import run_command
+from pitop.common.firmware_device import (
     FirmwareDevice,
     PTInvalidFirmwareDeviceException,
 )
-from pitopcommon.lock import PTLock
-from pitopcommon.logger import PTLogger
+from pitop.common.lock import PTLock
+from pitop.common.logger import PTLogger
 
 from core.firmware_file_object import FirmwareFileObject
 
@@ -20,21 +20,21 @@ processed_firmware_files = {}
 fw_device_cache = {}
 
 
-def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) -> None:
-    os_updater_is_active = (getoutput("systemctl is-active pt-os-updater") == "active")
-    os_updater_is_enabled = (getoutput("systemctl is-enabled pt-os-updater") == "enabled")
-    wait_for_os_updater = os_updater_is_active or os_updater_is_enabled
-    PTLogger.info("OS updater is active? {}".format(os_updater_is_active))
-    PTLogger.info("OS updater is enabled? {}".format(os_updater_is_enabled))
-    PTLogger.info("Wait for OS updater to report that it is ready to start a firmware update? {}".format(wait_for_os_updater))
+def wait_for_pt_web_portal_if_required(wait_timeout: int, max_wait_timeout: int) -> None:
+    web_portal_is_active = (getoutput("systemctl is-active pt-os-web-portal") == "active")
+    web_portal_is_enabled = (getoutput("systemctl is-enabled pt-os-web-portal") == "enabled")
+    wait_for_web_portal = web_portal_is_active or web_portal_is_enabled
+    PTLogger.info("pt-os-web-portal is active? {}".format(web_portal_is_active))
+    PTLogger.info("pt-os-web-portal is enabled? {}".format(web_portal_is_enabled))
+    PTLogger.info("Wait for pt-os-web-portal to report that it is ready to start a firmware update? {}".format(wait_for_web_portal))
 
-    if not wait_for_os_updater:
+    if not wait_for_web_portal:
         PTLogger.info("Nothing to wait for - continuing...")
         return
 
     PTLogger.info("Waiting {} seconds.".format(wait_timeout))
-    ready_breadcrumb = Path("/tmp/pt-firmware-updater.ready")
-    extend_timeout_breadcrumb = Path("/tmp/pt-firmware-updater.extend-timeout")
+    ready_breadcrumb = Path("/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.ready")
+    extend_timeout_breadcrumb = Path("/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.extend-timeout")
     wait_time = 0
     was_using_extended_timeout = extend_timeout_breadcrumb.is_file()
 
@@ -59,10 +59,10 @@ def wait_for_os_updater_if_required(wait_timeout: int, max_wait_timeout: int) ->
         sleep(1)
 
     if ready_breadcrumb.is_file():
-        PTLogger.info("OS updater has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, wait_timeout))
+        PTLogger.info("pt-os-web-portal has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, wait_timeout))
         PTLogger.info("Reason: {}".format(ready_breadcrumb.read_text()))
     else:
-        PTLogger.info("OS updater did not report that it is ready for pi-top firmware checks - timed out.")
+        PTLogger.info("pt-os-web-portal did not report that it is ready for pi-top firmware checks - timed out.")
 
 
 def get_pi_top_fw_devices() -> List[dict]:
@@ -151,7 +151,7 @@ def check_and_update(device_enum):
 
 
 def main(parsed_args) -> None:
-    wait_for_os_updater_if_required(parsed_args.wait_timeout, parsed_args.max_wait_timeout)
+    wait_for_pt_web_portal_if_required(parsed_args.wait_timeout, parsed_args.max_wait_timeout)
 
     pi_top_fw_devices_data = get_pi_top_fw_devices()
     while True:

@@ -1,9 +1,9 @@
 from enum import Enum, auto
 
-from pitopcommon.common_ids import FirmwareDeviceID
-from pitopcommon.common_names import FirmwareDeviceName
-from pitopcommon.logger import PTLogger
-from pitopcommon.notifications import send_notification, NotificationActionManager
+from pitop.common.common_ids import FirmwareDeviceID
+from pitop.common.common_names import FirmwareDeviceName
+from pitop.common.logger import PTLogger
+from pitop.common.notifications import send_notification, NotificationActionManager
 
 
 class UpdateStatusEnum(Enum):
@@ -23,7 +23,8 @@ class ActionEnum(Enum):
 class NotificationManager(object):
     NOTIFICATION_TITLE = "Firmware Device Update"
     __REBOOT_CMD = "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
-    __HUB_REBOOT_CMD = "touch /tmp/pt-poweroff.reboot && env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
+    __HUB_REBOOT_CMD = "touch /tmp/.com.pi-top.pt-device-manager.pt-poweroff.reboot-on-shutdown && "
+    "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
     __FW_UPDATE_CMD = "echo OK"
 
     MESSAGE_DATA = {

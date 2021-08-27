@@ -3,8 +3,8 @@ from argparse import ArgumentParser
 from os import geteuid
 from sys import path
 
-from pitopcommon.firmware_device import FirmwareDevice
-from pitopcommon.logger import PTLogger
+from pitop.common.firmware_device import FirmwareDevice
+from pitop.common.logger import PTLogger
 from pitop.system import device_type
 
 path.append("/usr/lib/pt-firmware-updater/")

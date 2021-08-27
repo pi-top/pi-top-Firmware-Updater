@@ -2,9 +2,9 @@ import os
 import re
 from distutils.version import StrictVersion
 
-from pitopcommon.common_ids import FirmwareDeviceID
-from pitopcommon.firmware_device import FirmwareDevice
-from pitopcommon.logger import PTLogger
+from pitop.common.common_ids import FirmwareDeviceID
+from pitop.common.firmware_device import FirmwareDevice
+from pitop.common.logger import PTLogger
 
 
 class FirmwareFileObject(object):
