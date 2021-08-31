@@ -15,9 +15,10 @@ Depends:
  ${python3:Depends},
 # 'i2cping' command
  i2c-tools-extra,
+# Uses notifications (uses SDK for actual implementation,
+# which doesn't require notify-send as a dependency)
+ notify-send-ng,
  pt-firmware-images,
-# Required for 'pt-notify-send', handled by common lib
- pt-os-notifications,
  python3-pitop,
  python3-pyinotify,
 Description: pi-top Firmware Updater
