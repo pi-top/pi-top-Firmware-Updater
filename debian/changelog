@@ -1,4 +1,4 @@
-pt-firmware-updater (3.2.5) bullseye; urgency=medium
+pt-firmware-updater (3.2.5-1) bullseye; urgency=medium
 
   * Vendor python3-pycrc (#34)
   * Bullseye (#36)
