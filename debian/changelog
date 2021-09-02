@@ -1,4 +1,4 @@
-pt-firmware-updater (3.2.5) buster; urgency=medium
+pt-firmware-updater (3.2.5) bullseye; urgency=medium
 
   * Update workflow files
   * New workflows (#33)
