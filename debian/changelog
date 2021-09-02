@@ -1,14 +1,9 @@
 pt-firmware-updater (3.2.5) bullseye; urgency=medium
 
-  * Update workflow files
-  * New workflows (#33)
-  * Update master workflow files
-  * Update master workflow files
   * Vendor python3-pycrc (#34)
   * Bullseye (#36)
-  * Updated master workflow files
   * Depend on notify-send-ng
-  * Updated master workflow files
+  * Update master workflow files
 
  -- pi-top <deb-maintainers@pi-top.com>  Wed, 01 Sep 2021 20:47:53 +0000
 
