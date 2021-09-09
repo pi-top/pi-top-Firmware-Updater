@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     parsed_args = parser.parse_args()
     PTLogger.setup_logging(logger_name="pt-firmware-updater",
-                           logging_level=parsed_args.log_level, log_to_journal=False)
+                           logging_level=parsed_args.log_level)
     try:
         pt_firmware_checker.main(parsed_args)
     except Exception as e:
