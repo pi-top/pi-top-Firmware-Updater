@@ -1,4 +1,4 @@
-pt-firmware-updater (3.2.5-2) bullseye; urgency=medium
+pt-firmware-updater (3.3.0-1) bullseye; urgency=medium
 
   * Drop default log_to_journal
   * Use 'pi-topd' breadcrumb (#38)
