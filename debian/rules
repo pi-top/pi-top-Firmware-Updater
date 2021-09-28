@@ -1,6 +1,9 @@
 #!/usr/bin/make -f
-%:
-	dh $@
 
-override_dh_installsystemd:
-	dh_installsystemd --name=pt-firmware-updater
+export PYBUILD_NAME=pt_fw_updater
+
+%:
+	dh $@ --buildsystem=pybuild
+
+override_dh_auto_test:
+	# Don't run the tests!
