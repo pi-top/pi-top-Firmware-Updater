@@ -1,3 +1,9 @@
+pt-firmware-updater (4.0.0-1) bullseye; urgency=medium
+
+  * Rework as pybuild application (#40)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Tue, 28 Sep 2021 10:45:24 +0000
+
 pt-firmware-updater (3.3.0-1) bullseye; urgency=medium
 
   * Drop default log_to_journal
