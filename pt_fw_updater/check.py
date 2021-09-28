@@ -187,10 +187,9 @@ def check_and_update(device_enum):
         run_firmware_updater(device_str, fw_file_object.path)
 
 
-def main(parsed_args) -> None:
-    wait_for_pt_web_portal_if_required(
-        parsed_args.wait_timeout, parsed_args.max_wait_timeout
-    )
+def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
+    if not force:
+        wait_for_pt_web_portal_if_required(wait_timeout, max_wait_timeout)
 
     pi_top_fw_devices_data = get_pi_top_fw_devices()
     while True:
@@ -216,7 +215,5 @@ def main(parsed_args) -> None:
                 if device_str in fw_device_cache:
                     processed_firmware_files[device_str] = None
 
-        PTLogger.debug(
-            "Sleeping for {} secs before next check.".format(parsed_args.loop_time)
-        )
-        sleep(parsed_args.loop_time)
+        PTLogger.debug("Sleeping for {} secs before next check.".format(loop_time))
+        sleep(loop_time)

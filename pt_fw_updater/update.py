@@ -37,9 +37,9 @@ def get_device_data(device_str: str):
     return id, addr
 
 
-def create_firmware_device(device_id: FirmwareDeviceID):
+def create_firmware_device(device_id: FirmwareDeviceID, interval: float):
     try:
-        return FirmwareDevice(device_id)
+        return FirmwareDevice(device_id, send_packet_interval=interval)
     except (ConnectionError, AttributeError) as e:
         PTLogger.warning(
             "{} - Exception when attempting to create firmware device: {}".format(
@@ -62,8 +62,8 @@ def create_firmware_device(device_id: FirmwareDeviceID):
         raise
 
 
-def create_fw_updater_object(device_id: FirmwareDeviceID):
-    fw_device = create_firmware_device(device_id)
+def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float):
+    fw_device = create_firmware_device(device_id, interval)
     try:
         return FirmwareUpdater(fw_device)
     except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
@@ -98,25 +98,18 @@ def apply_update(fw_updater: FirmwareUpdater) -> Tuple:
         raise
 
 
-def main(parsed_args) -> None:
-    PTLogger.setup_logging(
-        logger_name="pt-firmware-updater",
-        logging_level=parsed_args.log_level,
-        log_to_journal=True,
-    )
-    PTLogger.debug("Starting pt-firmware-updater")
+def main(device, force, interval, path, notify_user) -> None:
+    if not os.path.isfile(path):
+        raise ValueError(f"{path} isn't a valid file.")
 
-    if not os.path.isfile(parsed_args.path):
-        raise ValueError(f"{parsed_args.path} isn't a valid file.")
-
-    device_id, device_addr = get_device_data(parsed_args.device)
+    device_id, device_addr = get_device_data(device)
     if not i2c_addr_found(device_addr):
-        raise ConnectionError(f"Device {parsed_args.device} not detected")
+        raise ConnectionError(f"Device {device} not detected")
 
-    fw_updater = create_fw_updater_object(device_id)
-    stage_update(fw_updater, parsed_args.path, parsed_args.force)
+    fw_updater = create_fw_updater_object(device_id, interval)
+    stage_update(fw_updater, path, force)
 
-    if parsed_args.notify_user:
+    if notify_user:
         notification_manager = NotificationManager()
         user_response = notification_manager.notify_user(
             UpdateStatusEnum.PROMPT, device_id
@@ -127,7 +120,7 @@ def main(parsed_args) -> None:
             return
         notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
 
-    lock_file = PTLock(parsed_args.device)
+    lock_file = PTLock(device)
     with lock_file:
         success, requires_restart = apply_update(fw_updater)
 
@@ -142,7 +135,7 @@ def main(parsed_args) -> None:
             "A problem was encountered while attempting to upgrade. Please reboot and try again"
         )
 
-    if parsed_args.notify_user:
+    if notify_user:
         status = UpdateStatusEnum.FAILURE
         if success and requires_restart:
             status = UpdateStatusEnum.SUCCESS_REQUIRES_RESTART
