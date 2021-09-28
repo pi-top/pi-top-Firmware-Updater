@@ -34,7 +34,6 @@ def handle_exit_cases():
 )
 @click.option(
     "--loop-time",
-    type=int,
     help="Sets the time interval in seconds that the script will wait before each update check.",
     default=3,
     type=click.IntRange(1, 300),
@@ -42,7 +41,6 @@ def handle_exit_cases():
 @click.option(
     "-t",
     "--wait-timeout",
-    type=int,
     help="Amount of time (in seconds) to wait for web portal to report that firmware updates can start, excluding an OS (system packages) upgrade.",
     default=300,
     type=click.IntRange(0, 999),
@@ -50,7 +48,6 @@ def handle_exit_cases():
 @click.option(
     "-m",
     "--max-wait-timeout",
-    type=int,
     help="Maximum time (in seconds) to wait for web portal to report that firmware updates can start, including an OS (system packages) upgrade.",
     default=3600,
     type=click.IntRange(0, 9999),
