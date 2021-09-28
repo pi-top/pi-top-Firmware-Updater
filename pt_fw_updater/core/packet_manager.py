@@ -27,9 +27,12 @@ class PacketManager(object):
             return self._create_fw_packets()
 
     def read_fw_download_verified_packet(self, packet):
-        hex_of_packet = binascii.hexlify(packet.to_bytes(8, byteorder='big')).decode("utf-8")
+        hex_of_packet = binascii.hexlify(packet.to_bytes(8, byteorder="big")).decode(
+            "utf-8"
+        )
         packet_crc_val = PacketManager._validate_and_return_crc_of_received_packet(
-            hex_of_packet)
+            hex_of_packet
+        )
         PacketManager._check_first_byte_of_received_packet(hex_of_packet)
         hex_of_packet = hex_of_packet[10:]
         data_section = int(hex_of_packet.replace(packet_crc_val, ""))
@@ -39,12 +42,12 @@ class PacketManager(object):
         if self.bin_file is None:
             raise Exception("No binary file specified")
 
-        fw_size = PacketManager._int_to_hex_string(
-            os.path.getsize(self.bin_file), 4)
+        fw_size = PacketManager._int_to_hex_string(os.path.getsize(self.bin_file), 4)
         frame_size = PacketManager._int_to_hex_string(self.frame_length, 2)
         total_frames = PacketManager._int_to_hex_string(len(self._get_frames_list()), 2)
         last_frame = PacketManager._int_to_hex_string(
-            len(self._get_frames_list()[-1]), 2)
+            len(self._get_frames_list()[-1]), 2
+        )
         fw_checksum = self._get_firmware_checksum()
         reserved = PacketManager._int_to_hex_string(0, 2)
         return FrameCreator.create_initialising_frame(
@@ -62,7 +65,9 @@ class PacketManager(object):
     @staticmethod
     def _check_first_byte_of_received_packet(hex_of_packet):
         if "8a" not in hex_of_packet[:2]:
-            raise ValueError("First byte (8A) not found in received packet: {}".format(hex_of_packet))
+            raise ValueError(
+                "First byte (8A) not found in received packet: {}".format(hex_of_packet)
+            )
 
     @staticmethod
     def _validate_and_return_crc_of_received_packet(hex_of_packet):
@@ -95,7 +100,7 @@ class PacketManager(object):
             file_data = f.read()
         file_size = len(file_data)
         frames_list = [
-            file_data[i: i + self.frame_length]
+            file_data[i : i + self.frame_length]  # noqa
             for i in range(0, file_size, self.frame_length)
         ]
         return frames_list

@@ -12,29 +12,40 @@ from pitop.common.firmware_device import (
 from pitop.common.lock import PTLock
 from pitop.common.logger import PTLogger
 
-from core.firmware_file_object import FirmwareFileObject
-
+from .core.firmware_file_object import FirmwareFileObject
 
 devices_notified_this_session = []
 processed_firmware_files = {}
 fw_device_cache = {}
 
 
-def wait_for_pt_web_portal_if_required(wait_timeout: int, max_wait_timeout: int) -> None:
-    web_portal_is_active = (getoutput("systemctl is-active pt-os-web-portal") == "active")
-    web_portal_is_enabled = (getoutput("systemctl is-enabled pt-os-web-portal") == "enabled")
+def wait_for_pt_web_portal_if_required(
+    wait_timeout: int, max_wait_timeout: int
+) -> None:
+    web_portal_is_active = getoutput("systemctl is-active pt-os-web-portal") == "active"
+    web_portal_is_enabled = (
+        getoutput("systemctl is-enabled pt-os-web-portal") == "enabled"
+    )
     wait_for_web_portal = web_portal_is_active or web_portal_is_enabled
     PTLogger.info("pt-os-web-portal is active? {}".format(web_portal_is_active))
     PTLogger.info("pt-os-web-portal is enabled? {}".format(web_portal_is_enabled))
-    PTLogger.info("Wait for pt-os-web-portal to report that it is ready to start a firmware update? {}".format(wait_for_web_portal))
+    PTLogger.info(
+        "Wait for pt-os-web-portal to report that it is ready to start a firmware update? {}".format(
+            wait_for_web_portal
+        )
+    )
 
     if not wait_for_web_portal:
         PTLogger.info("Nothing to wait for - continuing...")
         return
 
     PTLogger.info("Waiting {} seconds.".format(wait_timeout))
-    ready_breadcrumb = Path("/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.ready")
-    extend_timeout_breadcrumb = Path("/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.extend-timeout")
+    ready_breadcrumb = Path(
+        "/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.ready"
+    )
+    extend_timeout_breadcrumb = Path(
+        "/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.extend-timeout"
+    )
     wait_time = 0
     was_using_extended_timeout = extend_timeout_breadcrumb.is_file()
 
@@ -43,7 +54,9 @@ def wait_for_pt_web_portal_if_required(wait_timeout: int, max_wait_timeout: int)
         is_using_extended_timeout = extend_timeout_breadcrumb.is_file()
 
         if is_using_extended_timeout and not was_using_extended_timeout:
-            PTLogger.info("Extending timeout - using 'max-wait-timeout', not 'wait-timeout'")
+            PTLogger.info(
+                "Extending timeout - using 'max-wait-timeout', not 'wait-timeout'"
+            )
 
         if wait_time <= wait_timeout or is_using_extended_timeout:
             PTLogger.debug("Wait time: {}s/{}s".format(wait_time, max_wait_timeout))
@@ -59,10 +72,16 @@ def wait_for_pt_web_portal_if_required(wait_timeout: int, max_wait_timeout: int)
         sleep(1)
 
     if ready_breadcrumb.is_file():
-        PTLogger.info("pt-os-web-portal has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(wait_time, wait_timeout))
+        PTLogger.info(
+            "pt-os-web-portal has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(
+                wait_time, wait_timeout
+            )
+        )
         PTLogger.info("Reason: {}".format(ready_breadcrumb.read_text()))
     else:
-        PTLogger.info("pt-os-web-portal did not report that it is ready for pi-top firmware checks - timed out.")
+        PTLogger.info(
+            "pt-os-web-portal did not report that it is ready for pi-top firmware checks - timed out."
+        )
 
 
 def get_pi_top_fw_devices() -> List[dict]:
@@ -71,7 +90,9 @@ def get_pi_top_fw_devices() -> List[dict]:
 
 def i2c_addr_found(device_address: int) -> bool:
     try:
-        run_command(f"i2cping {device_address}", timeout=1, check=True, log_errors=False)
+        run_command(
+            f"i2cping {device_address}", timeout=1, check=True, log_errors=False
+        )
         is_connected = True
     except Exception:
         is_connected = False
@@ -97,9 +118,13 @@ def default_firmware_folder(device_str: str) -> str:
     return DEFAULT_FIRMWARE_FOLDER_BASE + device_str
 
 
-def find_latest_firmware(path_to_fw_folder: str, firmware_device: FirmwareDevice) -> str:
+def find_latest_firmware(
+    path_to_fw_folder: str, firmware_device: FirmwareDevice
+) -> str:
     if not os.path.exists(path_to_fw_folder):
-        raise FileNotFoundError("Firmware path {} doesn't exist.".format(path_to_fw_folder))
+        raise FileNotFoundError(
+            "Firmware path {} doesn't exist.".format(path_to_fw_folder)
+        )
 
     firmware_object = FirmwareFileObject.from_device(firmware_device)
 
@@ -109,13 +134,21 @@ def find_latest_firmware(path_to_fw_folder: str, firmware_device: FirmwareDevice
             if already_processed_file(entry.path, firmware_device.str_name):
                 continue
             fw_object = FirmwareFileObject.from_file(entry.path)
-            if fw_object.verify(firmware_object.device_name, firmware_object.schematic_version):
-                if candidate_latest_fw_object is None or FirmwareFileObject.is_newer(candidate_latest_fw_object, fw_object, quiet=True):
+            if fw_object.verify(
+                firmware_object.device_name, firmware_object.schematic_version
+            ):
+                if candidate_latest_fw_object is None or FirmwareFileObject.is_newer(
+                    candidate_latest_fw_object, fw_object, quiet=True
+                ):
                     candidate_latest_fw_object = fw_object
-                    PTLogger.debug(f"Current latest firmware available is version {candidate_latest_fw_object.firmware_version}")
+                    PTLogger.debug(
+                        f"Current latest firmware available is version {candidate_latest_fw_object.firmware_version}"
+                    )
 
     if candidate_latest_fw_object:
-        PTLogger.info(f"Latest firmware available is version {candidate_latest_fw_object.firmware_version}")
+        PTLogger.info(
+            f"Latest firmware available is version {candidate_latest_fw_object.firmware_version}"
+        )
     return candidate_latest_fw_object
 
 
@@ -125,7 +158,9 @@ def is_valid_fw_object(fw_file_object: FirmwareFileObject) -> bool:
 
 def run_firmware_updater(device_str: str, path_to_fw_object: str) -> int:
     FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
-    command_str = f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}"
+    command_str = (
+        f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}"
+    )
     PTLogger.info(f"Running command: {command_str}")
     run_command(command_str, timeout=None)
     devices_notified_this_session.append(device_str)
@@ -134,7 +169,9 @@ def run_firmware_updater(device_str: str, path_to_fw_object: str) -> int:
 def check_and_update(device_enum):
     lock = PTLock(device_enum.name)
     if lock.is_locked():
-        PTLogger.warning(f"Already running an operation on {device_enum.name}... skipping")
+        PTLogger.warning(
+            f"Already running an operation on {device_enum.name}... skipping"
+        )
         return
 
     device_str = device_enum.name
@@ -150,8 +187,9 @@ def check_and_update(device_enum):
         run_firmware_updater(device_str, fw_file_object.path)
 
 
-def main(parsed_args) -> None:
-    wait_for_pt_web_portal_if_required(parsed_args.wait_timeout, parsed_args.max_wait_timeout)
+def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
+    if not force:
+        wait_for_pt_web_portal_if_required(wait_timeout, max_wait_timeout)
 
     pi_top_fw_devices_data = get_pi_top_fw_devices()
     while True:
@@ -177,5 +215,5 @@ def main(parsed_args) -> None:
                 if device_str in fw_device_cache:
                     processed_firmware_files[device_str] = None
 
-        PTLogger.debug('Sleeping for {} secs before next check.'.format(parsed_args.loop_time))
-        sleep(parsed_args.loop_time)
+        PTLogger.debug("Sleeping for {} secs before next check.".format(loop_time))
+        sleep(loop_time)
