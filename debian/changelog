@@ -1,11 +1,5 @@
-pt-firmware-updater (3.3.0-2) bullseye; urgency=medium
+pt-firmware-updater (4.0.0-1) bullseye; urgency=medium
 
-  * Updated master workflow files
-  * Updated master workflow files
-  * Drop default log_to_journal
-  * Use 'pi-topd' breadcrumb (#38)
-  * Fix shellcheck on pre-commit.ci (#39)
-  * New changelog entry: v3.3.0-1 (#37)
   * Rework as pybuild application (#40)
 
  -- pi-top <deb-maintainers@pi-top.com>  Tue, 28 Sep 2021 10:45:24 +0000
