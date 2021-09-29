@@ -56,19 +56,15 @@ def do_check(force, loop_time, wait_timeout, max_wait_timeout):
     handle_exit_cases()
     PTLogger.setup_logging(logger_name="pt-firmware-updater")
     try:
-        check.main(loop_time, wait_timeout, max_wait_timeout)
+        check.main(force, loop_time, wait_timeout, max_wait_timeout)
     except Exception as e:
         PTLogger.error(f"{e}")
         exit(1)
 
 
 @click.command()
-@click.option(
-    "device",
-    help="pi-top firmware device to apply firmware update to. "
-    "Valid devices are {}".format(
-        [dev.name for dev in FirmwareDevice.valid_device_ids()]
-    ),
+@click.argument(
+    "device", type=click.Choice([dev.name for dev in FirmwareDevice.valid_device_ids()])
 )
 @click.option("-f", "--force", help="Skip internal checks of fw file", is_flag=True)
 @click.option(
