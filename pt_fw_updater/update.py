@@ -86,7 +86,7 @@ def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool)
         raise
 
 
-def apply_update(fw_updater: FirmwareUpdater) -> Tuple:
+def apply_update(fw_updater: FirmwareUpdater) -> Tuple[bool, bool]:
     try:
         if fw_updater.has_staged_updates():
             return fw_updater.install_updates()
@@ -96,6 +96,7 @@ def apply_update(fw_updater: FirmwareUpdater) -> Tuple:
     except Exception as e:
         PTLogger.error("Generic exception while trying to update: {}".format(e))
         raise
+    return True, False
 
 
 def main(device, force, interval, path, notify_user) -> None:

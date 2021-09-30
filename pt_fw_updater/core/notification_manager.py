@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Dict
 
 from pitop.common.common_ids import FirmwareDeviceID
 from pitop.common.common_names import FirmwareDeviceName
@@ -81,7 +82,7 @@ class NotificationManager(object):
         },
     }
 
-    __notification_ids = {}
+    __notification_ids: Dict[FirmwareDeviceID, int] = dict()
 
     def notify_user(
         self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID
@@ -155,11 +156,11 @@ class NotificationManager(object):
         self, update_enum: UpdateStatusEnum, device_id: FirmwareDeviceID
     ) -> NotificationActionManager:
         action_manager = None
-        if len(self.MESSAGE_DATA[update_enum]["actions"]) == 0:
+        if len(self.MESSAGE_DATA[update_enum]["actions"]) == 0:  # type: ignore
             return action_manager
 
         action_manager = NotificationActionManager()
-        for action in self.MESSAGE_DATA[update_enum]["actions"]:
+        for action in self.MESSAGE_DATA[update_enum]["actions"]:  # type: ignore
             action_enum = action.get("command")
             if action_enum is None:
                 continue
