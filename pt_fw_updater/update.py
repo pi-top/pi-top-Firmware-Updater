@@ -86,19 +86,21 @@ def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool)
         raise
 
 
-def apply_update(fw_updater: FirmwareUpdater) -> Tuple:
+def apply_update(fw_updater: FirmwareUpdater) -> Tuple[bool, bool]:
     try:
         if fw_updater.has_staged_updates():
-            return fw_updater.install_updates()
+            success, requires_restart = fw_updater.install_updates()
+            return success, requires_restart
     except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
         PTLogger.warning("Exception while trying to update: {}".format(e))
         raise
     except Exception as e:
         PTLogger.error("Generic exception while trying to update: {}".format(e))
         raise
+    return True, False
 
 
-def main(device, force, interval, path, notify_user) -> None:
+def main(device, force=False, interval=0.1, path="", notify_user=True) -> None:
     if not os.path.isfile(path):
         raise ValueError(f"{path} isn't a valid file.")
 

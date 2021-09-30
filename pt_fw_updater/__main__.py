@@ -32,6 +32,8 @@ def handle_exit_cases():
     help="Forces firmware update check and applies to all devices.",
     is_flag=True,
 )
+@click.option("--notify-user")
+@click.option("-d", "--daemon", is_flag=True)
 @click.option(
     "--loop-time",
     help="Sets the time interval in seconds that the script will wait before each update check.",
@@ -52,11 +54,14 @@ def handle_exit_cases():
     default=3600,
     type=click.IntRange(0, 9999),
 )
-def do_check(force, loop_time, wait_timeout, max_wait_timeout):
+def do_check(force, notify_user, daemon, loop_time, wait_timeout, max_wait_timeout):
     handle_exit_cases()
     PTLogger.setup_logging(logger_name="pt-firmware-updater")
     try:
-        check.main(force, loop_time, wait_timeout, max_wait_timeout)
+        if daemon:
+            check.main(force, notify_user, loop_time, wait_timeout, max_wait_timeout)
+        else:
+            check.do_check(notify_user)
     except Exception as e:
         PTLogger.error(f"{e}")
         exit(1)
@@ -87,17 +92,17 @@ def do_check(force, loop_time, wait_timeout, max_wait_timeout):
 @click.option(
     "-n",
     "--notify-user",
-    help="Make update interactive by displaying desktop notifcations to the user",
+    help="Make update interactive by displaying desktop notifications to the user",
     is_flag=True,
 )
-def do_update(device, force, interval, path, notify_user):
+def do_update(device, force, interval, path):
     handle_exit_cases()
     PTLogger.setup_logging(
         logger_name="pt-firmware-updater",
         log_to_journal=True,
     )
     try:
-        update.main(device, force, interval, path, notify_user)
+        update.main(device, force, interval, path)
     except Exception as e:
         PTLogger.error(f"{e}")
         exit(1)

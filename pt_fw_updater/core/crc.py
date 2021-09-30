@@ -3,9 +3,6 @@
 # This file is taken from pythoncrc 1.21 (https://pypi.org/project/pythoncrc/)
 # to avoid needing to package it for Debian
 
-# It should be removed when this is built as a fully standalone Python application that is
-# then packaged for Debian
-
 
 #
 # CRC16Kermit (CRC-CCITT (Kermit)) MODULE
@@ -13,10 +10,11 @@
 
 
 from ctypes import c_ushort
+from typing import List
 
 
 class CRC16Kermit(object):
-    crc16kermit_tab = []
+    crc16kermit_tab: List[str] = list()
 
     # The CRC's are computed using polynomials. Here is the most used
     # coefficient for CRC16 SICK

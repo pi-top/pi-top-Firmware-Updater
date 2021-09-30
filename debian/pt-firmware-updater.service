@@ -9,7 +9,7 @@ Type=simple
 Restart=on-failure
 Environment="PYTHONUNBUFFERED=1"
 Environment="PYTHONDONTWRITEBYTECODE=1"
-ExecStart=/usr/bin/pt-firmware-checker
+ExecStart=/usr/bin/pt-firmware-checker --daemon
 
 [Install]
 WantedBy=graphical.target
