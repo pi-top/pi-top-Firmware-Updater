@@ -1,8 +1,6 @@
 # -*- coding: utf8 -*-
 
 # This file is taken from pythoncrc 1.21 (https://pypi.org/project/pythoncrc/)
-# to avoid needing to package it for Debian
-
 
 #
 # CRC16Kermit (CRC-CCITT (Kermit)) MODULE

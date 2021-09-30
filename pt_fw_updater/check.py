@@ -84,7 +84,7 @@ def wait_for_pt_web_portal_if_required(
         )
 
 
-def get_pi_top_fw_devices() -> List[dict]:
+def get_pi_top_fw_devices() -> dict:
     return FirmwareDevice.device_info
 
 
@@ -106,7 +106,7 @@ def already_notified_this_session(device_str: str) -> bool:
 def already_processed_file(file_path: str, device_str: str) -> bool:
     processed_files = processed_firmware_files.get(device_str)
     if processed_files is None:
-        processed_firmware_files[device_str] = []
+        processed_firmware_files[device_str] = list()
     elif file_path in processed_files:
         return True
     processed_firmware_files[device_str].append(file_path)
