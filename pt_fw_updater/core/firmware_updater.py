@@ -2,6 +2,7 @@ from hashlib import md5
 from os import makedirs, path
 from shutil import copyfile
 from time import sleep
+from typing import Tuple
 
 from pitop.common.firmware_device import DeviceInfo, FirmwareDevice
 from pitop.common.logger import PTLogger
@@ -26,7 +27,6 @@ class FirmwareUpdater(object):
     def __init__(self, fw_device: FirmwareDevice) -> None:
         self.device = fw_device
         self._packet = PacketManager()
-        self.__processed_firmware_files = list()
         self.set_current_device_info()
 
     def set_current_device_info(self):
@@ -66,7 +66,7 @@ class FirmwareUpdater(object):
             )
         )
 
-    def install_updates(self) -> bool:
+    def install_updates(self) -> Tuple[bool, bool]:
         fw_version_before_install = self.device_info.firmware_version
 
         PTLogger.info(f"Current device version is {fw_version_before_install}")

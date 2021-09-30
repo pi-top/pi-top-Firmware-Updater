@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from subprocess import getoutput
 from time import sleep
-from typing import List
+from typing import Dict, List
 
 from pitop.common.command_runner import run_command
 from pitop.common.firmware_device import (
@@ -14,9 +14,9 @@ from pitop.common.logger import PTLogger
 
 from .core.firmware_file_object import FirmwareFileObject
 
-devices_notified_this_session = []
-processed_firmware_files = {}
-fw_device_cache = {}
+devices_notified_this_session: List[str] = list()
+processed_firmware_files: Dict[str, List[str]] = dict()
+fw_device_cache: Dict[str, FirmwareDevice] = dict()
 
 
 def wait_for_pt_web_portal_if_required(
@@ -84,7 +84,7 @@ def wait_for_pt_web_portal_if_required(
         )
 
 
-def get_pi_top_fw_devices() -> List[dict]:
+def get_pi_top_fw_devices() -> dict:
     return FirmwareDevice.device_info
 
 
@@ -103,10 +103,10 @@ def already_notified_this_session(device_str: str) -> bool:
     return device_str in devices_notified_this_session
 
 
-def already_processed_file(file_path: str, device_str: str) -> None:
+def already_processed_file(file_path: str, device_str: str) -> bool:
     processed_files = processed_firmware_files.get(device_str)
     if processed_files is None:
-        processed_firmware_files[device_str] = []
+        processed_firmware_files[device_str] = list()
     elif file_path in processed_files:
         return True
     processed_firmware_files[device_str].append(file_path)
@@ -156,7 +156,7 @@ def is_valid_fw_object(fw_file_object: FirmwareFileObject) -> bool:
     return not (fw_file_object is None or fw_file_object.error)
 
 
-def run_firmware_updater(device_str: str, path_to_fw_object: str) -> int:
+def run_firmware_updater(device_str: str, path_to_fw_object: str) -> None:
     FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
     command_str = (
         f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}"
@@ -209,11 +209,11 @@ def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
                     PTLogger.warning(f"{device_str} error: {e}")
             else:
                 if device_str in processed_firmware_files:
-                    processed_firmware_files[device_str] = []
+                    processed_firmware_files[device_str] = list()
                 if device_str in devices_notified_this_session:
                     devices_notified_this_session.remove(device_str)
                 if device_str in fw_device_cache:
-                    processed_firmware_files[device_str] = None
+                    processed_firmware_files[device_str] = list()
 
         PTLogger.debug("Sleeping for {} secs before next check.".format(loop_time))
         sleep(loop_time)

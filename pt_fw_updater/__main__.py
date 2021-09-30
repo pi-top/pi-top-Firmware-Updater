@@ -87,7 +87,7 @@ def do_check(force, loop_time, wait_timeout, max_wait_timeout):
 @click.option(
     "-n",
     "--notify-user",
-    help="Make update interactive by displaying desktop notifcations to the user",
+    help="Make update interactive by displaying desktop notifications to the user",
     is_flag=True,
 )
 def do_update(device, force, interval, path, notify_user):
