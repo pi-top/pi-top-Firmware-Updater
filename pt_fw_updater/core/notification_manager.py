@@ -27,7 +27,8 @@ class NotificationManager(object):
         "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A reboot"
     )
     __HUB_REBOOT_CMD = (
-        "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A pt-hub-reboot"
+        "touch /tmp/.com.pi-top.pi-topd.pt-poweroff.reboot-on-shutdown && "
+        "env SUDO_ASKPASS=/usr/lib/pt-firmware-updater/pwdptfu.sh sudo -A shutdown -h now"
     )
     __FW_UPDATE_CMD = "echo OK"
 
