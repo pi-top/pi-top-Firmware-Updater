@@ -70,7 +70,6 @@ def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float):
 
 def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool):
     try:
-        print("Staging...")
         fw_file = FirmwareFileObject.from_file(path_to_fw_file)
         fw_updater.stage_file(fw_file, force)
     except PTInvalidFirmwareFile:
