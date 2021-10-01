@@ -137,7 +137,9 @@ def main(device, force, interval=0.1, path="", notify_user=True) -> None:
     if success:
         PTLogger.info("Operation finished successfully")
         if requires_restart and device_id == FirmwareDeviceID.pt4_hub:
-            PTLogger.info("Restart your pi-top to apply changes")
+            PTLogger.info(
+                "Run 'pt-hub-reboot' to perform a full system restart and apply changes"
+            )
         else:
             PTLogger.info("Disconnect and reconnect your device to apply changes")
     else:
