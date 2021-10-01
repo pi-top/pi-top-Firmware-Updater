@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from subprocess import getoutput
 from time import sleep
@@ -12,10 +11,15 @@ from pitop.common.firmware_device import (
 from pitop.common.lock import PTLock
 from pitop.common.logger import PTLogger
 
-from .core.firmware_file_object import FirmwareFileObject
+from .utils import (
+    default_firmware_folder,
+    find_latest_firmware,
+    i2c_addr_found,
+    is_valid_fw_object,
+    processed_firmware_files,
+)
 
 devices_notified_this_session: List[str] = list()
-processed_firmware_files: Dict[str, List[str]] = dict()
 fw_device_cache: Dict[str, FirmwareDevice] = dict()
 
 
@@ -84,76 +88,8 @@ def wait_for_pt_web_portal_if_required(
         )
 
 
-def get_pi_top_fw_devices() -> dict:
-    return FirmwareDevice.device_info
-
-
-def i2c_addr_found(device_address: int) -> bool:
-    try:
-        run_command(
-            f"i2cping {device_address}", timeout=1, check=True, log_errors=False
-        )
-        is_connected = True
-    except Exception:
-        is_connected = False
-    return is_connected
-
-
 def already_notified_this_session(device_str: str) -> bool:
     return device_str in devices_notified_this_session
-
-
-def already_processed_file(file_path: str, device_str: str) -> bool:
-    processed_files = processed_firmware_files.get(device_str)
-    if processed_files is None:
-        processed_firmware_files[device_str] = list()
-    elif file_path in processed_files:
-        return True
-    processed_firmware_files[device_str].append(file_path)
-    return False
-
-
-def default_firmware_folder(device_str: str) -> str:
-    DEFAULT_FIRMWARE_FOLDER_BASE = "/lib/firmware/pi-top/"
-    return DEFAULT_FIRMWARE_FOLDER_BASE + device_str
-
-
-def find_latest_firmware(
-    path_to_fw_folder: str, firmware_device: FirmwareDevice
-) -> str:
-    if not os.path.exists(path_to_fw_folder):
-        raise FileNotFoundError(
-            "Firmware path {} doesn't exist.".format(path_to_fw_folder)
-        )
-
-    firmware_object = FirmwareFileObject.from_device(firmware_device)
-
-    candidate_latest_fw_object = None
-    with os.scandir(path_to_fw_folder) as i:
-        for entry in i:
-            if already_processed_file(entry.path, firmware_device.str_name):
-                continue
-            fw_object = FirmwareFileObject.from_file(entry.path)
-            if fw_object.verify(
-                firmware_object.device_name, firmware_object.schematic_version
-            ):
-                if candidate_latest_fw_object is None or FirmwareFileObject.is_newer(
-                    candidate_latest_fw_object, fw_object, quiet=True
-                ):
-                    candidate_latest_fw_object = fw_object
-                    PTLogger.debug(
-                        f"Current latest firmware available is version {candidate_latest_fw_object.firmware_version}"
-                    )
-
-    if candidate_latest_fw_object:
-        PTLogger.info(
-            f"Latest firmware available is version {candidate_latest_fw_object.firmware_version}"
-        )
-    return candidate_latest_fw_object
-
-
-def is_valid_fw_object(fw_file_object: FirmwareFileObject) -> bool:
-    return not (fw_file_object is None or fw_file_object.error)
 
 
 def run_firmware_updater(device_str: str, path_to_fw_object: str) -> None:
@@ -191,9 +127,8 @@ def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
     if not force:
         wait_for_pt_web_portal_if_required(wait_timeout, max_wait_timeout)
 
-    pi_top_fw_devices_data = get_pi_top_fw_devices()
     while True:
-        for device_enum, device_info in pi_top_fw_devices_data.items():
+        for device_enum, device_info in FirmwareDevice.device_info.items():
             device_str = device_enum.name
             device_address = device_info.get("i2c_addr")
 

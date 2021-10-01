@@ -2,7 +2,6 @@
 import os
 from typing import Tuple
 
-from pitop.common.command_runner import run_command
 from pitop.common.common_ids import FirmwareDeviceID
 from pitop.common.firmware_device import (
     FirmwareDevice,
@@ -18,17 +17,12 @@ from .core.firmware_updater import (
     PTUpdatePending,
 )
 from .core.notification_manager import NotificationManager, UpdateStatusEnum
-
-
-def i2c_addr_found(device_address: int) -> bool:
-    try:
-        run_command(
-            f"i2cping {device_address}", timeout=1, check=True, log_errors=False
-        )
-        is_connected = True
-    except Exception:
-        is_connected = False
-    return is_connected
+from .utils import (
+    default_firmware_folder,
+    find_latest_firmware,
+    i2c_addr_found,
+    is_valid_fw_object,
+)
 
 
 def get_device_data(device_str: str):
@@ -76,6 +70,7 @@ def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float):
 
 def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool):
     try:
+        print("Staging...")
         fw_file = FirmwareFileObject.from_file(path_to_fw_file)
         fw_updater.stage_file(fw_file, force)
     except PTInvalidFirmwareFile:
@@ -99,7 +94,21 @@ def apply_update(fw_updater: FirmwareUpdater) -> Tuple[bool, bool]:
     return True, False
 
 
-def main(device, force, interval, path, notify_user) -> None:
+def main(device, force, interval=0.1, path="", notify_user=True) -> None:
+    if path == "":
+        PTLogger.info("No path specified - finding latest...")
+
+        fw_file_object = find_latest_firmware(
+            default_firmware_folder(device),
+            FirmwareDevice(FirmwareDevice.str_name_to_device_id(device)),
+        )
+
+        if not is_valid_fw_object(fw_file_object):
+            PTLogger.warning("No valid firmware object found")
+            return
+
+        path = fw_file_object.path
+
     if not os.path.isfile(path):
         raise ValueError(f"{path} isn't a valid file.")
 
