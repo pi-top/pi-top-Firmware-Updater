@@ -9,7 +9,7 @@ Type=simple
 Restart=on-failure
 Environment="PYTHONUNBUFFERED=1"
 Environment="PYTHONDONTWRITEBYTECODE=1"
-ExecStart=/usr/bin/pt-firmware-checker --loop-time 3 --wait-timeout 300 --max-wait-timeout 3600
+ExecStart=/usr/bin/pt-firmware-checker
 
 [Install]
 WantedBy=graphical.target
