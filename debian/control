@@ -21,9 +21,6 @@ Depends:
 # which doesn't require notify-send as a dependency)
  notify-send-ng,
  pt-firmware-images,
-Recommends:
- # Hard reboot (pt-hub-reboot)
- pi-topd,
 Description: pi-top Firmware Updater
  This package provides a background service that
  checks the firmware version of attached pi-top devices
