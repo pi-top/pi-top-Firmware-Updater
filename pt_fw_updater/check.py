@@ -92,17 +92,17 @@ def already_notified_this_session(device_str: str) -> bool:
     return device_str in devices_notified_this_session
 
 
-def run_firmware_updater(device_str: str, path_to_fw_object: str) -> None:
+def run_firmware_updater(device_str: str, path_to_fw_object: str, force: bool = False) -> None:
     FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
     command_str = (
-        f"{FW_UPDATER_BINARY} --path {path_to_fw_object} --notify-user {device_str}"
+        f"{FW_UPDATER_BINARY} --path {path_to_fw_object} {'' if force else '--notify-user'} {device_str}"
     )
     PTLogger.info(f"Running command: {command_str}")
     run_command(command_str, timeout=None)
     devices_notified_this_session.append(device_str)
 
 
-def check_and_update(device_enum):
+def check_and_update(device_enum, force=False):
     lock = PTLock(device_enum.name)
     if lock.is_locked():
         PTLogger.warning(
@@ -120,10 +120,10 @@ def check_and_update(device_enum):
 
     fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
     if is_valid_fw_object(fw_file_object):
-        run_firmware_updater(device_str, fw_file_object.path)
+        run_firmware_updater(device_str, fw_file_object.path, force)
 
 
-def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
+def main(force=False, loop_time=3, wait_timeout=300, max_wait_timeout=3600) -> None:
     if not force:
         wait_for_pt_web_portal_if_required(wait_timeout, max_wait_timeout)
 
@@ -136,7 +136,7 @@ def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
                 if already_notified_this_session(device_str):
                     continue
                 try:
-                    check_and_update(device_enum)
+                    check_and_update(device_enum, force)
                 except PTInvalidFirmwareDeviceException as e:
                     # Probably just probing for the wrong device at the same address - nothing to worry about
                     PTLogger.debug(f"{device_str} error: {e}")
@@ -150,5 +150,7 @@ def main(force, loop_time, wait_timeout, max_wait_timeout) -> None:
                 if device_str in fw_device_cache:
                     processed_firmware_files[device_str] = list()
 
-        PTLogger.debug("Sleeping for {} secs before next check.".format(loop_time))
+        if force:
+            break
+        PTLogger.debug(f"Sleeping for {loop_time} secs before next check.")
         sleep(loop_time)
