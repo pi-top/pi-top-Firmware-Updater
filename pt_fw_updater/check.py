@@ -92,11 +92,11 @@ def already_notified_this_session(device_str: str) -> bool:
     return device_str in devices_notified_this_session
 
 
-def run_firmware_updater(device_str: str, path_to_fw_object: str, force: bool = False) -> None:
+def run_firmware_updater(
+    device_str: str, path_to_fw_object: str, force: bool = False
+) -> None:
     FW_UPDATER_BINARY = "/usr/bin/pt-firmware-updater"
-    command_str = (
-        f"{FW_UPDATER_BINARY} --path {path_to_fw_object} {'' if force else '--notify-user'} {device_str}"
-    )
+    command_str = f"{FW_UPDATER_BINARY} --path {path_to_fw_object} {'' if force else '--notify-user'} {device_str}"
     PTLogger.info(f"Running command: {command_str}")
     run_command(command_str, timeout=None)
     devices_notified_this_session.append(device_str)
