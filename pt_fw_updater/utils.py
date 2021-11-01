@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Dict, List
 
 from pitop.common.command_runner import run_command
@@ -10,9 +11,12 @@ from .core.firmware_file_object import FirmwareFileObject
 processed_firmware_files: Dict[str, List[str]] = dict()
 
 
+def get_project_root() -> Path:
+    return Path(__file__).parent
+
+
 def default_firmware_folder(device_str: str) -> str:
-    DEFAULT_FIRMWARE_FOLDER_BASE = "/lib/firmware/pi-top/"
-    return DEFAULT_FIRMWARE_FOLDER_BASE + device_str
+    return os.path.abspath(os.path.join(get_project_root(), "bin", device_str))
 
 
 def i2c_addr_found(device_address: int) -> bool:
