@@ -42,3 +42,47 @@ pi-top.com_. To install on Raspberry Pi OS or other operating systems, check out
 .. _pi-top.com: https://www.pi-top.com/products/os/
 
 .. _Using pi-top Hardware with Raspberry Pi OS: https://pi-top.com/pi-top-rpi-os
+
+---------
+More Info
+---------
+
+Upgrade priorities (in order):
+
+* Candidate major version is newer
+* Candidate minor version is newer
+* Candidate is release version; current is preview
+* Candidate is newer preview version
+
+*NOTE: differing major schematic versions mean that the firmware is* **NOT** *compatible and are treated as separate devices.*
+
+Directory convention:
+
+`pt_fw_updater/bin/<device_name>`
+
+~~~~~~~~~~~~~~~~~~~
+Filename convention
+~~~~~~~~~~~~~~~~~~~
+
+> `<device_name>-v<maj_ver>.<min_ver>-sch<sch_maj_ver>-<type>[-<preview_build_timestamp>].bin`
+
+
+* `*_ver` (required)
+    * Major and minor firmware versions must be integers, and must start with '`v`'
+    * Schematic major version must be an integer, and must start with '`sch`'
+
+* `type` (required)
+    * Type of release takes the form of `release` or `preview`
+
+* `preview_build_timestamp` (optional)
+    * Integer representation of unix timestamp in seconds
+    * Used to determine if an upgrade is available between preview versions
+
+Examples:
+``
+pt4_expansion_plate/pt4_expansion_plate-v21.1-sch2-release.bin
+pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-preview-1591213651.bin
+pt4_expansion_plate/pt4_expansion_plate-v21.2-sch3-preview-1591213651.bin
+pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-release.bin
+pt4_expansion_plate/pt4_expansion_plate-v21.2-sch3-release.bin
+``

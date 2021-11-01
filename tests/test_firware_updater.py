@@ -8,15 +8,14 @@ mock_command_runner = modules["pitop.common.command_runner"] = Mock()
 mock_logger = modules["pitop.common.logger"] = Mock()
 mock_i2c = modules["pitop.common.i2c_device"] = Mock()
 
-import core.notification_manager  # noqa: E402
-import pt_firmware_updater as pt_firmware_updater  # noqa: E402
-from pitop.common.common_ids import FirmwareDeviceID  # noqa: E402
-from pitop.common.firmware_device import FirmwareDevice  # noqa: E402
+import core.notification_manager
+import pt_firmware_updater as pt_firmware_updater
+from pitop.common.common_ids import FirmwareDeviceID
+from pitop.common.firmware_device import FirmwareDevice
 
-from tests.utils import dotdict  # noqa: E402
-
-from .core.firmware_file_object import FirmwareFileObject  # noqa: E402
-from .core.firmware_updater import PTInvalidFirmwareFile  # noqa: E402
+from .core.firmware_file_object import FirmwareFileObject
+from .core.firmware_updater import PTInvalidFirmwareFile
+from .utils import dotdict
 
 
 class FirmwareUpdaterFunctionsTestCase(TestCase):
