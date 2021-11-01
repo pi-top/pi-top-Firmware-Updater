@@ -82,10 +82,8 @@ Filename convention
 
 Examples:
 
-```
-pt4_expansion_plate/pt4_expansion_plate-v21.1-sch2-release.bin
-pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-preview-1591213651.bin
-pt4_expansion_plate/pt4_expansion_plate-v21.2-sch3-preview-1591213651.bin
-pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-release.bin
-pt4_expansion_plate/pt4_expansion_plate-v21.2-sch3-release.bin
-```
+* `pt4_expansion_plate/pt4_expansion_plate-v21.1-sch2-release.bin`
+* `pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-preview-1591213651.bin`
+* `pt4_expansion_plate/pt4_expansion_plate-v21.2-sch3-preview-1591213651.bin`
+* `pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-release.bin`
+* `pt4_expansion_plate/pt4_expansion_plate-v21.2-sch3-release.bin`
