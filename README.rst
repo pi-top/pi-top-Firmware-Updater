@@ -56,7 +56,9 @@ Upgrade priorities (in order):
 
 *NOTE: differing major schematic versions mean that the firmware is* **NOT** *compatible and are treated as separate devices.*
 
-Directory convention:
+~~~~~~~~~~~~~~~~~~~~
+Directory convention
+~~~~~~~~~~~~~~~~~~~~
 
 `pt_fw_updater/bin/<device_name>`
 
@@ -79,6 +81,7 @@ Filename convention
     * Used to determine if an upgrade is available between preview versions
 
 Examples:
+
 ``
 pt4_expansion_plate/pt4_expansion_plate-v21.1-sch2-release.bin
 pt4_expansion_plate/pt4_expansion_plate-v21.2-sch2-preview-1591213651.bin
