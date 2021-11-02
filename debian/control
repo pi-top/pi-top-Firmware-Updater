@@ -20,7 +20,6 @@ Depends:
 # Uses notifications (uses SDK for actual implementation,
 # which doesn't require notify-send as a dependency)
  notify-send-ng,
- pt-firmware-images,
 Description: pi-top Firmware Updater
  This package provides a background service that
  checks the firmware version of attached pi-top devices
