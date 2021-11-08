@@ -1,12 +1,14 @@
+import logging
 import os
 from pathlib import Path
 from typing import Dict, List
 
 from pitop.common.command_runner import run_command
 from pitop.common.firmware_device import FirmwareDevice
-from pitop.common.logger import PTLogger
 
 from .core.firmware_file_object import FirmwareFileObject
+
+logger = logging.getLogger(__name__)
 
 processed_firmware_files: Dict[str, List[str]] = dict()
 
@@ -53,12 +55,12 @@ def find_latest_firmware(
                     candidate_latest_fw_object, fw_object, quiet=True
                 ):
                     candidate_latest_fw_object = fw_object
-                    PTLogger.debug(
+                    logger.debug(
                         f"Current latest firmware available is version {candidate_latest_fw_object.firmware_version}"
                     )
 
     if candidate_latest_fw_object:
-        PTLogger.info(
+        logger.info(
             f"Latest firmware available is version {candidate_latest_fw_object.firmware_version}"
         )
     return candidate_latest_fw_object

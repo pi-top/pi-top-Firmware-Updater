@@ -1,10 +1,12 @@
+import logging
 import os
 import re
 from distutils.version import StrictVersion
 
 from pitop.common.common_ids import FirmwareDeviceID
 from pitop.common.firmware_device import FirmwareDevice
-from pitop.common.logger import PTLogger
+
+logger = logging.getLogger(__name__)
 
 
 class FirmwareFileObject(object):
@@ -211,7 +213,7 @@ class FirmwareFileObject(object):
 
     def verify(self, device_name, schematic_board_rev) -> bool:
         if self.error:
-            PTLogger.error(
+            logger.error(
                 ("{} - Invalid format for firmware file {}: {}. Skipping...").format(
                     device_name, self.path, self.error_string
                 )
@@ -219,7 +221,7 @@ class FirmwareFileObject(object):
             return False
 
         if self.device_name != device_name:
-            PTLogger.warning(
+            logger.warning(
                 (
                     "{} - Firmware file '{}' device name does not match current device '{}'. Skipping..."
                 ).format(device_name, self.path, device_name)
@@ -227,7 +229,7 @@ class FirmwareFileObject(object):
             return False
 
         if self.schematic_version != schematic_board_rev:
-            PTLogger.warning(
+            logger.warning(
                 (
                     "{} - Firmware file '{}' schematic version '{}' does not match current device '{}'. Skipping..."
                 ).format(
@@ -236,7 +238,7 @@ class FirmwareFileObject(object):
             )
             return False
 
-        PTLogger.debug(
+        logger.debug(
             "{} - {} has a valid version ({})".format(
                 device_name, self.path, self.firmware_version
             )
@@ -253,7 +255,7 @@ class FirmwareFileObject(object):
             return None
 
         if not quiet:
-            PTLogger.info(
+            logger.info(
                 "{} - Firmware Versions: Current = {}, Candidate = {}".format(
                     reference.device_name,
                     reference.firmware_version,
@@ -263,7 +265,7 @@ class FirmwareFileObject(object):
 
         if candidate.firmware_version > reference.firmware_version:
             if not quiet:
-                PTLogger.info(
+                logger.info(
                     "{} - Candidate firmware version is newer.".format(
                         reference.device_name
                     )
@@ -271,7 +273,7 @@ class FirmwareFileObject(object):
             return True
         elif candidate.firmware_version < reference.firmware_version:
             if not quiet:
-                PTLogger.info(
+                logger.info(
                     "{} - Candidate firmware version is not newer. Skipping...".format(
                         reference.device_name
                     )
@@ -279,7 +281,7 @@ class FirmwareFileObject(object):
             return False
         else:
             if not quiet:
-                PTLogger.info(
+                logger.info(
                     (
                         "{} - Candidate firmware version matches current firmware version. "
                         "Checking build metadata to determine if candidate is a newer build."
@@ -288,7 +290,7 @@ class FirmwareFileObject(object):
 
             if reference.is_release is not None:
                 if not quiet:
-                    PTLogger.info(
+                    logger.info(
                         "{} - Reference firmware has 'is release build' property".format(
                             reference.device_name
                         )
@@ -296,7 +298,7 @@ class FirmwareFileObject(object):
                 # Assume all candidates have this
                 if candidate.is_release and not reference.is_release:
                     if not quiet:
-                        PTLogger.info(
+                        logger.info(
                             "{} - Candidate firmware version is release build, and current is not.".format(
                                 reference.device_name
                             )
@@ -304,14 +306,14 @@ class FirmwareFileObject(object):
                     return True
             if reference.timestamp is not None and candidate.timestamp is not None:
                 if not quiet:
-                    PTLogger.info(
+                    logger.info(
                         "{} - Both reference and candidate firmware has 'timestamp' property".format(
                             reference.device_name
                         )
                     )
                 if candidate.timestamp > reference.timestamp:
                     if not quiet:
-                        PTLogger.info(
+                        logger.info(
                             "{} - Candidate firmware is newer build.".format(
                                 reference.device_name
                             )
@@ -319,7 +321,7 @@ class FirmwareFileObject(object):
                     return True
 
         if not quiet:
-            PTLogger.info(
+            logger.info(
                 "{} - Candidate firmware is not newer. Skipping...".format(
                     reference.device_name
                 )
