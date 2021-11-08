@@ -1,12 +1,17 @@
+import logging
 from os import geteuid
 from sys import exit
 
 import click
+import click_logging
 from pitop.common.firmware_device import FirmwareDevice
-from pitop.common.logger import PTLogger
 from pitop.system import device_type
+from systemd.journal import JournalHandler
 
 from . import check, update
+
+logger = logging.getLogger()
+click_logging.basic_config(logger)
 
 
 def is_root() -> bool:
@@ -15,13 +20,11 @@ def is_root() -> bool:
 
 def handle_exit_cases():
     if device_type() != "pi-top [4]":
-        PTLogger.error("This program only runs on a pi-top [4]")
+        logger.error("This program only runs on a pi-top [4]")
         exit(0)
 
     if not is_root():
-        PTLogger.error(
-            "This program requires root privileges. Run as root using 'sudo'."
-        )
+        logger.error("This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
 
 
@@ -52,13 +55,14 @@ def handle_exit_cases():
     default=3600,
     type=click.IntRange(0, 9999),
 )
+@click_logging.simple_verbosity_option(logger)
+@click.version_option()
 def do_check(force, loop_time, wait_timeout, max_wait_timeout):
     handle_exit_cases()
-    PTLogger.setup_logging(logger_name="pt-firmware-updater")
     try:
         check.main(force, loop_time, wait_timeout, max_wait_timeout)
     except Exception as e:
-        PTLogger.error(f"{e}")
+        logger.error(f"{e}")
         exit(1)
 
 
@@ -92,14 +96,13 @@ def do_check(force, loop_time, wait_timeout, max_wait_timeout):
 )
 def do_update(device, force, interval, path, notify_user):
     handle_exit_cases()
-    PTLogger.setup_logging(
-        logger_name="pt-firmware-updater",
-        log_to_journal=True,
-    )
+
+    logger.addHandler(JournalHandler())
+
     try:
         update.main(device, force, interval, path, notify_user)
     except Exception as e:
-        PTLogger.error(f"{e}")
+        logger.error(f"{e}")
         exit(1)
 
 

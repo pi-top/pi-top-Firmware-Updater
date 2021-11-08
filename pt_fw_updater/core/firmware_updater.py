@@ -1,3 +1,4 @@
+import logging
 from hashlib import md5
 from os import makedirs, path
 from shutil import copyfile
@@ -5,10 +6,11 @@ from time import sleep
 from typing import Tuple
 
 from pitop.common.firmware_device import DeviceInfo, FirmwareDevice
-from pitop.common.logger import PTLogger
 
 from .firmware_file_object import FirmwareFileObject
 from .packet_manager import PacketManager, PacketType
+
+logger = logging.getLogger(__name__)
 
 
 class PTInvalidFirmwareFile(Exception):
@@ -39,7 +41,7 @@ class FirmwareUpdater(object):
         )
 
     def stage_file(self, fw_file: FirmwareFileObject, force: bool = False) -> None:
-        PTLogger.debug(
+        logger.debug(
             "{} - Verifying file {}".format(self.device_info.device_name, fw_file.path)
         )
 
@@ -51,7 +53,7 @@ class FirmwareUpdater(object):
             )
 
         if force is True:
-            PTLogger.warning(
+            logger.warning(
                 "Skipping firmware file verification (using --force argument)"
             )
         elif not self.__firmware_file_is_valid(fw_file):
@@ -60,7 +62,7 @@ class FirmwareUpdater(object):
             )
 
         self.__prepare_firmware_for_install(fw_file)
-        PTLogger.info(
+        logger.info(
             "{} - {} was staged to be updated (version {}).".format(
                 self.device_info.device_name, fw_file.path, fw_file.firmware_version
             )
@@ -69,10 +71,10 @@ class FirmwareUpdater(object):
     def install_updates(self) -> Tuple[bool, bool]:
         fw_version_before_install = self.device_info.firmware_version
 
-        PTLogger.info(f"Current device version is {fw_version_before_install}")
+        logger.info(f"Current device version is {fw_version_before_install}")
         self.__send_staged_firmware_to_device()
 
-        PTLogger.info(
+        logger.info(
             "{} - Successfully sent firmware to device.".format(
                 self.device_info.device_name
             )
@@ -92,7 +94,7 @@ class FirmwareUpdater(object):
 
         time_wait_mcu = 2
 
-        PTLogger.info(
+        logger.info(
             "{} - Sleeping for {} secs before verifying update".format(
                 self.device_info.device_name, time_wait_mcu
             )
@@ -103,26 +105,24 @@ class FirmwareUpdater(object):
         success = self.device_info.firmware_version > fw_version_before_install
 
         if success:
-            PTLogger.info(
+            logger.info(
                 "{} - Successfully restarted after update.".format(
                     self.device_info.device_name
                 )
             )
         else:
-            PTLogger.error(
-                "{} - Failed to update.".format(self.device_info.device_name)
-            )
+            logger.error("{} - Failed to update.".format(self.device_info.device_name))
 
         requires_restart = False
         return success, requires_restart
 
     def __send_staged_firmware_to_device(self) -> None:
         if not self.has_staged_updates():
-            PTLogger.error("There isn't a firmware staged to be installed on")
+            logger.error("There isn't a firmware staged to be installed on")
             return
 
         if self.fw_file_hash != self.__read_hash_from_file(self.fw_file_location):
-            PTLogger.error(
+            logger.error(
                 "{} - Binary file didn't pass the sanity check.".format(
                     self.device_info.device_name
                 )
@@ -135,7 +135,7 @@ class FirmwareUpdater(object):
         self.device.send_packet(DeviceInfo.FW__UPGRADE_START, starting_packet)
 
         fw_packets = self._packet.create_packets(PacketType.FwPackets)
-        PTLogger.info(
+        logger.info(
             "{} - Sending packages to device, please wait.".format(
                 self.device_info.device_name
             )
@@ -145,10 +145,10 @@ class FirmwareUpdater(object):
             self.device.send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
 
             if i == len(fw_packets) - 1:
-                PTLogger.info("{} - Finished.".format(self.device_info.device_name))
+                logger.info("{} - Finished.".format(self.device_info.device_name))
 
     def fw_downloaded_successfully(self) -> bool:
-        PTLogger.debug(
+        logger.debug(
             "Checking if device has previously loaded firmware ready to be installed"
         )
         check_fw_packet = None
@@ -161,18 +161,18 @@ class FirmwareUpdater(object):
                 if check_fw_packet:
                     break
             except Exception:
-                PTLogger.debug(
+                logger.debug(
                     f"Couldn't read FW OKAY register from device. Sleeping for {time_sleep_on_error} secs"
                 )
                 sleep(time_sleep_on_error)
 
         if check_fw_packet is None:
-            PTLogger.error("Couldn't read FW OKAY register from device")
+            logger.error("Couldn't read FW OKAY register from device")
             return False
         return self._packet.read_fw_download_verified_packet(check_fw_packet)
 
     def __candidate_fw_version_is_newer_than_current(self, fw_file: FirmwareFileObject):
-        PTLogger.debug("Checking if candidate firmware version is newer than device")
+        logger.debug("Checking if candidate firmware version is newer than device")
         return FirmwareFileObject.is_newer(self.device_info, fw_file)
 
     def __firmware_file_is_valid(self, fw_file: FirmwareFileObject):
@@ -201,7 +201,7 @@ class FirmwareUpdater(object):
         return hash.hexdigest()
 
     def __prepare_firmware_for_install(self, fw_file: FirmwareFileObject) -> None:
-        PTLogger.debug(
+        logger.debug(
             "{} - Preparing firmware for installation".format(
                 self.device_info.device_name
             )
@@ -218,7 +218,7 @@ class FirmwareUpdater(object):
         if self.fw_file_location != path_to_fw_file:
             makedirs(path.dirname(self.fw_file_location), exist_ok=True)
             copyfile(path_to_fw_file, self.fw_file_location)
-            PTLogger.debug(
+            logger.debug(
                 "{} - File copied to {}".format(
                     self.device_info.device_name, self.fw_file_location
                 )

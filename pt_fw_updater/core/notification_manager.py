@@ -1,10 +1,12 @@
+import logging
 from enum import Enum, auto
 from typing import Dict
 
 from pitop.common.common_ids import FirmwareDeviceID
 from pitop.common.common_names import FirmwareDeviceName
-from pitop.common.logger import PTLogger
 from pitop.common.notifications import NotificationActionManager, send_notification
+
+logger = logging.getLogger(__name__)
 
 
 class UpdateStatusEnum(Enum):
@@ -90,7 +92,7 @@ class NotificationManager(object):
         if update_enum not in UpdateStatusEnum:
             raise ValueError("{} is not a UpdateStatusEnum".format(update_enum))
 
-        PTLogger.info(
+        logger.info(
             "Notifying user. Device: {}; enum: {}".format(device_id.name, update_enum)
         )
 
@@ -111,7 +113,7 @@ class NotificationManager(object):
 
         notification_output_list = []
         if notification_output:
-            PTLogger.error(notification_output)
+            logger.error(notification_output)
             notification_id, *notification_output_list = notification_output.split()
             self.set_notification_id(device_id, notification_id)
         return notification_output_list
