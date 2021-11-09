@@ -1,0 +1,6 @@
+click python3-click; PEP386
+click-logging python3-click-logging; PEP386
+pyinotify python3-pyinotify; PEP386
+# Package will always update in-step with SDK
+# So avoid version-locking
+pitop python3-pitop
