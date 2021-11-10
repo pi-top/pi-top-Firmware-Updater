@@ -1,3 +1,24 @@
+pt-firmware-updater (4.0.0-2) bullseye; urgency=medium
+
+  * Updated master workflow files
+  * Drop default log_to_journal
+  * Use 'pi-topd' breadcrumb (#38)
+  * Fix shellcheck on pre-commit.ci (#39)
+  * New changelog entry: v3.3.0-1 (#37)
+  * Rework as pybuild application (#40)
+  * New changelog entry: v4.0.0-1 (#41)
+  * Fix __main__.py
+  * Add mypy to pre-commit (#44)
+  * Fix automatic path for updater (#45)
+  * Checker doesn't notify user when --force flag is set (#46)
+  * Use short link
+  * Include firmware images (#49)
+  * Remove PTLogger (#50)
+  * Add py3dist-overrides
+  * Add click-logging to setup.cfg
+
+ -- pi-top <deb-maintainers@pi-top.com>  Tue, 09 Nov 2021 17:03:15 +0000
+
 pt-firmware-updater (4.0.0-1) bullseye; urgency=medium
 
   * Rework as pybuild application (#40)
