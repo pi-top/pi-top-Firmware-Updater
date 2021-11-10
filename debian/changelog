@@ -1,7 +1,6 @@
 pt-firmware-updater (4.0.0-2) bullseye; urgency=medium
 
   * Updated master workflow files
-  * Updated master workflow files
   * Drop default log_to_journal
   * Use 'pi-topd' breadcrumb (#38)
   * Fix shellcheck on pre-commit.ci (#39)
@@ -14,9 +13,7 @@ pt-firmware-updater (4.0.0-2) bullseye; urgency=medium
   * Checker doesn't notify user when --force flag is set (#46)
   * Use short link
   * Include firmware images (#49)
-  * [pre-commit.ci] pre-commit autoupdate (#47)
   * Remove PTLogger (#50)
-  * [pre-commit.ci] pre-commit autoupdate (#51)
   * Add py3dist-overrides
   * Add click-logging to setup.cfg
 
