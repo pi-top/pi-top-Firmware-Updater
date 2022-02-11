@@ -41,26 +41,12 @@ def handle_exit_cases():
     default=3,
     type=click.IntRange(1, 300),
 )
-@click.option(
-    "-t",
-    "--wait-timeout",
-    help="Amount of time (in seconds) to wait for web portal to report that firmware updates can start, excluding an OS (system packages) upgrade.",
-    default=300,
-    type=click.IntRange(0, 999),
-)
-@click.option(
-    "-m",
-    "--max-wait-timeout",
-    help="Maximum time (in seconds) to wait for web portal to report that firmware updates can start, including an OS (system packages) upgrade.",
-    default=3600,
-    type=click.IntRange(0, 9999),
-)
 @click_logging.simple_verbosity_option(logger)
 @click.version_option()
-def do_check(force, loop_time, wait_timeout, max_wait_timeout):
+def do_check(force, loop_time):
     handle_exit_cases()
     try:
-        check.main(force, loop_time, wait_timeout, max_wait_timeout)
+        check.main(force, loop_time)
     except Exception as e:
         logger.error(f"{e}")
         exit(1)

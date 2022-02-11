@@ -1,6 +1,4 @@
 import logging
-from pathlib import Path
-from subprocess import getoutput
 from time import sleep
 from typing import Dict, List
 
@@ -23,71 +21,6 @@ logger = logging.getLogger(__name__)
 
 devices_notified_this_session: List[str] = list()
 fw_device_cache: Dict[str, FirmwareDevice] = dict()
-
-
-def wait_for_pt_web_portal_if_required(
-    wait_timeout: int, max_wait_timeout: int
-) -> None:
-    web_portal_is_active = getoutput("systemctl is-active pt-os-web-portal") == "active"
-    web_portal_is_enabled = (
-        getoutput("systemctl is-enabled pt-os-web-portal") == "enabled"
-    )
-    wait_for_web_portal = web_portal_is_active or web_portal_is_enabled
-    logger.info("pt-os-web-portal is active? {}".format(web_portal_is_active))
-    logger.info("pt-os-web-portal is enabled? {}".format(web_portal_is_enabled))
-    logger.info(
-        "Wait for pt-os-web-portal to report that it is ready to start a firmware update? {}".format(
-            wait_for_web_portal
-        )
-    )
-
-    if not wait_for_web_portal:
-        logger.info("Nothing to wait for - continuing...")
-        return
-
-    logger.info("Waiting {} seconds.".format(wait_timeout))
-    ready_breadcrumb = Path(
-        "/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.ready"
-    )
-    extend_timeout_breadcrumb = Path(
-        "/tmp/.com.pi-top.pt-os-web-portal.pt-firmware-updater.extend-timeout"
-    )
-    wait_time = 0
-    was_using_extended_timeout = extend_timeout_breadcrumb.is_file()
-
-    # Wait no longer than max wait time
-    while wait_time <= max_wait_timeout:
-        is_using_extended_timeout = extend_timeout_breadcrumb.is_file()
-
-        if is_using_extended_timeout and not was_using_extended_timeout:
-            logger.info(
-                "Extending timeout - using 'max-wait-timeout', not 'wait-timeout'"
-            )
-
-        if wait_time <= wait_timeout or is_using_extended_timeout:
-            logger.debug("Wait time: {}s/{}s".format(wait_time, max_wait_timeout))
-            if ready_breadcrumb.is_file():
-                logger.info("Found 'ready' breadcrumb")
-                break
-        else:
-            logger.info("Wait time expired, and have not been told to extend timeout")
-            break
-
-        was_using_extended_timeout = is_using_extended_timeout
-        wait_time += 1
-        sleep(1)
-
-    if ready_breadcrumb.is_file():
-        logger.info(
-            "pt-os-web-portal has reported that it is ready for pi-top firmware checks. Wait time: {}s/{}s".format(
-                wait_time, wait_timeout
-            )
-        )
-        logger.info("Reason: {}".format(ready_breadcrumb.read_text()))
-    else:
-        logger.info(
-            "pt-os-web-portal did not report that it is ready for pi-top firmware checks - timed out."
-        )
 
 
 def already_notified_this_session(device_str: str) -> bool:
@@ -125,10 +58,7 @@ def check_and_update(device_enum, force=False):
         run_firmware_updater(device_str, fw_file_object.path, force)
 
 
-def main(force=False, loop_time=3, wait_timeout=300, max_wait_timeout=3600) -> None:
-    if not force:
-        wait_for_pt_web_portal_if_required(wait_timeout, max_wait_timeout)
-
+def main(force=False, loop_time=3) -> None:
     while True:
         for device_enum, device_info in FirmwareDevice.device_info.items():
             device_str = device_enum.name
