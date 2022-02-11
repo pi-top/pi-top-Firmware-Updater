@@ -1,3 +1,9 @@
+pt-firmware-updater (4.1.0-1) bullseye; urgency=medium
+
+  * Don't wait for system update checks to start service (#59)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Fri, 11 Feb 2022 11:32:37 +0000
+
 pt-firmware-updater (4.0.0-2) bullseye; urgency=medium
 
   * Updated master workflow files
