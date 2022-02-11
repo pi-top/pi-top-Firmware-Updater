@@ -1,3 +1,19 @@
+pt-firmware-updater (4.0.0-3) bullseye; urgency=medium
+
+  * [pre-commit.ci] pre-commit autoupdate (#52)
+  * [pre-commit.ci] pre-commit autoupdate (#53)
+  * Updated master workflow files
+  * [pre-commit.ci] pre-commit autoupdate (#55)
+  * [pre-commit.ci] pre-commit autoupdate (#56)
+  * Add signing key and passphrase to deb_release workflow
+  * [pre-commit.ci] pre-commit autoupdate (#57)
+  * [pre-commit.ci] pre-commit autoupdate (#58)
+  * Add pull request template
+  * Update PR template to track Github issues
+  * Don't wait for system update checks to start service (#59)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Fri, 11 Feb 2022 11:32:37 +0000
+
 pt-firmware-updater (4.0.0-2) bullseye; urgency=medium
 
   * Updated master workflow files
