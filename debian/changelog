@@ -1,12 +1,6 @@
-pt-firmware-updater (4.1.0-2) bullseye; urgency=medium
+pt-firmware-updater (4.1.1-1) bullseye; urgency=medium
 
-  * [pre-commit.ci] pre-commit autoupdate (#60)
-  * [pre-commit.ci] pre-commit autoupdate (#62)
   * Updated master workflow files
-  * [pre-commit.ci] pre-commit autoupdate (#63)
-  * [pre-commit.ci] pre-commit autoupdate (#65)
-  * [pre-commit.ci] pre-commit autoupdate (#66)
-  * [pre-commit.ci] pre-commit autoupdate (#67)
   * Set package version using environment variable (#69)
 
  -- pi-top <deb-maintainers@pi-top.com>  Thu, 18 Aug 2022 19:53:52 +0000
