@@ -1,3 +1,17 @@
+pt-firmware-updater (4.1.2-1) bullseye; urgency=medium
+
+  * Fix workflow variable: PYTHON_PYTHON_PACKAGE_VERSION -> PYTHON_PACKAGE_VERSION
+  * Update dependencies to use SDK subpackages (#71)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Mon, 03 Oct 2022 17:22:32 +0000
+
+pt-firmware-updater (4.1.1-1) bullseye; urgency=medium
+
+  * Updated master workflow files
+  * Set package version using environment variable (#69)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Thu, 18 Aug 2022 19:53:52 +0000
+
 pt-firmware-updater (4.1.0-1) bullseye; urgency=medium
 
   * Don't wait for system update checks to start service (#59)
