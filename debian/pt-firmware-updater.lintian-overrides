@@ -1,2 +1,2 @@
-pt-firmware-updater: no-manual-page usr/bin/pt-firmware-checker
-pt-firmware-updater: no-manual-page usr/bin/pt-firmware-updater
+pt-firmware-updater: no-manual-page [usr/bin/pt-firmware-checker]
+pt-firmware-updater: no-manual-page [usr/bin/pt-firmware-updater]
