@@ -111,9 +111,9 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
         pt_firmware_updater.FirmwareUpdater.fw_downloaded_successfully = Mock(
             return_value=False
         )
-        self.send_notification_mock = (
-            core.notification_manager.send_notification
-        ) = Mock(return_value="1")
+        self.send_notification_mock = core.notification_manager.send_notification = (
+            Mock(return_value="1")
+        )
 
     def tearDown(self):
         for f in (self.path_to_fw_device, self.path_to_fw_to_upgrade):
@@ -203,9 +203,9 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
             wrapped_apply_update.assert_called_once()
 
     def test_notifies_user_if_update_failed(self):
-        self.send_notification_mock = (
-            core.notification_manager.send_notification
-        ) = Mock(return_value="0\nOK")
+        self.send_notification_mock = core.notification_manager.send_notification = (
+            Mock(return_value="0\nOK")
+        )
         pt_firmware_updater.apply_update = Mock(return_value=[False, False])
 
         parsed_args = dotdict(
@@ -236,9 +236,9 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
         )
 
     def test_notifies_user_if_update_succeeds(self):
-        self.send_notification_mock = (
-            core.notification_manager.send_notification
-        ) = Mock(return_value="0\nOK")
+        self.send_notification_mock = core.notification_manager.send_notification = (
+            Mock(return_value="0\nOK")
+        )
         pt_firmware_updater.apply_update = Mock(return_value=[True, False])
 
         parsed_args = dotdict(
@@ -261,9 +261,9 @@ class FirmwareUpdaterFlowsTestCase(TestCase):
         )
 
     def test_notifies_user_about_required_reboot(self):
-        self.send_notification_mock = (
-            core.notification_manager.send_notification
-        ) = Mock(return_value="0\nOK")
+        self.send_notification_mock = core.notification_manager.send_notification = (
+            Mock(return_value="0\nOK")
+        )
         pt_firmware_updater.apply_update = Mock(return_value=[True, True])
 
         parsed_args = dotdict(
