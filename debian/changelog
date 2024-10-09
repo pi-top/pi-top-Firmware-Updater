@@ -1,3 +1,20 @@
+pt-firmware-updater (4.1.2-3) bullseye; urgency=medium
+
+  * Upload all artifacts on release
+  * Update release workflow
+
+ -- pi-top <deb-maintainers@pi-top.com>  Thu, 22 Feb 2024 16:45:50 +0000
+
+pt-firmware-updater (4.1.2-2) bullseye; urgency=medium
+
+  * Add CodeQL workflow for GitHub code scanning (#74)
+  * Updated master workflow files
+  * Updated master workflow files
+  * Updated master workflow files
+  * Package for bookworm (#76)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Thu, 22 Feb 2024 14:34:56 +0000
+
 pt-firmware-updater (4.1.2-1) bullseye; urgency=medium
 
   * Fix workflow variable: PYTHON_PYTHON_PACKAGE_VERSION -> PYTHON_PACKAGE_VERSION
