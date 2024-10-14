@@ -59,7 +59,7 @@ def create_firmware_device(device_id: FirmwareDeviceID, interval: float):
         raise
 
 
-def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float):
+def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float = 0.1):
     fw_device = create_firmware_device(device_id, interval)
     try:
         return FirmwareUpdater(fw_device)
@@ -126,14 +126,7 @@ def notify(
     return False
 
 
-def main(
-    device,
-    force,
-    interval=0.1,
-    path="",
-    notify_user=True,
-    on_progress: Optional[Callable] = None,
-) -> FwUpdateResult:
+def get_path_to_binary(device: str, path: str = "") -> str:
     if path == "":
         logger.info("No path specified - finding latest...")
 
@@ -143,18 +136,43 @@ def main(
         )
 
         if not is_valid_fw_object(fw_file_object):
-            logger.warning("No valid firmware object found")
-            return FwUpdateResult(
-                device=device,
-                success=False,
-                requires_reboot=False,
-                error=False,
-            )
+            raise PTInvalidFirmwareFile("No valid firmware object found")
 
         path = fw_file_object.path
 
     if not os.path.isfile(path):
         raise ValueError(f"{path} isn't a valid file.")
+
+    return path
+
+
+def is_updatable(device: str) -> bool:
+    try:
+        # Check if there's a binary available
+        get_path_to_binary(device)
+
+        # Check if the device is connected
+        device_id, device_addr = get_device_data(device)
+        if not i2c_addr_found(device_addr):
+            raise ConnectionError(f"Device {device} not detected")
+
+        # Check if we can create a firmware updater object
+        create_fw_updater_object(device_id)
+
+        return True
+    except Exception:
+        return False
+
+
+def main(
+    device,
+    force,
+    interval=0.1,
+    path="",
+    notify_user=True,
+    on_progress: Optional[Callable] = None,
+) -> FwUpdateResult:
+    path = get_path_to_binary(device, path)
 
     device_id, device_addr = get_device_data(device)
     if not i2c_addr_found(device_addr):
