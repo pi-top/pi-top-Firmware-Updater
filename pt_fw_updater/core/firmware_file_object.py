@@ -2,6 +2,7 @@ import logging
 import os
 import re
 from distutils.version import StrictVersion
+from typing import Optional
 
 from pitop.common.common_ids import FirmwareDeviceID
 from pitop.common.firmware_device import FirmwareDevice
@@ -19,7 +20,7 @@ class FirmwareFileObject(object):
         firmware_version: StrictVersion,
         schematic_version: int,
         is_release: bool,
-        timestamp: int = None,
+        timestamp: Optional[int] = None,
     ):
         self.path = path
         self.error = error
