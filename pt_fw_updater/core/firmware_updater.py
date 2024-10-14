@@ -3,7 +3,7 @@ from hashlib import md5
 from os import makedirs, path
 from shutil import copyfile
 from time import sleep
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 
 from pitop.common.firmware_device import DeviceInfo, FirmwareDevice
 
@@ -41,15 +41,11 @@ class FirmwareUpdater(object):
         )
 
     def stage_file(self, fw_file: FirmwareFileObject, force: bool = False) -> None:
-        logger.debug(
-            "{} - Verifying file {}".format(self.device_info.device_name, fw_file.path)
-        )
+        logger.debug(f"{self.device_info.device_name} - Verifying file {fw_file.path}")
 
         if self.fw_downloaded_successfully():
             raise PTUpdatePending(
-                "There's a binary uploaded to {} waiting to be installed".format(
-                    self.device_info.device_name
-                )
+                f"There's a binary uploaded to {self.device_info.device_name} waiting to be installed"
             )
 
         if force is True:
@@ -58,26 +54,33 @@ class FirmwareUpdater(object):
             )
         elif not self.__firmware_file_is_valid(fw_file):
             raise PTInvalidFirmwareFile(
-                "{} is not a valid candidate firmware file".format(fw_file.path)
+                f"{fw_file.path} is not a valid candidate firmware file"
             )
 
-        self.__prepare_firmware_for_install(fw_file)
+        self._copy_file_to_staging_folder(fw_file)
         logger.info(
-            "{} - {} was staged to be updated (version {}).".format(
-                self.device_info.device_name, fw_file.path, fw_file.firmware_version
-            )
+            f"{self.device_info.device_name} - {fw_file.path} was staged to be updated (version {fw_file.firmware_version})."
         )
 
-    def install_updates(self) -> Tuple[bool, bool]:
+    def install_updates(
+        self, on_progress: Optional[Callable] = None
+    ) -> Tuple[bool, bool]:
         fw_version_before_install = self.device_info.firmware_version
 
         logger.info(f"Current device version is {fw_version_before_install}")
-        self.__send_staged_firmware_to_device()
+
+        def report(progress):
+            if on_progress:
+                on_progress(progress)
+
+        def report_stagging_progress(progress):
+            # Sending the firmware to the device takes 90% of the whole process
+            report(progress * 0.9)
+
+        self._send_firmware_to_device(on_progress=report_stagging_progress)
 
         logger.info(
-            "{} - Successfully sent firmware to device.".format(
-                self.device_info.device_name
-            )
+            f"{self.device_info.device_name} - Successfully sent firmware to device."
         )
 
         success = True
@@ -88,44 +91,38 @@ class FirmwareUpdater(object):
             or self.device.get_fw_version_update_schema() == 0
         ):
             requires_restart = True
-            return success, requires_restart
-
-        self.device.reset()
-
-        time_wait_mcu = 2
-
-        logger.info(
-            "{} - Sleeping for {} secs before verifying update".format(
-                self.device_info.device_name, time_wait_mcu
-            )
-        )
-        sleep(time_wait_mcu)
-
-        self.set_current_device_info()
-        success = self.device_info.firmware_version > fw_version_before_install
-
-        if success:
-            logger.info(
-                "{} - Successfully restarted after update.".format(
-                    self.device_info.device_name
-                )
-            )
         else:
-            logger.error("{} - Failed to update.".format(self.device_info.device_name))
+            self.device.reset()
+            time_wait_mcu = 2
 
-        requires_restart = False
+            logger.info(
+                f"{self.device_info.device_name} - Sleeping for {time_wait_mcu} secs before verifying update"
+            )
+            sleep(time_wait_mcu)
+
+            self.set_current_device_info()
+            success = self.device_info.firmware_version > fw_version_before_install
+
+            if success:
+                logger.info(
+                    f"{self.device_info.device_name} - Successfully restarted after update."
+                )
+            else:
+                logger.error(f"{self.device_info.device_name} - Failed to update.")
+
+            requires_restart = False
+
+        report(100)
         return success, requires_restart
 
-    def __send_staged_firmware_to_device(self) -> None:
+    def _send_firmware_to_device(self, on_progress: Optional[Callable] = None) -> None:
         if not self.has_staged_updates():
             logger.error("There isn't a firmware staged to be installed on")
             return
 
         if self.fw_file_hash != self.__read_hash_from_file(self.fw_file_location):
             logger.error(
-                "{} - Binary file didn't pass the sanity check.".format(
-                    self.device_info.device_name
-                )
+                f"{self.device_info.device_name} - Binary file didn't pass the sanity check."
             )
             return
 
@@ -136,16 +133,17 @@ class FirmwareUpdater(object):
 
         fw_packets = self._packet.create_packets(PacketType.FwPackets)
         logger.info(
-            "{} - Sending packages to device, please wait.".format(
-                self.device_info.device_name
-            )
+            f"{self.device_info.device_name} - Sending packages to device, please wait."
         )
+
         for i in range(len(fw_packets)):
             packet = fw_packets[i]
             self.device.send_packet(DeviceInfo.FW__UPGRADE_PACKET, packet)
 
-            if i == len(fw_packets) - 1:
-                logger.info("{} - Finished.".format(self.device_info.device_name))
+            if on_progress:
+                on_progress(100 * (i + 1) / len(fw_packets))
+
+        logger.info(f"{self.device_info.device_name} - Finished.")
 
     def fw_downloaded_successfully(self) -> bool:
         logger.debug(
@@ -200,11 +198,9 @@ class FirmwareUpdater(object):
             hash.update(buff)
         return hash.hexdigest()
 
-    def __prepare_firmware_for_install(self, fw_file: FirmwareFileObject) -> None:
+    def _copy_file_to_staging_folder(self, fw_file: FirmwareFileObject) -> None:
         logger.debug(
-            "{} - Preparing firmware for installation".format(
-                self.device_info.device_name
-            )
+            f"{self.device_info.device_name} - Preparing firmware for installation"
         )
         path_to_fw_file = path.abspath(fw_file.path)
 
@@ -219,7 +215,5 @@ class FirmwareUpdater(object):
             makedirs(path.dirname(self.fw_file_location), exist_ok=True)
             copyfile(path_to_fw_file, self.fw_file_location)
             logger.debug(
-                "{} - File copied to {}".format(
-                    self.device_info.device_name, self.fw_file_location
-                )
+                f"{self.device_info.device_name} - File copied to {self.fw_file_location}"
             )
