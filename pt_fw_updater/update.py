@@ -106,7 +106,11 @@ class FwUpdateResult:
     error: bool = False
 
 
-def notify_user(notification_manager, device_id, notification_enum):
+def notify(
+    notification_manager: NotificationManager,
+    device_id: int,
+    notification_enum: UpdateStatusEnum,
+) -> bool:
     if notification_enum == UpdateStatusEnum.PROMPT:
         user_response = notification_manager.notify_user(
             UpdateStatusEnum.PROMPT, device_id
@@ -119,6 +123,7 @@ def notify_user(notification_manager, device_id, notification_enum):
         return True
 
     notification_manager.notify_user(notification_enum, device_id)
+    return False
 
 
 def main(
@@ -160,7 +165,7 @@ def main(
 
     if notify_user:
         notification_manager = NotificationManager()
-        if not notify_user(notification_manager, device_id, UpdateStatusEnum.PROMPT):
+        if not notify(notification_manager, device_id, UpdateStatusEnum.PROMPT):
             return FwUpdateResult(
                 device=device,
                 success=False,
@@ -191,7 +196,7 @@ def main(
         status = UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE
         if success and requires_restart:
             status = UpdateStatusEnum.SUCCESS_REQUIRES_RESTART
-        notify_user(notification_manager, device_id, status)
+        notify(notification_manager, device_id, status)
 
     return FwUpdateResult(
         device=device, success=success, requires_reboot=requires_restart
