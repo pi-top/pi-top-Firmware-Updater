@@ -1,3 +1,9 @@
+pt-firmware-updater (4.2.0-1) bullseye; urgency=medium
+
+  * Add hub v5.6 firmware for sch9 and sch10 - add battery shutdown mode (#78)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Thu, 10 Oct 2024 14:21:05 +0000
+
 pt-firmware-updater (4.1.2-3) bullseye; urgency=medium
 
   * Upload all artifacts on release
