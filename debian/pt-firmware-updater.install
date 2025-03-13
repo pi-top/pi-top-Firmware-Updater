@@ -1,1 +1,2 @@
 debian/extra/pwdptfu.sh                     /usr/lib/pt-firmware-updater/
+debian/extra/99-pt-fw-update-check          /etc/update-motd.d/

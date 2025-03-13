@@ -18,11 +18,13 @@ def is_root() -> bool:
     return geteuid() == 0
 
 
-def handle_exit_cases():
+def exit_on_invalid_device_type():
     if device_type() != "pi-top [4]":
         logger.error("This program only runs on a pi-top [4]")
         exit(0)
 
+
+def exit_on_non_root_user():
     if not is_root():
         logger.error("This program requires root privileges. Run as root using 'sudo'.")
         exit(1)
@@ -44,7 +46,7 @@ def handle_exit_cases():
 @click_logging.simple_verbosity_option(logger)
 @click.version_option()
 def do_check(force, loop_time):
-    handle_exit_cases()
+    exit_on_invalid_device_type()
     try:
         check.main(force, loop_time)
     except Exception as e:
@@ -81,7 +83,8 @@ def do_check(force, loop_time):
     is_flag=True,
 )
 def do_update(device, force, interval, path, notify_user):
-    handle_exit_cases()
+    exit_on_invalid_device_type()
+    exit_on_non_root_user()
 
     logger.addHandler(JournalHandler())
 
