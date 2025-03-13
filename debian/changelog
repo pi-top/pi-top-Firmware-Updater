@@ -1,4 +1,4 @@
-pt-firmware-updater (4.1.2-4) bullseye; urgency=medium
+pt-firmware-updater (4.2.0-1) bullseye; urgency=medium
 
   * Add hub v5.6 firmware for sch9 and sch10 - add battery shutdown mode (#78)
 
