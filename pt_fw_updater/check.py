@@ -37,6 +37,18 @@ def run_firmware_updater(
     devices_notified_this_session.append(device_str)
 
 
+def get_path_to_binary(device_enum) -> str:
+    device_str = device_enum.name
+    path_to_fw_folder = default_firmware_folder(device_str)
+
+    fw_device = FirmwareDevice(device_enum)
+
+    fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
+    if is_valid_fw_object(fw_file_object):
+        return fw_file_object.path
+    return ""
+
+
 def check_and_update(device_enum, force=False):
     lock = PTLock(device_enum.name)
     if lock.is_locked():
@@ -45,17 +57,9 @@ def check_and_update(device_enum, force=False):
         )
         return
 
-    device_str = device_enum.name
-    path_to_fw_folder = default_firmware_folder(device_str)
-
-    fw_device = fw_device_cache.get(device_enum.name)
-    if fw_device_cache.get(device_enum.name) is None:
-        fw_device = FirmwareDevice(device_enum)
-        fw_device_cache[device_str] = fw_device
-
-    fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
-    if is_valid_fw_object(fw_file_object):
-        run_firmware_updater(device_str, fw_file_object.path, force)
+    path = get_path_to_binary(device_enum)
+    if len(path) > 0:
+        run_firmware_updater(device_enum.name, path, force)
 
 
 def main(force=False, loop_time=3) -> None:

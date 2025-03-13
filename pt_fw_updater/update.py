@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import logging
 import os
-from typing import Tuple
+from dataclasses import dataclass
+from typing import Callable, Optional, Tuple
 
 from pitop.common.common_ids import FirmwareDeviceID
 from pitop.common.firmware_device import (
@@ -58,7 +59,7 @@ def create_firmware_device(device_id: FirmwareDeviceID, interval: float):
         raise
 
 
-def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float):
+def create_fw_updater_object(device_id: FirmwareDeviceID, interval: float = 0.1):
     fw_device = create_firmware_device(device_id, interval)
     try:
         return FirmwareUpdater(fw_device)
@@ -82,20 +83,50 @@ def stage_update(fw_updater: FirmwareUpdater, path_to_fw_file: str, force: bool)
         raise
 
 
-def apply_update(fw_updater: FirmwareUpdater) -> Tuple[bool, bool]:
+def apply_update(
+    fw_updater: FirmwareUpdater, on_progress: Optional[Callable]
+) -> Tuple[bool, bool]:
     try:
         if fw_updater.has_staged_updates():
-            return fw_updater.install_updates()
+            return fw_updater.install_updates(on_progress)
     except (ConnectionError, AttributeError, PTInvalidFirmwareDeviceException) as e:
-        logger.warning("Exception while trying to update: {}".format(e))
+        logger.warning(f"Exception while trying to update: {e}")
         raise
     except Exception as e:
-        logger.error("Generic exception while trying to update: {}".format(e))
+        logger.error(f"Generic exception while trying to update: {e}")
         raise
     return True, False
 
 
-def main(device, force, interval=0.1, path="", notify_user=True) -> None:
+@dataclass
+class FwUpdateResult:
+    device: str
+    success: bool
+    requires_reboot: bool = False
+    error: bool = False
+
+
+def notify(
+    notification_manager: NotificationManager,
+    device_id: int,
+    notification_enum: UpdateStatusEnum,
+) -> bool:
+    if notification_enum == UpdateStatusEnum.PROMPT:
+        user_response = notification_manager.notify_user(
+            UpdateStatusEnum.PROMPT, device_id
+        )
+        logger.info(f"User response: {user_response}")
+        if "OK" not in user_response:
+            logger.info("User declined upgrade... exiting")
+            return False
+        notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
+        return True
+
+    notification_manager.notify_user(notification_enum, device_id)
+    return False
+
+
+def get_path_to_binary(device: str, path: str = "") -> str:
     if path == "":
         logger.info("No path specified - finding latest...")
 
@@ -105,13 +136,43 @@ def main(device, force, interval=0.1, path="", notify_user=True) -> None:
         )
 
         if not is_valid_fw_object(fw_file_object):
-            logger.warning("No valid firmware object found")
-            return
+            raise PTInvalidFirmwareFile("No valid firmware object found")
 
         path = fw_file_object.path
 
     if not os.path.isfile(path):
         raise ValueError(f"{path} isn't a valid file.")
+
+    return path
+
+
+def is_updatable(device: str) -> bool:
+    try:
+        # Check if there's a binary available
+        get_path_to_binary(device)
+
+        # Check if the device is connected
+        device_id, device_addr = get_device_data(device)
+        if not i2c_addr_found(device_addr):
+            raise ConnectionError(f"Device {device} not detected")
+
+        # Check if we can create a firmware updater object
+        create_fw_updater_object(device_id)
+
+        return True
+    except Exception:
+        return False
+
+
+def main(
+    device,
+    force,
+    interval=0.1,
+    path="",
+    notify_user=True,
+    on_progress: Optional[Callable] = None,
+) -> FwUpdateResult:
+    path = get_path_to_binary(device, path)
 
     device_id, device_addr = get_device_data(device)
     if not i2c_addr_found(device_addr):
@@ -122,18 +183,17 @@ def main(device, force, interval=0.1, path="", notify_user=True) -> None:
 
     if notify_user:
         notification_manager = NotificationManager()
-        user_response = notification_manager.notify_user(
-            UpdateStatusEnum.PROMPT, device_id
-        )
-        logger.info(f"User response: {user_response}")
-        if "OK" not in user_response:
-            logger.info("User declined upgrade... exiting")
-            return
-        notification_manager.notify_user(UpdateStatusEnum.ONGOING, device_id)
+        if not notify(notification_manager, device_id, UpdateStatusEnum.PROMPT):
+            return FwUpdateResult(
+                device=device,
+                success=False,
+                requires_reboot=False,
+                error=False,
+            )
 
     lock_file = PTLock(device)
     with lock_file:
-        success, requires_restart = apply_update(fw_updater)
+        success, requires_restart = apply_update(fw_updater, on_progress)
 
     if success:
         logger.info("Operation finished successfully")
@@ -151,9 +211,11 @@ def main(device, force, interval=0.1, path="", notify_user=True) -> None:
         )
 
     if notify_user:
-        status = UpdateStatusEnum.FAILURE
+        status = UpdateStatusEnum.SUCCESS if success else UpdateStatusEnum.FAILURE
         if success and requires_restart:
             status = UpdateStatusEnum.SUCCESS_REQUIRES_RESTART
-        elif success:
-            status = UpdateStatusEnum.SUCCESS
-        notification_manager.notify_user(status, device_id)
+        notify(notification_manager, device_id, status)
+
+    return FwUpdateResult(
+        device=device, success=success, requires_reboot=requires_restart
+    )
