@@ -9,6 +9,7 @@ from pitop.common.firmware_device import (
 )
 from pitop.common.lock import PTLock
 
+from .core.firmware_file_object import FirmwareFileObject
 from .utils import (
     default_firmware_folder,
     find_latest_firmware,
@@ -54,8 +55,16 @@ def check_and_update(device_enum, force=False):
         fw_device_cache[device_str] = fw_device
 
     fw_file_object = find_latest_firmware(path_to_fw_folder, fw_device)
-    if is_valid_fw_object(fw_file_object):
-        run_firmware_updater(device_str, fw_file_object.path, force)
+    if not is_valid_fw_object(fw_file_object):
+        return
+
+    if not force and not FirmwareFileObject.is_newer(
+        FirmwareFileObject.from_device(fw_device), fw_file_object
+    ):
+        logger.info(f"{device_str} firmware is up to date")
+        return
+
+    run_firmware_updater(device_str, fw_file_object.path, force)
 
 
 def main(force=False, loop_time=3) -> None:
